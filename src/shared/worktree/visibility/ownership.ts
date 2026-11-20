@@ -3,6 +3,7 @@ import {
   relativePathInsideRoot
 } from '../../cross-platform-path'
 import { parseWslUncPath } from '../../file-access/wsl-paths'
+import { LEGACY_ORCA_HOME_FOLDER_NAME, ZOTZ_HOME_FOLDER_NAME } from '../../zotz/zotz-home-folders'
 import {
   isRuntimePathAbsoluteForRepo,
   resolveConfiguredWorktreeBasePaths,
@@ -95,12 +96,17 @@ function buildWslWorkspaceLayouts(
   if (!linuxHome) {
     return []
   }
-  const root = `//wsl.localhost/${parsed.distro}${linuxHome}/orca/workspaces`
+  // Older builds mirrored into ~/orca/workspaces; keep it so those checkouts stay owned.
+  const roots = [ZOTZ_HOME_FOLDER_NAME, LEGACY_ORCA_HOME_FOLDER_NAME].map(
+    (folder) => `//wsl.localhost/${parsed.distro}${linuxHome}/${folder}/workspaces`
+  )
   const historicalModes = (settings.workspaceDirHistory ?? []).map(
     (layout) => layout.nestWorkspaces
   )
   const modes = [settings.nestWorkspaces, ...historicalModes]
-  return [...new Set(modes)].map((nestWorkspaces) => ({ path: root, nestWorkspaces }))
+  return roots.flatMap((root) =>
+    [...new Set(modes)].map((nestWorkspaces) => ({ path: root, nestWorkspaces }))
+  )
 }
 
 export function classifyWorktreeOwnership(args: {

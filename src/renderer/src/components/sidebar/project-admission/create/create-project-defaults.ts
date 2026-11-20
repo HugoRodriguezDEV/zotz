@@ -6,7 +6,7 @@ function pathSeparatorFor(pathValue: string): '/' | '\\' {
 
 /** Use ~ only for recognized OS home layouts; suffix-matching arbitrary orca/projects paths would mislabel them. */
 function isHomeProjectsFallback(pathValue: string): boolean {
-  return /^(?:\/(?:Users|home)\/[^/]+|[A-Za-z]:[\\/]Users[\\/][^\\/]+)[\\/]orca[\\/]projects$/.test(
+  return /^(?:\/(?:Users|home)\/[^/]+|[A-Za-z]:[\\/]Users[\\/][^\\/]+)[\\/]zotz[\\/]projects$/.test(
     pathValue
   )
 }
@@ -95,7 +95,7 @@ export function formatCreateProjectParentSummary({
     !isRemoteHost &&
     isHomeProjectsFallback(trimmedParent)
   ) {
-    return '~/orca/projects'
+    return '~/zotz/projects'
   }
   return trimmedParent
 }
