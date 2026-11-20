@@ -15,6 +15,41 @@ import { hideBrokenImage } from './ZotzTaskCard'
 
 export const ZOTZ_TASK_CONNECTORS_SECTION_ID = 'zotz-task-connectors'
 
+type ConnectorsApi = NonNullable<typeof window.api.zotzTaskConnectors>
+
+type ConnectOutcome =
+  | { kind: 'no-encryption' }
+  | { kind: 'failed'; error: string | null }
+  | { kind: 'ok'; connector: ZotzTaskConnectorConfig; total: number }
+
+/** Stores the token first so the very first download already sends it; a failed feed leaves nothing behind. */
+async function connectFeed(
+  api: ConnectorsApi,
+  url: string,
+  token: string
+): Promise<ConnectOutcome> {
+  const id = `feed-${createNonSecureContextUuid().slice(0, 8)}`
+  if (token && !(await api.setToken(id, token))) {
+    return { kind: 'no-encryption' }
+  }
+  const result = (await api.refresh([{ id, url }])).find((item) => item.id === id)
+  if (!result?.document) {
+    await api.remove(id)
+    return { kind: 'failed', error: result?.error ?? null }
+  }
+  return {
+    kind: 'ok',
+    connector: {
+      id,
+      kind: 'url',
+      url,
+      name: result.document.source.name,
+      hasToken: token.length > 0
+    },
+    total: result.document.tasks.length
+  }
+}
+
 /** Settings → Tasks: external services that publish tasks in the zotz-tasks/v1 format. */
 export function ZotzTaskConnectorsSetting({
   settings,
@@ -63,47 +98,41 @@ export function ZotzTaskConnectorsSetting({
     }
     setBusy(true)
     setMessage(null)
-    const id = `feed-${createNonSecureContextUuid().slice(0, 8)}`
-    try {
-      if (token.trim() && !(await api.setToken(id, token.trim()))) {
-        setMessage({
-          tone: 'error',
-          text: t(
-            'zotz.taskConnectors.noEncryption',
-            "This system can't encrypt the token, so it wasn't saved."
-          )
-        })
-        return
-      }
-      const result = (await api.refresh([{ id, url: feedUrl }])).find((item) => item.id === id)
-      setSnapshots(await api.snapshot())
-      if (!result?.document) {
-        await api.remove(id)
-        setMessage({
-          tone: 'error',
-          text: result?.error ?? t('zotz.taskConnectors.failed', "Couldn't read that service.")
-        })
-        return
-      }
-      upsert({
-        id,
-        kind: 'url',
-        url: feedUrl,
-        name: result.document.source.name,
-        hasToken: token.trim().length > 0
+    const outcome = await connectFeed(api, feedUrl, token.trim()).catch(
+      (error: unknown): ConnectOutcome => ({
+        kind: 'failed',
+        error: error instanceof Error ? error.message : String(error)
       })
-      setUrl('')
-      setToken('')
+    )
+    setBusy(false)
+    reload()
+    if (outcome.kind === 'no-encryption') {
       setMessage({
-        tone: 'ok',
-        text: t('zotz.taskConnectors.connected', 'Connected {{name}}: {{total}} tasks.', {
-          name: result.document.source.name,
-          total: result.document.tasks.length
-        })
+        tone: 'error',
+        text: t(
+          'zotz.taskConnectors.noEncryption',
+          "This system can't encrypt the token, so it wasn't saved."
+        )
       })
-    } finally {
-      setBusy(false)
+      return
     }
+    if (outcome.kind === 'failed') {
+      setMessage({
+        tone: 'error',
+        text: outcome.error ?? t('zotz.taskConnectors.failed', "Couldn't read that service.")
+      })
+      return
+    }
+    upsert(outcome.connector)
+    setUrl('')
+    setToken('')
+    setMessage({
+      tone: 'ok',
+      text: t('zotz.taskConnectors.connected', 'Connected {{name}}: {{total}} tasks.', {
+        name: outcome.connector.name,
+        total: outcome.total
+      })
+    })
   }
 
   const importFile = async (): Promise<void> => {

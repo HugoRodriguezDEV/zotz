@@ -79,8 +79,9 @@ export function startZotzTaskConnectors(userDataPath: string): () => void {
   ipcMain.handle('zotzTasks:remove', (event, id: unknown) => {
     const valid = connectorId(id)
     if (isWindowRenderer(event) && valid) {
-      service.remove(valid)
+      return service.remove(valid)
     }
+    return undefined
   })
   return () => {
     for (const channel of CHANNELS) {
