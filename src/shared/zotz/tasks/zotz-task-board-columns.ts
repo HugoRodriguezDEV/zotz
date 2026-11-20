@@ -44,6 +44,47 @@ const STATUS_SYNONYMS: Record<ZotzTaskBoardColumnId, readonly string[]> = {
   done: ['done', 'closed', 'complete', 'completed', 'shipped', 'released', 'resolved', 'terminado']
 }
 
+/**
+ * Word prefixes for status names nobody listed above, like "✅ Completado" or "Pendiente por
+ * priorizar". Checked in this order, so "Ready for review" lands in review, not backlog.
+ */
+const STATUS_KEYWORDS: readonly (readonly [ZotzTaskBoardColumnId, readonly string[]])[] = [
+  [
+    'done',
+    [
+      'done',
+      'complet',
+      'termin',
+      'finaliz',
+      'cerrad',
+      'closed',
+      'resuel',
+      'resolved',
+      'hecho',
+      'shipped',
+      'released'
+    ]
+  ],
+  ['in-review', ['review', 'revis', 'qa', 'test', 'prueba', 'validat', 'validac', 'aprob']],
+  ['in-progress', ['progres', 'doing', 'curso', 'wip', 'desarroll', 'working', 'trabajando']],
+  [
+    'backlog',
+    [
+      'backlog',
+      'todo',
+      'pendiente',
+      'hacer',
+      'ready',
+      'triage',
+      'priori',
+      'nuevo',
+      'new',
+      'icebox',
+      'plan'
+    ]
+  ]
+]
+
 function normalizeStatusName(name: string): string {
   return name
     .normalize('NFD')
@@ -55,7 +96,7 @@ function normalizeStatusName(name: string): string {
     .trim()
 }
 
-/** Matches a source's status option to a Zotz column by name, then by common synonyms. */
+/** Matches a source's status option to a Zotz column by name, then synonyms, then keywords. */
 export function zotzTaskBoardColumnForStatus(
   name: string | null | undefined
 ): ZotzTaskBoardColumnId | null {
@@ -71,6 +112,12 @@ export function zotzTaskBoardColumnForStatus(
   for (const column of ZOTZ_TASK_BOARD_COLUMNS) {
     if (STATUS_SYNONYMS[column.id].includes(normalized)) {
       return column.id
+    }
+  }
+  const words = normalized.split(' ')
+  for (const [column, keywords] of STATUS_KEYWORDS) {
+    if (keywords.some((keyword) => words.some((word) => word.startsWith(keyword)))) {
+      return column
     }
   }
   return null
