@@ -334,6 +334,22 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 
 ---
 
+## Fase 9 — Tablero de tareas (GitHub Projects + conectores externos)
+
+Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
+
+- [ ] 9a. Modal unificado con pestañas Tareas y Agentes; el botón de kanban de la barra lateral lo abre y el Workspace board queda oculto (no borrado).
+- [ ] 9b. GitHub de solo lectura con el modelo de GitHub Projects: elegir organizaciones/cuenta → Projects y repos; vistas (board/tabla, filtro con su sintaxis, Column by, Group by, Sort) y vistas espejo de un Project; tarjetas con marca de GitHub, logo y nombre de la org y el proyecto; detalle con "Abrir en GitHub"; "Archivar terminadas" (solo con botón) y vista Archivadas.
+- [ ] 9c. PRs ligados estilo Avena: línea de PR en la tarjeta; en el detalle, PRs y ramas ligadas, los que la mencionan, commit y archivos.
+- [ ] 9d. Contrato `zotz-tasks/v1` con campos tipo Project (JSON, también YAML/TOML), feed por URL, `zotz tasks push`/`validate`, importar archivo y endpoint obligatorio `link-pr`.
+- [ ] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
+- [ ] 9f. Acción `move` para fuentes externas, con comprobación previa.
+- Parte 2: relay propio en Vercel (GitHub App) para avisos al instante, vista roadmap, _Slice by_ y sumas de campos.
+
+**Listo cuando:** el tablero muestra juntas las tareas de los Projects elegidos y de un feed externo de prueba, cada una con su marca, su proyecto y sus PRs; un PR detectado llega al proveedor por `link-pr`; y ninguna tarea de GitHub se puede modificar desde Zotz.
+
+---
+
 ## Decisiones abiertas (las resuelve Hugo)
 
 1. **Notificaciones push al celular** (`push.onorca.dev`): las manda la infraestructura de StablyAI. Opciones: (a) dejarlas, que es cómodo pero los avisos pasan por sus servidores; (b) apagarlas y usar un bot propio de Telegram para los avisos (sería una Fase 8).
@@ -357,6 +373,7 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 | 6 Tailscale             | 5          | S                                      |
 | 7 Seguridad             | 5          | S (en su mayoría docs y configuración) |
 | 8 Gobernador de memoria | 4, 5       | L                                      |
+| 9 Tablero de tareas     | 8          | L                                      |
 
 Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
