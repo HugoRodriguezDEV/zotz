@@ -164,7 +164,7 @@ Pendiente de confirmar en la doc: el detalle de la columna "No Status" y la list
 - Usa las credenciales de GitHub que Orca ya tiene; no pide token nuevo.
 - Se actualiza al abrir el modal, cada 5 min mientras está abierto y con "Actualizar". Cerrado, no consulta nada.
 - Para no gastar el límite de la API: las consultas REST van con `ETag` (si nada cambió, GitHub responde `304` y no cuenta contra el límite) y las de GraphQL se piden solo para los Projects cuyo `updatedAt` cambió.
-- Cuando exista el relay (§8): cada aviso marca qué tarjetas releer y la consulta completa baja a cada 30 min como red de seguridad.
+- Con el relay (§8) activo: cada aviso relee solo lo afectado y la consulta completa baja a cada 30 min como red de seguridad. Si el relay falla, vuelve sola a cada 5 min.
 - La última lectura se guarda en disco para que el modal abra al instante con datos viejos y una marca "actualizado hace X".
 - La consulta de dueños pide además `avatarUrl`. Se hace en una consulta propia en `src/main/zotz/tasks/`, sin tocar `project-view-discovery.ts`.
 
@@ -273,7 +273,7 @@ JSON es el formato oficial, con un JSON Schema publicado en `docs/zotz/schemas/z
 ### 7.3 Cómo llegan las tareas
 
 1. **Feed por URL (pull):** URL, intervalo (≥ 1 min, default 5) y token opcional (`Authorization: Bearer …`, guardado en `electron-secret-store`). No requiere abrir puertos.
-2. **Push por el relay** (§8, después): el proveedor manda el documento al relay y Zotz lo recoge.
+2. **Push por el relay** (§8): el proveedor manda el documento al relay y Zotz lo recoge.
 3. **CLI:** `zotz tasks push <archivo> [--format json|yaml|toml]` y `zotz tasks push -` (stdin). `zotz tasks validate <archivo>` solo valida.
 4. **Importar archivo** desde Ajustes (para probar el formato).
 
@@ -338,7 +338,7 @@ Al ligar, y cada vez que el PR cambia de estado, Zotz manda:
 
 ## 8. Relay propio (webhooks) — parte 2
 
-No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de §6 y §7 no le cierre la puerta.
+Implementado (2026-11-20). Guía de puesta en marcha y API: [`RELAY.md`](./RELAY.md).
 
 ### 8.1 Por qué relay y no Tailscale Funnel
 
@@ -358,6 +358,27 @@ No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de
 - **Proveedores externos:** `POST /v1/sources/<sourceId>/push` con su token. Este documento **sí** lleva contenido, así que el relay lo entrega una vez y lo borra al confirmar (o a las 24 h). Así el proveedor no necesita llegar a la máquina de Zotz.
 - **Dónde vive:** función serverless en **Vercel** (plan gratuito) con almacenamiento clave-valor, en un repo aparte (`zotz-relay`). GitHub no sirve para esto: Pages solo publica archivos estáticos y Actions corre trabajos sueltos, no un servidor que reciba avisos.
 - **Personal vs org:** en proyectos personales no llega `projects_v2_item`. Ahí los cambios de campos del Project (mover de columna en GitHub) se ven por la consulta periódica; los de issues, PRs y pushes sí llegan por el relay.
+
+### 8.3 Cómo quedó
+
+- **Servicio** (`zotz-relay`): una sola función de Vercel (`api/index.ts`) con Upstash Redis del Marketplace (Vercel KV ya no existe). Rutas en [`RELAY.md`](./RELAY.md#api).
+  - El aviso guarda además `owner` (dueño del repo o de la org) y `projectNodeId` (para saber qué Project releer). Sigue sin contenido.
+  - **Cursor** = número del aviso. El relay responde `reset` si el dispositivo no trae cursor, si se borraron avisos que no vio (7 días) o si el almacenamiento se vació; Zotz entonces recarga todo.
+  - Los tokens de dispositivo y de proveedor se configuran como hashes SHA-256 en variables de entorno; el relay nunca guarda tokens.
+  - Los webhooks repetidos (`X-GitHub-Delivery`) se guardan una vez. `push` de tags y `ping` se ignoran.
+  - Una GitHub App privada solo se instala en su dueño: para orgs, una App privada por org (el relay acepta varios secretos) o una App pública con `ZOTZ_RELAY_ALLOWED_OWNERS`.
+  - Del documento de un proveedor se guarda solo el último por fuente.
+- **Zotz:**
+  - _Ajustes → Tareas → Relay para avisos al instante_: URL + token de dispositivo, cifrado con el `SecretStore` en `zotz-task-relay-secrets.json`. Se prueba antes de guardar. Apagado por defecto (setting `zotzTaskRelay`).
+  - `ZotzTaskRelayClient` (main, sin Electron) hace long-poll de 25 s **solo mientras algún tablero está abierto**. Cerrado, consulta cada 10 min para recoger documentos de proveedores. El cursor se guarda en `zotz-task-relay.json`.
+  - Qué se relee por aviso: `planZotzRelayReload` (tabla en [`RELAY.md`](./RELAY.md#cómo-funciona)). Los avisos se juntan 1.5 s antes de aplicarse.
+  - Los documentos de proveedores entran por `pushZotzTasksDocument`, como `zotz tasks push`, solo si su `source.id` coincide con el `sourceId` autenticado.
+  - La barra del tablero dice "En vivo" o "Relay caído".
+
+### 8.4 Pendiente
+
+- Desplegarlo: repo, Vercel, Upstash y la GitHub App los crea Hugo (o los crea el agente cuando Hugo lo apruebe).
+- Un documento de proveedor lo consume el primer dispositivo que lo confirma; no hay entrega por dispositivo.
 
 ## 9. Ciudadanos de primera clase
 
@@ -392,7 +413,7 @@ No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de
 - Los issues de repos sueltos se leen de GitHub (los 100 más recientes), no de clones locales.
 - Development no muestra despliegues ni en qué otras ramas cayó un merge.
 - "Crear workspace con esta tarea" no pone el cuerpo como primer prompt (el composer de Orca no lo acepta). El chip no puede decir "En cola" porque la cola no guarda el workspace.
-- El relay queda para después, por decisión de Hugo.
+- El relay (§8) llegó después, en su propio PR; ver §8.4.
 - La pestaña "Agentes" del modal se quitó: desde el PR #33 la cola de memoria tiene su propio panel lateral con todas las máquinas, que abre el indicador de la barra de estado. El modal es solo el tablero de tareas.
 
 - **9e — Tarea ↔ agente.** Chip de estado de agente en la tarjeta y "Crear workspace con esta tarea" (rama con el id de la tarea, `linkedIssue` en GitHub y el cuerpo como primer prompt).
@@ -408,7 +429,7 @@ Unit tests solo para lógica pura, con valores escritos a mano:
 - Mapeo de opciones a columnas combinadas (nombre, `category`, sinónimos, "No Status") y deduplicación Project/repo y PR/issue.
 - Parser de filtros: los ejemplos de §5.3 contra un conjunto fijo de tareas.
 - Detección por `taskIdPattern`: rama y título ligan; cuerpo y commit solo mencionan.
-- Relay: verificación de `X-Hub-Signature-256`.
+- Relay: verificación de `X-Hub-Signature-256` y cursores (en `zotz-relay`); qué recargar por cada aviso (`zotz-task-relay-reload.test.ts`).
 
 Sin tests de copy, de estilos ni de la UI del modal.
 

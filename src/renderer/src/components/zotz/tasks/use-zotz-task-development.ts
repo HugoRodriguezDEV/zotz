@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ZotzTaskBoardItem } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
 import {
   zotzIssueRefKey,
@@ -42,13 +42,19 @@ export function zotzTaskDevelopment(
   return ref ? (byIssue.get(zotzIssueRefKey(ref)) ?? null) : null
 }
 
-/** Loads Development for the GitHub issues on the board; `revision` forces a refetch. */
+/**
+ * Loads Development for the GitHub issues on the board. A new `revision` refetches all of them;
+ * `reload` refetches only some (relay notices).
+ */
 export function useZotzIssueDevelopment(
   items: readonly ZotzTaskBoardItem[],
   active: boolean,
   revision: number
-): ReadonlyMap<string, ZotzTaskDevelopment> {
+): { byIssue: ReadonlyMap<string, ZotzTaskDevelopment>; reload: (refs: ZotzIssueRef[]) => void } {
   const [, setVersion] = useState(0)
+  const [reloads, setReloads] = useState(0)
+  const appliedRevision = useRef(revision)
+  const forced = useRef(new Set<string>())
   // A string key keeps the request stable while the board re-renders with the same issues.
   const refsKey = useMemo(() => {
     const keys = new Set<string>()
@@ -76,11 +82,17 @@ export function useZotzIssueDevelopment(
     if (!active || !api || refs.length === 0) {
       return
     }
+    const forceAll = appliedRevision.current !== revision
+    appliedRevision.current = revision
     const now = Date.now()
     const stale = refs.filter((ref) => {
-      const known = cache.get(zotzIssueRefKey(ref))
-      return revision > 0 || !known || now - known.verifiedAt > FRESH_MS
+      const key = zotzIssueRefKey(ref)
+      const known = cache.get(key)
+      return forceAll || forced.current.has(key) || !known || now - known.verifiedAt > FRESH_MS
     })
+    for (const ref of stale) {
+      forced.current.delete(zotzIssueRefKey(ref))
+    }
     if (stale.length === 0) {
       return
     }
@@ -91,7 +103,7 @@ export function useZotzIssueDevelopment(
           cache.set(key, value)
         }
         if (!canceled) {
-          setVersion((version) => version + 1)
+          setVersion((value) => value + 1)
         }
       },
       () => undefined
@@ -99,9 +111,19 @@ export function useZotzIssueDevelopment(
     return () => {
       canceled = true
     }
-  }, [active, refs, revision])
+  }, [active, refs, revision, reloads])
 
-  return cache
+  const reload = useCallback((targets: ZotzIssueRef[]) => {
+    if (targets.length === 0) {
+      return
+    }
+    for (const ref of targets) {
+      forced.current.add(zotzIssueRefKey(ref))
+    }
+    setReloads((value) => value + 1)
+  }, [])
+
+  return { byIssue: cache, reload }
 }
 
 export const ZotzIssueDevelopmentContext = createContext<ReadonlyMap<string, ZotzTaskDevelopment>>(

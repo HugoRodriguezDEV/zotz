@@ -6,7 +6,10 @@ import {
 } from '../../../shared/zotz/tasks/zotz-task-connector-types'
 import type { ZotzTaskConnectorService } from './zotz-task-connector-service'
 
-export type ZotzTaskSettingsStore = Pick<Store, 'getSettings' | 'updateSettings'>
+export type ZotzTaskSettingsStore = Pick<
+  Store,
+  'getSettings' | 'updateSettings' | 'onSettingsChanged'
+>
 
 // Electron-free on purpose: the runtime RPC and the CLI reach this module, so window updates
 // come in as a callback from the desktop IPC instead of an Electron import.

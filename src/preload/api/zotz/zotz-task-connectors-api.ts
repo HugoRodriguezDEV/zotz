@@ -7,6 +7,10 @@ import type {
   ZotzIssueRef,
   ZotzTaskDevelopment
 } from '../../../shared/zotz/tasks/zotz-task-development-types'
+import type {
+  ZotzTaskRelayStatus,
+  ZotzTaskRelayUpdate
+} from '../../../shared/zotz/tasks/zotz-task-relay-types'
 
 export type ZotzTaskConnectorsApi = {
   /** Fires when a connector changed outside this window, e.g. `zotz tasks push`. */
@@ -47,4 +51,13 @@ export type ZotzTaskConnectorsApi = {
     taskId: string,
     url: string
   ) => Promise<ZotzTaskConnectorSnapshot | null>
+  /** Relay status changes and notices for the open board. */
+  onRelay: (callback: (update: ZotzTaskRelayUpdate) => void) => () => void
+  relayStatus: () => Promise<ZotzTaskRelayStatus>
+  /** This window's board opened or closed; the relay long-polls only while one is open. */
+  relayWatch: (active: boolean) => Promise<void>
+  /** Encrypts and stores the relay's device token; null clears it. False when the OS can't encrypt. */
+  relaySetToken: (token: string | null) => Promise<boolean>
+  /** Calls the relay once with the stored token. */
+  relayCheck: (url: string) => Promise<{ ok: true } | { ok: false; error: string }>
 }

@@ -346,7 +346,8 @@ Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 - [x] 9d, parte 2. JSON Schema publicado, `zotz tasks push`/`validate`/`schema` y endpoint `link-pr`.
 - [x] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
 - [x] 9f. Acción `move` para fuentes externas, con comprobación previa.
-- Pospuesto por Hugo (parte 2 de la fase): relay propio en Vercel (GitHub App) para avisos al instante, vista roadmap, _Slice by_ y sumas de campos.
+- [x] Relay propio (GitHub App + Vercel) para avisos al instante, opcional y apagado por defecto. Guía: [`RELAY.md`](./RELAY.md).
+- Pospuesto por Hugo (parte 2 de la fase): vista roadmap, _Slice by_ y sumas de campos.
 
 **Listo cuando:** el tablero muestra juntas las tareas de los Projects elegidos y de un feed externo de prueba, cada una con su marca, su proyecto y sus PRs; un PR detectado llega al proveedor por `link-pr`; y ninguna tarea de GitHub se puede modificar desde Zotz.
 
@@ -771,3 +772,27 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
   - **Ajustes sin el conector de `push`:** no se enteraba porque faltaba `notifyListeners`.
 - **Probado** en la app real con el Project TEDYC, un repo suelto, un servicio local con token y `zotz tasks push` desde la CLI compilada. El servicio recibió los `dryRun`, dos `link-pr` reales (un PR detectado por la rama `feature/issue-19-…` y otro declarado) y un `move`.
 - Los 4 tests de `cross-version-wire` fallan en esta máquina: una copia vieja en caché (`tests/e2e/.cross-version-checkouts/v1.4.265`) importa un paquete `cloud/` que no existe aquí. No es por este cambio.
+
+### 2026-11-20 — Fase 9, parte 2: relay de webhooks (`zotz-relay-webhooks`)
+
+- **Servicio `zotz-relay`** (repo aparte, Vercel + Upstash Redis):
+  - Recibe los webhooks de una GitHub App, verifica `X-Hub-Signature-256` y guarda solo el aviso (qué repo, número o Project cambió), 7 días.
+  - `GET /v1/events` con long-poll y token de dispositivo; `POST /v1/sources/<id>/push` para proveedores, con el documento 24 h o hasta que Zotz lo confirma.
+  - Tests de la firma (con el ejemplo de la doc de GitHub) y de los cursores.
+- **Zotz:**
+  - _Ajustes → Tareas → Relay para avisos al instante_: URL + token cifrado; apagado por defecto.
+  - Con el relay en vivo, cada aviso relee solo el Project, el repo o la sección Development afectada, y la consulta completa baja a cada 30 min. Si falla, vuelve a cada 5 min y la barra dice "Relay caído".
+  - Los documentos de proveedores entran como `zotz tasks push`, solo si su `source.id` es el de la fuente autenticada.
+- **Cambios de paso:**
+  - El manejo de tokens cifrados salió de `ZotzTaskConnectorService` a `ZotzTaskSecretFile`, que ahora guarda uno a la vez.
+  - La recarga del tablero es por fuente, así que releer un Project no cancela la carga de otro.
+  - Development ya no relee todos los issues en cada cambio de la lista después del primer refresco automático; solo con "Actualizar" o con un aviso.
+- **Sorpresas:**
+  - Vercel KV ya no existe; su reemplazo es Upstash Redis desde el Marketplace (plan gratis de 500,000 comandos al mes).
+  - Una GitHub App privada solo se instala en la cuenta que la creó. Para las orgs hace falta una App por org o una App pública con lista de cuentas permitidas.
+  - Bug previo: el refresco cada 5 min dependía de una función que cambiaba en cada render, así que después del primer tick el tablero se refrescaba en cada render. Se arregló al mover el temporizador a `useZotzTaskRelay`.
+- **Probado:**
+  - El relay local (`npm run dev`) con curl: firma inválida rechazada, entrega repetida descartada, long-poll que responde al llegar el webhook, push → documento → confirmación.
+  - `ZotzTaskRelayClient` contra ese relay: el aviso llegó al momento, el documento se importó y uno con otro `source.id` se descartó.
+  - La sección de Ajustes con la fixture `zotz/tasks/ZotzTaskRelaySetting` (conectar, en vivo, caído), en ambos temas.
+  - Sin desplegar ni probar con GitHub real: falta crear el repo, Vercel, Upstash y la GitHub App.

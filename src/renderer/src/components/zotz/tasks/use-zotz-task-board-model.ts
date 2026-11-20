@@ -38,6 +38,8 @@ export type ZotzTaskBoardModel = {
   externalMirror: ZotzExternalTaskSource | null
   /** Repos on the board, for matching services' tasks to pull requests. */
   repos: string[]
+  /** `repos` plus the ones services declare PRs in: a change there can move their PR links. */
+  watchedRepos: string[]
 }
 
 /** Scope, filter, sort and grouping of the board for one view; pure derivation of loaded data. */
@@ -156,6 +158,16 @@ export function useZotzTaskBoardModel(input: {
         )
       )
     ]
+    const watchedRepos = [
+      ...new Set([
+        ...repos,
+        ...externalSources.flatMap((source) =>
+          source.document.tasks.flatMap((task) =>
+            task.pullRequests.map((pullRequest) => pullRequest.repo)
+          )
+        )
+      ])
+    ]
     return {
       board,
       tablesByProjectId,
@@ -165,7 +177,8 @@ export function useZotzTaskBoardModel(input: {
       facts,
       githubMirror,
       externalMirror,
-      repos
+      repos,
+      watchedRepos
     }
   }, [
     board,

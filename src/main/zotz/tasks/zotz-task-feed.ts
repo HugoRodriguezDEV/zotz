@@ -6,7 +6,10 @@ import {
 
 const FETCH_TIMEOUT_MS = 15_000
 
-function formatFromResponse(url: string, contentType: string | null): ZotzTasksFormat | 'auto' {
+export function zotzTasksFormatFromResponse(
+  url: string,
+  contentType: string | null
+): ZotzTasksFormat | 'auto' {
   const type = contentType?.toLowerCase() ?? ''
   if (type.includes('json')) {
     return 'json'
@@ -49,7 +52,7 @@ export async function fetchZotzFeedText(
     return {
       ok: true,
       text: await response.text(),
-      format: formatFromResponse(url, response.headers.get('content-type'))
+      format: zotzTasksFormatFromResponse(url, response.headers.get('content-type'))
     }
   } catch (error) {
     return {

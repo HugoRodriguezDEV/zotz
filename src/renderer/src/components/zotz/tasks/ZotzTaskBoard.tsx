@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { SquareKanban } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,7 @@ import { useZotzTaskBoardData } from './use-zotz-task-board-data'
 import { useZotzTaskConnectors } from './use-zotz-task-connectors'
 import { useZotzTaskBoardViews } from './use-zotz-task-board-views'
 import { useZotzTaskBoardModel } from './use-zotz-task-board-model'
+import { useZotzTaskRelay } from './use-zotz-task-relay'
 import { useZotzIssueDevelopment, ZotzIssueDevelopmentContext } from './use-zotz-task-development'
 import { useZotzTaskWorkspaces, ZotzTaskWorkspacesContext } from './use-zotz-task-workspaces'
 import { ZotzTaskBoardColumns, ZotzTaskColumns } from './ZotzTaskBoardColumns'
@@ -33,7 +34,8 @@ import { ZotzTaskBoardToolbar, ZOTZ_TASK_SCOPE_EXTERNAL } from './ZotzTaskBoardT
 import { ZOTZ_TASK_BOARD_SOURCES_SECTION_ID } from './ZotzTaskBoardSourcesSetting'
 import { externalSourceColumns } from './zotz-task-board-filtering'
 
-const AUTO_REFRESH_MS = 5 * 60_000
+/** Clock for relative filters like `updated:@today-7d`; refreshes are timed in useZotzTaskRelay. */
+const CLOCK_MS = 5 * 60_000
 
 /** Done tasks not archived yet, stamped now; kept out of render so the clock is read on click. */
 function archiveEntries(
@@ -64,7 +66,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
   const [detail, setDetail] = useState<ZotzTaskDetail | null>(null)
   const [viewer, setViewer] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
-  const now = useNow(AUTO_REFRESH_MS, active)
+  const now = useNow(CLOCK_MS, active)
 
   const archived = useMemo(() => readZotzTaskBoardArchived(rawArchived), [rawArchived])
   const archivedKeys = useMemo(() => new Set(archived.map((entry) => entry.key)), [archived])
@@ -89,15 +91,19 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
     }
   }, [active, viewer])
 
-  // Every 5 minutes while the board is open, reload everything, like a manual Refresh.
-  const firstTick = useRef(now)
-  useEffect(() => {
-    if (active && now !== firstTick.current) {
-      refreshGithub()
-      refreshExternal()
-      setRevision((value) => value + 1)
-    }
-  }, [active, now, refreshExternal, refreshGithub])
+  const refreshAll = useCallback(() => {
+    refreshGithub()
+    refreshExternal()
+    setRevision((value) => value + 1)
+  }, [refreshExternal, refreshGithub])
+  const relay = useZotzTaskRelay(active, {
+    githubStates: github.states,
+    watchedRepos: model.watchedRepos,
+    refreshAll,
+    refreshSources: github.refreshSources,
+    reloadDevelopment: development.reload,
+    syncPullRequests
+  })
 
   // Services' PR links follow the repos on the board, so match them after GitHub loads.
   const reposKey = model.repos.join(',')
@@ -285,7 +291,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
   }
 
   return (
-    <ZotzIssueDevelopmentContext.Provider value={development}>
+    <ZotzIssueDevelopmentContext.Provider value={development.byIssue}>
       <ZotzTaskWorkspacesContext.Provider value={workspaces}>
         <div className="flex h-[min(72vh,700px)] min-h-0 flex-col gap-2">
           <ZotzTaskViewTabs state={views} />
@@ -293,12 +299,9 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
             state={views}
             scopes={scopes}
             lastUpdatedAt={github.lastUpdatedAt}
+            relayState={relay.state}
             refreshing={refreshing}
-            onRefresh={() => {
-              github.refresh()
-              external.refresh()
-              setRevision((value) => value + 1)
-            }}
+            onRefresh={refreshAll}
             archivedCount={archived.length}
             showArchived={showArchived}
             onToggleArchived={() => setShowArchived((value) => !value)}

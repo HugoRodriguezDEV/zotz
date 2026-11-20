@@ -13,6 +13,8 @@ import type { ZotzTaskConnectorImportResult } from '../../../shared/zotz/tasks/z
 import { ZotzTaskConnectorService } from './zotz-task-connector-service'
 import { fetchZotzIssueDevelopment, fetchZotzViewerLogin } from './zotz-task-development'
 import { fetchZotzRepoIssues, listZotzOwnerRepos, listZotzOwners } from './zotz-task-repos'
+import { startZotzTaskRelay } from './zotz-task-relay-ipc'
+import { isZotzTaskWindowRenderer } from './zotz-task-ipc-sender'
 
 const CHANNELS = [
   'zotzTasks:snapshot',
@@ -29,11 +31,6 @@ const CHANNELS = [
   'zotzTasks:repoIssues',
   'zotzTasks:owners'
 ] as const
-
-// Only the app's own windows may change connectors or their tokens.
-function isWindowRenderer(event: IpcMainInvokeEvent): boolean {
-  return !event.sender.isDestroyed() && event.sender.getType() === 'window'
-}
 
 function connectorId(value: unknown): string | null {
   return typeof value === 'string' && /^[\w:.-]{1,200}$/.test(value) ? value : null
@@ -112,26 +109,27 @@ export function startZotzTaskConnectors(
     store,
     notifyChanged: () => sendToTrustedUIRenderer('zotzTasks:changed', null)
   })
+  const stopRelay = startZotzTaskRelay(userDataPath, store)
   ipcMain.handle('zotzTasks:snapshot', () => service.snapshot())
   ipcMain.handle('zotzTasks:refresh', (_event, connectors: unknown) =>
     service.refresh(feedList(connectors))
   )
   ipcMain.handle('zotzTasks:setToken', (event, id: unknown, token: unknown) => {
     const valid = connectorId(id)
-    if (!isWindowRenderer(event) || !valid) {
+    if (!isZotzTaskWindowRenderer(event) || !valid) {
       return false
     }
     const value = typeof token === 'string' && token.length <= 4096 ? token.trim() : null
     return service.setToken(valid, value || null)
   })
   ipcMain.handle('zotzTasks:importFile', (event) =>
-    isWindowRenderer(event)
+    isZotzTaskWindowRenderer(event)
       ? importFromDialog(event, service)
       : { ok: false, error: 'Not allowed from this window' }
   )
   ipcMain.handle('zotzTasks:remove', (event, id: unknown) => {
     const valid = connectorId(id)
-    if (isWindowRenderer(event) && valid) {
+    if (isZotzTaskWindowRenderer(event) && valid) {
       return service.remove(valid)
     }
     return undefined
@@ -143,7 +141,7 @@ export function startZotzTaskConnectors(
     const valid = connectorId(id)
     const task = shortText(taskId)
     const option = shortText(optionId)
-    return isWindowRenderer(event) && valid && task && option
+    return isZotzTaskWindowRenderer(event) && valid && task && option
       ? service.move(valid, task, option)
       : { ok: false, error: 'Not allowed' }
   })
@@ -169,12 +167,13 @@ export function startZotzTaskConnectors(
         typeof url === 'string' && /^https:\/\/[^/]+\/[\w.-]+\/[\w.-]+\/pull\/\d+$/.test(url)
           ? url
           : null
-      return isWindowRenderer(event) && valid && task && pullRequestUrl
+      return isZotzTaskWindowRenderer(event) && valid && task && pullRequestUrl
         ? service.linkPullRequest(valid, task, pullRequestUrl)
         : null
     }
   )
   return () => {
+    stopRelay()
     setActiveZotzTaskConnectors(null)
     for (const channel of CHANNELS) {
       ipcMain.removeHandler(channel)
