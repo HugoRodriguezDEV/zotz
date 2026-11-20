@@ -26028,6 +26028,15 @@
       "uncommittedDetail": "They stay on disk, but this project and its conversations leave Zotz. Open a list to review each change.",
       "changesKept_one": "{{count}} uncommitted change",
       "changesKept_other": "{{count}} uncommitted changes"
+    },
+    "hostFolder": {
+      "description": "{{project}} only exists on another machine. Pick or create a folder on {{host}} to work there.",
+      "newFolder": "New folder",
+      "newFolderHelp": "Create an empty folder in zotz/projects on {{host}}.",
+      "namePlaceholder": "Folder name",
+      "resolvingParent": "Finding the projects folder…",
+      "create": "Create folder",
+      "created": "Folder created"
     }
   }
 }

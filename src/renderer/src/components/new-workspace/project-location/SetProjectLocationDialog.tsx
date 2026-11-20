@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { useCloneFolderOverride } from '../../sidebar/project-admission/clone-folder/use-clone-folder-override'
 import { getProjectCloneCheckTarget } from '../../../store/projects/project-host-routing'
-import { Download, FolderOpen } from 'lucide-react'
+import { Download, FolderOpen, FolderPlus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -20,8 +20,11 @@ import { parseExecutionHostId } from '../../../../../shared/execution-host'
 import type { RepoKind } from '../../../../../shared/repository/repo-types'
 import { pickLocalProjectLocationFolder } from './pick-local-project-folder'
 import { CloneForm, ExistingFolderForm, LocationActionButton } from './SetProjectLocationForms'
+import { addsHostFolderAsOwnProject } from '@/lib/workspace/creation/zotz-host-folder-project-target'
+import { addHostFolderAsOwnProject } from '@/components/zotz/project-location/zotz-host-folder-project'
+import { ZotzNewHostFolderForm } from '@/components/zotz/project-location/ZotzNewHostFolderForm'
 
-type DialogView = 'choose' | 'existing' | 'clone' | 'browse'
+type DialogView = 'choose' | 'existing' | 'clone' | 'browse' | 'new-folder'
 type BrowseField = 'existing' | 'clone'
 
 type SetProjectLocationDialogProps = {
@@ -125,7 +128,8 @@ function SetProjectLocationDialogBody({
   const parsedHost = parseExecutionHostId(option.hostId)
   const remoteHost =
     parsedHost?.kind === 'ssh' || parsedHost?.kind === 'runtime' ? parsedHost : null
-  const canClone = projectKind === 'git'
+  const ownProjectOnHost = addsHostFolderAsOwnProject(option.projectId, option.hostId)
+  const canClone = projectKind === 'git' && !ownProjectOnHost
   const pathFields: Record<BrowseField, { value: string; set: (path: string) => void }> = {
     existing: { value: setupPath, set: setSetupPath },
     clone: { value: cloneDestination, set: setCloneDestination }
@@ -159,6 +163,17 @@ function SetProjectLocationDialogBody({
     }
     setIsSubmitting(true)
     try {
+      if (ownProjectOnHost) {
+        const setupKey = await addHostFolderAsOwnProject({
+          hostId: option.hostId,
+          path: setupPath.trim(),
+          kind: setupKind
+        })
+        if (setupKey && !abandoned.current) {
+          onReady(setupKey)
+        }
+        return
+      }
       const result = await setupProjectExistingFolder({
         projectId: option.projectId,
         hostId: option.hostId,
@@ -219,11 +234,17 @@ function SetProjectLocationDialogBody({
           )}
         </DialogTitle>
         <DialogDescription>
-          {t(
-            'auto.components.new.workspace.SetProjectLocationDialog.description',
-            'Choose where {{project}} lives on {{host}}.',
-            { project: projectName, host: option.label }
-          )}
+          {ownProjectOnHost
+            ? t(
+                'zotz.hostFolder.description',
+                '{{project}} only exists on another machine. Pick or create a folder on {{host}} to work there.',
+                { project: projectName, host: option.label }
+              )
+            : t(
+                'auto.components.new.workspace.SetProjectLocationDialog.description',
+                'Choose where {{project}} lives on {{host}}.',
+                { project: projectName, host: option.label }
+              )}
         </DialogDescription>
       </DialogHeader>
       {view === 'choose' ? (
@@ -261,7 +282,26 @@ function SetProjectLocationDialogBody({
               onClick={() => setView('clone')}
             />
           ) : null}
+          {ownProjectOnHost && remoteHost?.kind === 'runtime' ? (
+            <LocationActionButton
+              icon={FolderPlus}
+              title={t('zotz.hostFolder.newFolder', 'New folder')}
+              description={t(
+                'zotz.hostFolder.newFolderHelp',
+                'Create an empty folder in zotz/projects on {{host}}.',
+                { host: option.label }
+              )}
+              onClick={() => setView('new-folder')}
+            />
+          ) : null}
         </div>
+      ) : null}
+      {view === 'new-folder' && remoteHost?.kind === 'runtime' ? (
+        <ZotzNewHostFolderForm
+          environmentId={remoteHost.environmentId}
+          onBack={() => setView('choose')}
+          onReady={(setupKey) => !abandoned.current && onReady(setupKey)}
+        />
       ) : null}
       {view === 'existing' ? (
         <ExistingFolderForm
