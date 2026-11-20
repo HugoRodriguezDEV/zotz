@@ -334,6 +334,24 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 
 ---
 
+## Fase 9 — Tablero de tareas (GitHub Projects + conectores externos)
+
+Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
+
+- [x] 9a. Modal unificado con pestañas Tareas y Agentes; el botón de kanban de la barra lateral lo abre y el Workspace board queda oculto (no borrado).
+- [x] 9b, parte 1. GitHub Projects de solo lectura: elegir organizaciones/cuenta → Projects; tablero combinado (Backlog / In Progress / In Review / Done) y vista espejo de cada Project; tarjetas con marca de GitHub, logo y nombre de la org y el proyecto; búsqueda; detalle con "Abrir en GitHub"; "Archivar terminadas" (solo con botón) y vista Archivadas.
+- [x] 9b, parte 2. Issues de repos sueltos; vistas guardadas (board/tabla, filtro con la sintaxis de GitHub, Group by, Sort); actualizar cada 5 min con el modal abierto.
+- [x] 9c. PRs ligados estilo Avena: línea de PR en la tarjeta; en el detalle, PRs y ramas ligadas, los que la mencionan, commit y archivos.
+- [x] 9d, parte 1. Contrato `zotz-tasks/v1` con campos tipo Project (JSON, YAML, TOML), feed por URL con token cifrado, importar archivo, tareas externas en el tablero y vista propia de cada servicio.
+- [x] 9d, parte 2. JSON Schema publicado, `zotz tasks push`/`validate`/`schema` y endpoint `link-pr`.
+- [x] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
+- [x] 9f. Acción `move` para fuentes externas, con comprobación previa.
+- Pospuesto por Hugo (parte 2 de la fase): relay propio en Vercel (GitHub App) para avisos al instante, vista roadmap, _Slice by_ y sumas de campos.
+
+**Listo cuando:** el tablero muestra juntas las tareas de los Projects elegidos y de un feed externo de prueba, cada una con su marca, su proyecto y sus PRs; un PR detectado llega al proveedor por `link-pr`; y ninguna tarea de GitHub se puede modificar desde Zotz.
+
+---
+
 ## Decisiones abiertas (las resuelve Hugo)
 
 1. **Notificaciones push al celular** (`push.onorca.dev`): las manda la infraestructura de StablyAI. Opciones: (a) dejarlas, que es cómodo pero los avisos pasan por sus servidores; (b) apagarlas y usar un bot propio de Telegram para los avisos (sería una Fase 8).
@@ -357,6 +375,7 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 | 6 Tailscale             | 5          | S                                      |
 | 7 Seguridad             | 5          | S (en su mayoría docs y configuración) |
 | 8 Gobernador de memoria | 4, 5       | L                                      |
+| 9 Tablero de tareas     | 8          | L                                      |
 
 Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
@@ -677,3 +696,78 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 - **Marca propia para el segundo plano:** cuando el agente terminó y solo sigue un proceso en segundo plano (estado `monitoring`), la barra lateral mostraba la misma onda que con el agente trabajando. Ahora muestra `ZotzBackgroundSonar` (un punto con dos arcos de eco que pulsan). La onda queda solo para `working`, que siempre gana: si en la conversación el agente trabaja y además hay un proceso en segundo plano, se ve la onda.
 - **Se quita `useArchiveOnMerge`:** una conversación ya no se archiva sola al mergear su PR; solo Hugo la archiva desde el menú. También salió la cadena `zotz.sidebar.archivedMerged`. La limpieza automática de upstream (`workspaceCleanup`) sigue apagada por defecto y no se tocó.
 - Verificado con la fixture `ZotzWorkingRipple:backgroundOnly`; no se probó con un proceso real en segundo plano.
+
+### 2026-11-19 — Fase 9a: modal de tareas y agentes (`zotz/fase-9-tareas`)
+
+- Spec: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
+- Un solo modal (`ZotzBoardModal`) con pestañas **Tareas** y **Agentes**, montado una vez desde `ZotzRootOverlays` en la raíz de la app. El botón de kanban de la barra lateral abre Tareas; el indicador de la cola en la barra de estado abre Agentes. Tareas todavía muestra un estado vacío hasta la 9b.
+- El Workspace board de Orca queda oculto, no borrado: `useZotzWorkspaceBoardPanel` reemplaza a `useWorkspaceBoardPanel` en la barra lateral, deja el drawer siempre cerrado, apaga la vista previa al arrastrar y manda el atajo y el comando del board a la pestaña Tareas.
+- Se borraron de los 11 idiomas los 3 textos del botón viejo (`auto.components.sidebar.SidebarToolbar.*`): el gate de localización no deja textos sin uso.
+- Sorpresa: el store de la cola tronaba si `snapshot()` devolvía `undefined` (cliente web sin runtime). Ahora lo trata como vacío.
+- Verificado con la fixture `zotz/tasks/ZotzBoardModal` (ambas pestañas, ambos temas) y `pnpm check:changed`. Sin verificar en la app real.
+
+### 2026-11-20 — Fase 9b, parte 1: tablero con GitHub Projects (`zotz/fase-9-tareas`)
+
+- **Ajustes → Tareas → Tablero de tareas de Zotz:** lista los Projects de tu cuenta y de tus orgs (`listAccessibleProjects` de Orca), agrupados por dueño con su avatar. Hay casilla por org (marca todos sus Projects) y por Project. Se guarda en `zotzTaskBoardSources`.
+- **Pestaña Tareas:**
+  - "Todos los proyectos" junta los Projects en Backlog / In Progress / In Review / Done. Cada opción de Status cae en su columna por nombre o sinónimo (`Todo`, `Ready` → Backlog; `QA`, `Review` → In Review); lo que no casa va a "Sin estado".
+  - Al elegir un Project se ve tal cual en GitHub con el `ProjectBoard` de Orca, sin arrastre.
+  - Un issue que está en dos Projects sale una vez, y un PR ligado a un issue del tablero no sale como tarjeta aparte.
+- **Datos:** usa `fetchProjectViewTable` (y su caché) con la vista por defecto del Project; si es roadmap, toma la primera vista board o tabla. Se cargan al abrir la pestaña y con "Actualizar"; la actualización cada 5 min queda para la parte 2.
+- **Detalle de solo lectura:** campos del Project, asignados, labels, issue padre, sub-issues, PRs ligados y "Abrir en GitHub". El cuerpo del issue no viene en las filas del Project; leerlo queda pendiente.
+- **Archivar terminadas** guarda en `zotzTaskBoardArchived` (setting, no archivo aparte). Una tarea archivada vuelve sola si sale de Done.
+- Avatares de dueños: `https://github.com/<login>.png`, sin llamada extra a la API; si no cargan, se ocultan.
+- Test de la lógica pura en `zotz-task-board-columns.test.ts` (mapeo, duplicados, PR ligado, archivado). Verificado con fixtures (`ZotzTaskBoard:combined`, `:detail`, `ZotzTaskBoardSourcesSetting:picker`) y `pnpm check:changed`. Sin verificar con GitHub real ni en la app.
+
+### 2026-11-20 — Fase 9d, parte 1: servicios de tareas externos (`zotz/fase-9-tareas`)
+
+- **Contrato** en `shared/zotz/tasks/zotz-tasks-contract.ts`. Un esquema `zod` lee JSON, YAML o TOML.
+  - Una tarea inválida se omite y se reporta con su motivo; un documento inválido no reemplaza al último bueno.
+  - Límites: 2 MB y 2,000 tareas.
+- **Main** (`main/zotz/tasks/`):
+  - `ZotzTaskConnectorService` descarga cada feed con `Authorization: Bearer`, 15 s de límite, y guarda el último documento en `zotz-task-connectors.json`.
+  - El token se cifra con el `SecretStore` del sistema en `zotz-task-connector-secrets.json` (modo 600). Si el sistema no puede cifrar, no se guarda.
+  - IPC `zotzTasks:*` y puente `window.api.zotzTaskConnectors`.
+- **Ajustes → Tareas → "External task services":** URL + token opcional, o "Import file". Muestra el número de tareas, la hora, la primera tarea omitida y el error.
+- **Tablero:**
+  - El modelo de tarjeta ahora acepta tareas de GitHub y externas (`origin`).
+  - El Status externo cae en la columna por nombre y, si no, por `category`.
+  - Cada servicio tiene su vista con sus columnas.
+  - El detalle muestra sus campos.
+- Probado en la app real con un feed local protegido por token: sin token da 401 y no se agrega; con token, 5 tareas y 1 omitida. Capturas en la evidencia de la sesión.
+- Tests: `zotz-tasks-contract.test.ts` (tareas omitidas, JSON/YAML/TOML iguales, versión, columna por nombre y por categoría).
+
+### 2026-11-20 — Fase 9 completa: 9b parte 2, 9c, 9d parte 2, 9e y 9f (`zotz/fase-9-tareas`)
+
+- **9b, parte 2:**
+  - **Repos sin Project:** en Ajustes cada cuenta u organización (también las que no tienen Projects) tiene "Mostrar repos". Los issues se leen de GitHub, no de clones locales: los 100 más recientes, abiertos y cerrados. El Status se deriva así: abierto → Todo, abierto con PR abierto que lo cierra → In Progress, cerrado → Done.
+  - **Vistas guardadas** (`zotzTaskBoardViews`):
+    - Tienen alcance (todo, un Project, un repo o un servicio), board o tabla, filtro con la sintaxis de GitHub, Group by (fuente, proyecto, asignado, estado) y orden (fuente, actualizadas, título).
+    - Los cambios quedan con un punto hasta "Guardar vista"; doble clic renombra la vista.
+    - _Column by_ no se elige: el combinado usa el Status de Zotz y la vista de un Project usa la columna de esa vista en GitHub.
+  - **Filtro:** acepta `is:`, `status:`, `assignee:@me`, `label:`, `repo:`, `project:`, `source:`, `no:`, `has:`, `updated:@today-7d` e `iteration:@current`, negación con `-` y comas como OR.
+  - **Actualización:** cada 5 min mientras el tablero está abierto (`useNow`).
+- **9c — PRs de GitHub:**
+  - La tarjeta tiene línea de PR ("→ main · PR open", "PR merged into main", "PR closed without merging", +N).
+  - El detalle tiene la sección Development: PRs ligados (`closedByPullRequestsReferences`) con autor, +/−, archivos y commit de merge; ramas ligadas (`linkedBranches`); y PRs que solo lo mencionan (timeline), con "Ligar en GitHub".
+  - Se lee por lotes de 20 issues con caché de 5 min.
+  - Los despliegues (GitHub Deployments) no entraron.
+- **9d, parte 2:**
+  - **CLI:** `zotz tasks push` (RPC `zotz.tasks.push`, capability `zotz.tasks-push.v1`, también hacia un servidor emparejado), `tasks validate` (local) y `tasks schema` (local).
+  - **JSON Schema:** `docs/zotz/schemas/zotz-tasks-v1.schema.json`, generado con `tasks schema`.
+  - **Detección de PRs:** Zotz lee los 50 PRs más recientes de los repos del tablero y los que el servicio declara. Si `taskIdPattern` aparece en la rama o el título, el PR se liga; si solo aparece en el cuerpo, queda como mención.
+  - **`link-pr`:** se envía solo cuando algo cambia, se reintenta si falla, y manda `unlinked` cuando un enlace desaparece.
+  - **Acciones:** se comprueban con `dryRun` al conectar.
+  - **Patrones peligrosos:** los cuantificadores anidados se rechazan.
+- **9e:**
+  - **Chip en la tarjeta:** muestra el workspace ligado (por `linkedIssue` o por el id de la tarea en la rama) y el estado de su agente; un clic lo abre.
+  - **Crear workspace:** "Crear workspace con esta tarea" usa el composer de Orca. Para GitHub liga el issue; para servicios pone el id en el nombre.
+  - **Pendiente:** el cuerpo de la tarea como primer prompt no se puede, porque el composer no lo acepta. "En cola" tampoco, porque la cola no guarda el workspace de cada espera.
+- **9f:** arrastrar en la vista de un servicio que verificó `move` manda la acción y mueve la tarjeta; si falla, avisa.
+- **Rebase sobre #33:** la cola de memoria pasó a un panel lateral propio con todas las máquinas. El modal de tareas ya no tiene pestaña "Agentes" para no duplicarla, y el indicador de la barra de estado abre ese panel, como en `main`.
+- **Arreglos que salieron al probar con datos reales:**
+  - **Grupos duplicados en Ajustes:** una organización salía dos veces (sin host y con `github.com`).
+  - **PRs perdidos:** la sincronización de PRs podía escribir sobre un conector que un refresh acababa de reemplazar.
+  - **Ajustes sin el conector de `push`:** no se enteraba porque faltaba `notifyListeners`.
+- **Probado** en la app real con el Project TEDYC, un repo suelto, un servicio local con token y `zotz tasks push` desde la CLI compilada. El servicio recibió los `dryRun`, dos `link-pr` reales (un PR detectado por la rama `feature/issue-19-…` y otro declarado) y un `move`.
+- Los 4 tests de `cross-version-wire` fallan en esta máquina: una copia vieja en caché (`tests/e2e/.cross-version-checkouts/v1.4.265`) importa un paquete `cloud/` que no existe aquí. No es por este cambio.

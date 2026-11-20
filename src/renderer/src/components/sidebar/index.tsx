@@ -16,7 +16,7 @@ import { cn } from '@/lib/class-names'
 import { FolderPlus, Loader2 } from 'lucide-react'
 import { ActivityThreadCollapseContext } from '@/components/activity/activity-thread-collapse-context'
 import { useSidebarProjectDrop } from './project-admission/drop/useSidebarProjectDrop'
-import { useWorkspaceBoardPanel } from './workspace-board/surface/useWorkspaceBoardPanel'
+import { useZotzWorkspaceBoardPanel } from '../zotz/tasks/use-zotz-workspace-board-panel'
 import { useWorkspaceRevealBodyRedirect } from './worktree-list/navigation/use-workspace-reveal-body-redirect'
 import { resolveLeftSidebarStyleVariables } from '@/app-shell/appearance/left-sidebar-appearance'
 import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
@@ -123,14 +123,13 @@ function Sidebar({
     workspaceBoardRenderedOpen,
     workspaceBoardDragPreviewOpen,
     workspaceBoardMenuOpen,
-    toggleWorkspaceBoard,
     handleWorkspaceBoardOpenChange,
     setWorkspaceBoardMenuOpen,
     closeWorkspaceBoard,
     previewWorkspaceBoardFromDrag,
     solidifyWorkspaceBoardFromDrag,
     cancelWorkspaceBoardDragPreview
-  } = useWorkspaceBoardPanel()
+  } = useZotzWorkspaceBoardPanel()
 
   const repoCount = repos.length
   const previousRepoCountRef = React.useRef(repoCount)
@@ -199,11 +198,7 @@ function Sidebar({
               <ZotzProjectSidebar />
               <div className="relative shrink-0">
                 <SetupScriptPromptCard />
-                <SidebarToolbar
-                  workspaceBoardOpen={workspaceBoardOpen}
-                  workspaceBoardDragPreviewOpen={workspaceBoardDragPreviewOpen}
-                  onWorkspaceBoardToggle={toggleWorkspaceBoard}
-                />
+                <SidebarToolbar />
               </div>
             </React.Suspense>
           ) : null}
@@ -259,11 +254,7 @@ function Sidebar({
               <div className="relative shrink-0">
                 <SetupScriptPromptCard />
 
-                <SidebarToolbar
-                  workspaceBoardOpen={workspaceBoardOpen}
-                  workspaceBoardDragPreviewOpen={workspaceBoardDragPreviewOpen}
-                  onWorkspaceBoardToggle={toggleWorkspaceBoard}
-                />
+                <SidebarToolbar />
               </div>
             </>
           )}

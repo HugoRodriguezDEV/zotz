@@ -8,6 +8,7 @@ import {
 } from '../../shared/zotz/zotz-machine-mode'
 import { configureZotzUpdateAutomation } from '../updater/zotz-update-automation'
 import { startZotzMemoryGovernor } from '../zotz/memory-governor/zotz-memory-governor-startup'
+import { startZotzTaskConnectors } from '../zotz/tasks/zotz-task-connector-ipc'
 import { startZotzPluginCatalogOptIn } from '../zotz/zotz-plugin-catalog-opt-in'
 import { scheduleZotzCliRegistration } from '../zotz/zotz-cli-auto-registration'
 import { registerSystemResumeBroadcast } from '../power/system-resume-broadcast'
@@ -107,6 +108,7 @@ export function initializeMainProcessObservers(): void {
     server: agentHookServer,
     userDataPath: getCanonicalUserDataPath()
   })
+  const stopZotzTaskConnectors = startZotzTaskConnectors(getCanonicalUserDataPath(), store)
   const unsubscribeStatusChanges = agentHookServer.subscribeStatusRowMutations(
     ({ before, after }) => {
       for (const paneKey of new Set([before?.paneKey, after?.paneKey])) {
@@ -142,6 +144,7 @@ export function initializeMainProcessObservers(): void {
     unsubscribeStatusChanges()
     disposeZotzUpdateAutomation()
     stopZotzMemoryGovernor()
+    stopZotzTaskConnectors()
     unsubscribeStatusFreshness()
     uninstallHookStatusRepublish()
   }
