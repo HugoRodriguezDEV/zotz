@@ -32,13 +32,16 @@ type Props = {
   ) => void
   /** Show the caller’s table fallback when the view has no resolvable column field. */
   fallback: React.ReactNode
+  /** Extra header text per column, e.g. a field sum next to the count. */
+  columnSummary?: (rows: GitHubProjectRow[]) => React.ReactNode
 }
 
 export default function ProjectBoard({
   table,
   onOpenDialog,
   onEditField,
-  fallback
+  fallback,
+  columnSummary
 }: Props): React.JSX.Element {
   const t = useTranslate()
   const field = useMemo(() => resolveBoardColumnField(table.selectedView), [table.selectedView])
@@ -146,6 +149,7 @@ export default function ProjectBoard({
               : column
           }
           highlighted={dropTarget === column.key}
+          summary={columnSummary?.(column.rows)}
           onOpenDialog={onOpenDialog}
           onEditField={onEditField}
           onDragEnter={() => {
@@ -165,6 +169,7 @@ export default function ProjectBoard({
 function BoardColumn({
   column,
   highlighted,
+  summary,
   onOpenDialog,
   onEditField,
   onDragEnter,
@@ -172,6 +177,7 @@ function BoardColumn({
 }: {
   column: ProjectBoardColumn
   highlighted: boolean
+  summary?: React.ReactNode
   onOpenDialog?: (row: GitHubProjectRow) => void
   onEditField?: Props['onEditField']
   onDragEnter: () => void
@@ -222,6 +228,9 @@ function BoardColumn({
         <span className="rounded-full border border-border/50 bg-background px-1.5 text-[11px] text-muted-foreground">
           {column.rows.length}
         </span>
+        {summary ? (
+          <span className="min-w-0 truncate text-[11px] text-muted-foreground">{summary}</span>
+        ) : null}
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-2 pb-2 scrollbar-sleek">
         {column.rows.map((row) => (

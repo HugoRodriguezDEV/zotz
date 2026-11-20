@@ -346,7 +346,8 @@ Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 - [x] 9d, parte 2. JSON Schema publicado, `zotz tasks push`/`validate`/`schema` y endpoint `link-pr`.
 - [x] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
 - [x] 9f. Acción `move` para fuentes externas, con comprobación previa.
-- Pospuesto por Hugo (parte 2 de la fase): relay propio en Vercel (GitHub App) para avisos al instante, vista roadmap, _Slice by_ y sumas de campos.
+- [x] Sumas de campos numéricos, _Slice by_ y vista roadmap (parte 2 de la fase).
+- Pospuesto por Hugo: relay propio en Vercel (GitHub App) para avisos al instante.
 
 **Listo cuando:** el tablero muestra juntas las tareas de los Projects elegidos y de un feed externo de prueba, cada una con su marca, su proyecto y sus PRs; un PR detectado llega al proveedor por `link-pr`; y ninguna tarea de GitHub se puede modificar desde Zotz.
 
@@ -771,3 +772,13 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
   - **Ajustes sin el conector de `push`:** no se enteraba porque faltaba `notifyListeners`.
 - **Probado** en la app real con el Project TEDYC, un repo suelto, un servicio local con token y `zotz tasks push` desde la CLI compilada. El servicio recibió los `dryRun`, dos `link-pr` reales (un PR detectado por la rama `feature/issue-19-…` y otro declarado) y un `move`.
 - Los 4 tests de `cross-version-wire` fallan en esta máquina: una copia vieja en caché (`tests/e2e/.cross-version-checkouts/v1.4.265`) importa un paquete `cloud/` que no existe aquí. No es por este cambio.
+
+### 2026-11-20 — Fase 9, parte 2: sumas, _Slice by_ y roadmap (`zotz-tablero-sumas-slice-roadmap`)
+
+- **Campos de la fuente:** cada tarea expone sus campos numéricos, de fecha, single select e iteración, de GitHub (`fieldValuesByFieldId`) o de un servicio (`source.fields`), por nombre. Así el "Estimate" de dos Projects y de un servicio cuentan como el mismo campo. Para leer el nombre de los números y los single select de GitHub se agregó `fieldName` a esos valores en la normalización de Orca (igual que ya traían fechas e iteraciones).
+- **Sumas:** la vista elige un campo numérico ("Sumar: Estimate"). Cada columna (combinado, Project y servicio), cada carril de Group by y cada grupo de la tabla muestran conteo y suma; la tabla agrega una columna con el valor. Las tareas sin valor no suman, como en GitHub.
+- **_Slice by_:** la vista elige asignado, label, estado, proyecto, fuente, repo o un single select / iteración. El panel de la izquierda lista "Todos" y cada valor con su conteo (después del filtro escrito); un clic filtra. En la vista de un Project se cuentan sus propias filas. El valor elegido no se guarda, solo el campo; cambiar de vista o de campo vuelve a "Todos".
+- **Roadmap:** tercer layout. Reusa la línea de tiempo del roadmap de Orca (`project-roadmap-timeline`: meses, posiciones, fechas). La vista guarda inicio, fin y zoom (mes/trimestre); si no se eligen, se toman por nombre (_Start_/_Target_) o la primera iteración. Línea de hoy, botón "Hoy", grupos con su suma, tareas sin fecha en una lista aparte, clic en barra o título abre el detalle. Solo lectura.
+- **Vistas:** `zotzTaskBoardViews` guarda `sumField`, `sliceBy`, `roadmapStart`, `roadmapEnd` y `roadmapZoom`; las vistas viejas los leen con valores por defecto. `ProjectBoard` de Orca recibe un `columnSummary` opcional para la suma en la vista de un Project.
+- Tests: `zotz-task-view-fields.test.ts` (suma por nombre, catálogo de campos, slices por asignado y por campo, barras de fechas invertidas, iteraciones y campos por defecto).
+- Verificado con fixtures (`ZotzTaskBoard:sums`, `:tableSums`, `:roadmap`, `:projectSlice`, ambos temas) y `pnpm check:changed`. Sin probar en la app real con el Project TEDYC.
