@@ -2,6 +2,7 @@ import { CommitMessageAiPane } from '../source-control/CommitMessageAiPane'
 import { GitPane } from '../source-control/GitPane'
 import { GitProviderApiBudgetPane } from '../source-control/GitProviderApiBudgetPane'
 import { TasksPane } from '../tasks/TasksPane'
+import { ZotzTaskBoardSourcesSetting } from '../../zotz/tasks/ZotzTaskBoardSourcesSetting'
 import { SettingsSection } from '../section-layout/SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
@@ -71,7 +72,13 @@ export function renderTasksSettingsSection(
       searchEntries={navigation.getSectionSearchEntries('tasks')}
     >
       {view.isSectionMounted('tasks') ? (
-        <TasksPane settings={model.settings} updateSettings={model.updateSettings} />
+        <>
+          <TasksPane settings={model.settings} updateSettings={model.updateSettings} />
+          <ZotzTaskBoardSourcesSetting
+            settings={model.settings}
+            updateSettings={model.updateSettings}
+          />
+        </>
       ) : null}
     </SettingsSection>
   )

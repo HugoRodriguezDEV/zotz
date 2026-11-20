@@ -24406,16 +24406,68 @@
       "changesKept_many": "{{count}} cambios sin commitear"
     },
     "taskBoard": {
-      "title": "Tareas",
+      "archiveDone": "Archivar terminadas",
+      "archived": "Archivadas ({{total}})",
+      "archivedEmpty": "Todavía no hay nada archivado.",
+      "backToBoard": "Volver al tablero",
+      "card": {
+        "draft": "Borrador",
+        "openInGitHub": "Abrir en GitHub",
+        "restricted": "Elemento restringido"
+      },
+      "column": {
+        "backlog": "Backlog",
+        "done": "Done",
+        "inProgress": "In Progress",
+        "inReview": "In Review",
+        "noStatus": "Sin estado"
+      },
       "description": "Las tareas de todos tus proyectos en un solo tablero.",
-      "toolbar": "Tareas",
-      "tab": {
-        "tasks": "Tareas",
-        "agents": "Agentes"
+      "detail": {
+        "assignees": "Asignados",
+        "labels": "Etiquetas",
+        "linkedPullRequests": "Pull requests ligados",
+        "openInGitHub": "Abrir en GitHub",
+        "parent": "Issue padre",
+        "subIssues": "Sub-issues"
       },
       "empty": {
-        "title": "Aún no hay fuentes de tareas",
-        "description": "Aquí aparecerán las tareas de los proyectos y repos de GitHub que elijas y de los servicios de tareas que conectes."
+        "action": "Elegir proyectos",
+        "description": "Elige las organizaciones y los proyectos de GitHub cuyas tareas aparecen aquí.",
+        "title": "Aún no hay fuentes de tareas"
+      },
+      "loading": "Cargando tareas…",
+      "manageSources": "Elegir proyectos",
+      "mirrorNoColumns": "Esta vista del proyecto no tiene un campo Status ni de iteración para armar columnas.",
+      "refresh": "Actualizar",
+      "restore": "Restaurar",
+      "search": "Buscar tareas",
+      "settings": {
+        "description": "Elige las organizaciones y los Projects de GitHub cuyas tareas aparecen en el tablero. En Zotz las tareas son de solo lectura; se editan en GitHub.",
+        "loading": "Cargando tus Projects de GitHub…",
+        "none": "GitHub no devolvió Projects para tu cuenta.",
+        "organization": "Organización",
+        "partialFailures": "No se pudieron listar los proyectos de: {{owners}}",
+        "personal": "Cuenta personal",
+        "reload": "Recargar desde GitHub",
+        "selectedCount": "{{total}} elegidos",
+        "title": "Tablero de tareas de Zotz"
+      },
+      "sourceError": "No se pudo cargar {{project}}: {{error}}",
+      "tab": {
+        "agents": "Agentes",
+        "tasks": "Tareas"
+      },
+      "title": "Tareas",
+      "toolbar": "Tareas",
+      "updatedAt": "Actualizado {{time}}",
+      "view": {
+        "all": "Todos los proyectos"
+      },
+      "state": {
+        "open": "Abierto",
+        "closed": "Cerrado",
+        "merged": "Integrado"
       }
     }
   }

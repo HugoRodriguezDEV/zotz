@@ -1,4 +1,5 @@
 import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
+import type { ZotzTaskBoardArchivedTask, ZotzTaskBoardSource } from './tasks/zotz-task-board-types'
 
 /** Settings only Zotz reads; kept out of GlobalSettings' body so upstream syncs merge cleanly. */
 export type ZotzGlobalSettings = {
@@ -16,4 +17,8 @@ export type ZotzGlobalSettings = {
   zotzCliRegisteredVersion?: string
   /** 'orca' brings back upstream's workspace cards; anything else is the simple project list. */
   zotzSidebarLayout?: 'conductor' | 'orca'
+  /** GitHub Projects shown on the task board, in the order they were picked. */
+  zotzTaskBoardSources?: ZotzTaskBoardSource[]
+  /** Finished tasks hidden from the task board's Done column. */
+  zotzTaskBoardArchived?: ZotzTaskBoardArchivedTask[]
 }

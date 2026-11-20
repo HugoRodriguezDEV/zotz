@@ -26040,16 +26040,68 @@
       "save": "Save"
     },
     "taskBoard": {
+      "settings": {
+        "title": "Zotz task board",
+        "description": "Choose the organizations and GitHub Projects whose tasks appear on the task board. Tasks are read-only in Zotz; edit them on GitHub.",
+        "selectedCount": "{{total}} selected",
+        "reload": "Reload from GitHub",
+        "partialFailures": "Couldn't list projects for: {{owners}}",
+        "loading": "Loading your GitHub Projects…",
+        "none": "GitHub returned no Projects for your account.",
+        "personal": "Personal account",
+        "organization": "Organization"
+      },
+      "column": {
+        "backlog": "Backlog",
+        "inProgress": "In Progress",
+        "inReview": "In Review",
+        "done": "Done",
+        "noStatus": "No Status"
+      },
+      "archiveDone": "Archive finished",
+      "detail": {
+        "openInGitHub": "Open in GitHub",
+        "assignees": "Assignees",
+        "labels": "Labels",
+        "parent": "Parent issue",
+        "subIssues": "Sub-issues",
+        "linkedPullRequests": "Linked pull requests"
+      },
+      "toolbar": "Tasks",
+      "empty": {
+        "title": "No task sources yet",
+        "description": "Pick the GitHub organizations and projects whose tasks show up here.",
+        "action": "Choose projects"
+      },
+      "view": {
+        "all": "All projects"
+      },
+      "search": "Search tasks",
+      "updatedAt": "Updated {{time}}",
+      "refresh": "Refresh",
+      "archived": "Archived ({{total}})",
+      "manageSources": "Choose projects",
+      "sourceError": "Couldn't load {{project}}: {{error}}",
+      "backToBoard": "Back to the board",
+      "archivedEmpty": "Nothing archived yet.",
+      "restore": "Restore",
+      "loading": "Loading tasks…",
+      "mirrorNoColumns": "This project view has no Status or iteration field to make columns from.",
+      "card": {
+        "openInGitHub": "Open in GitHub",
+        "restricted": "Restricted item",
+        "draft": "Draft"
+      },
       "title": "Tasks",
       "description": "Tasks from all your projects in one board.",
-      "toolbar": "Tasks",
       "tab": {
         "tasks": "Tasks",
         "agents": "Agents"
       },
-      "empty": {
-        "title": "No task sources yet",
-        "description": "Tasks from the GitHub projects and repos you pick, and from connected task services, will show up here."
+      "state": {
+        "open": "Open",
+        "closed": "Closed",
+        "merged": "Merged"
       }
     }
   }

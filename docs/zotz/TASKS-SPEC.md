@@ -120,7 +120,7 @@ Pendiente de confirmar en la doc: el detalle de la columna "No Status" y la list
 
 - Botón **"Archivar terminadas"** en la columna Done (en vistas combinadas, la columna mapeada a Done; en espejo, la opción que GitHub usa en sus workflows: "Done").
 - Archiva **en Zotz** lo que está en esa columna en ese momento; no toca GitHub ni al proveedor. También se puede archivar una tarjeta suelta desde su menú.
-- **Archivadas:** lista con búsqueda, fecha de archivado y "Restaurar", como _Archived items_ de GitHub. Se guarda en `zotz-task-board-archive.json` en `userData`, por clave estable `fuente + id`.
+- **Archivadas:** lista con búsqueda, fecha de archivado y "Restaurar", como _Archived items_ de GitHub. Se guarda en el setting `zotzTaskBoardArchived`, por clave estable (la URL del issue, o la del Project + el id del item).
 - Si una tarea archivada se reabre (sale de Done), vuelve al tablero sola.
 - Lo que GitHub archive (a mano o con su auto-archive) desaparece del tablero sin pasar por "Archivadas" de Zotz.
 
@@ -378,7 +378,8 @@ No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de
 ## 11. Fases
 
 - **9a — Modal unificado.** Pestañas Tareas (vacía, con CTA a Ajustes) y Agentes; botón de kanban redirigido; Workspace board oculto.
-- **9b — GitHub como Projects.** Selector de fuentes, sincronización, vistas (board/tabla, filtro, Column by, Group by, Sort, campos), vistas espejo, tarjetas con marca y org, detalle de solo lectura, "Archivar terminadas" y Archivadas.
+- **9b, parte 1 — GitHub Projects.** Selector de organizaciones y Projects, tablero combinado, vista espejo de cada Project (reusa `ProjectBoard` de Orca en solo lectura), tarjetas con marca y org, búsqueda, "Actualizar", detalle de solo lectura, "Archivar terminadas" y Archivadas.
+- **9b, parte 2 — Repos y vistas.** Issues de repos sueltos, vistas guardadas (board/tabla, filtro con la sintaxis de GitHub, Column by, Group by, Sort, campos) y actualización cada 5 min con el modal abierto.
 - **9c — PRs de GitHub.** Línea de PR en la tarjeta y sección Desarrollo del detalle.
 - **9d — Conector externo.** Contrato `zotz-tasks/v1` con campos tipo Project, JSON Schema, feed por URL, CLI `push`/`validate`, importar archivo, detección por `taskIdPattern` y endpoint `link-pr`.
 - **9e — Tarea ↔ agente.** Chip de estado de agente en la tarjeta y "Crear workspace con esta tarea" (rama con el id de la tarea, `linkedIssue` en GitHub y el cuerpo como primer prompt).

@@ -1,4 +1,3 @@
-import { SquareKanban } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,25 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { isPairedWebClientWindow } from '@/app-shell/chrome/desktop-window-chrome'
 import { useTranslate } from '@/i18n/use-translate'
 import { ZotzAgentQueuePanel } from '../agent-queue/ZotzAgentQueuePanel'
+import { ZotzTaskBoard } from './ZotzTaskBoard'
 import { closeZotzBoard, setZotzBoardTab, useZotzBoardModal } from './zotz-board-modal-store'
-
-function ZotzTaskBoardEmptyState(): React.JSX.Element {
-  const t = useTranslate()
-  return (
-    <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center">
-      <SquareKanban className="size-6 text-muted-foreground" />
-      <p className="text-sm font-medium text-foreground">
-        {t('zotz.taskBoard.empty.title', 'No task sources yet')}
-      </p>
-      <p className="max-w-sm text-xs text-muted-foreground">
-        {t(
-          'zotz.taskBoard.empty.description',
-          'Tasks from the GitHub projects and repos you pick, and from connected task services, will show up here.'
-        )}
-      </p>
-    </div>
-  )
-}
 
 /** One modal for the task board and the agent queue; the sidebar opens Tasks, the status bar Agents. */
 export function ZotzBoardModal(): React.JSX.Element | null {
@@ -60,7 +42,7 @@ export function ZotzBoardModal(): React.JSX.Element | null {
         }
       }}
     >
-      <DialogContent className="sm:max-w-5xl">
+      <DialogContent className="sm:max-w-6xl">
         <Tabs
           value={tab}
           onValueChange={(value) => {
@@ -78,7 +60,7 @@ export function ZotzBoardModal(): React.JSX.Element | null {
             <TabsTrigger value="agents">{t('zotz.taskBoard.tab.agents', 'Agents')}</TabsTrigger>
           </TabsList>
           <TabsContent value="tasks">
-            <ZotzTaskBoardEmptyState />
+            <ZotzTaskBoard active={open && tab === 'tasks'} />
           </TabsContent>
           <TabsContent value="agents">
             <ZotzAgentQueuePanel active={open && tab === 'agents'} onNavigate={closeZotzBoard} />
