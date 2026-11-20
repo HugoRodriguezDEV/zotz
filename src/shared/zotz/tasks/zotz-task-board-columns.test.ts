@@ -4,7 +4,11 @@ import type {
   GitHubProjectRow,
   GitHubProjectTable
 } from '../../github/projects/project-types'
-import { buildZotzTaskBoard, zotzTaskBoardColumnForStatus } from './zotz-task-board-columns'
+import {
+  buildZotzTaskBoard,
+  zotzTaskBoardColumnForStatus,
+  type ZotzTaskBoardItem
+} from './zotz-task-board-columns'
 
 const STATUS: GitHubProjectField = {
   kind: 'single-select',
@@ -89,6 +93,10 @@ function table(number: number, rows: GitHubProjectRow[]): GitHubProjectTable {
   }
 }
 
+function rowId(item: ZotzTaskBoardItem): string {
+  return item.origin.kind === 'github' ? item.origin.row.id : item.key
+}
+
 describe('zotzTaskBoardColumnForStatus', () => {
   it('matches by name, then synonyms, ignoring case, accents and dashes', () => {
     expect(zotzTaskBoardColumnForStatus('In progress')).toBe('in-progress')
@@ -113,7 +121,7 @@ describe('buildZotzTaskBoard', () => {
       [table(1, [row('first', issue, 'todo')]), table(2, [row('second', issue, 'done')])],
       new Set()
     )
-    expect(board.columns.backlog.map((item) => item.row.id)).toEqual(['first'])
+    expect(board.columns.backlog.map((item) => rowId(item))).toEqual(['first'])
     expect(board.columns.done).toEqual([])
   })
 
@@ -134,7 +142,7 @@ describe('buildZotzTaskBoard', () => {
       ],
       new Set()
     )
-    expect(board.columns['in-review'].map((item) => item.row.id)).toEqual(['issue', 'lonely-pr'])
+    expect(board.columns['in-review'].map((item) => rowId(item))).toEqual(['issue', 'lonely-pr'])
   })
 
   it('hides archived tasks only while they stay in Done', () => {
@@ -145,8 +153,8 @@ describe('buildZotzTaskBoard', () => {
       new Set([done, reopened])
     )
     expect(board.columns.done).toEqual([])
-    expect(board.archived.map((item) => item.row.id)).toEqual(['done'])
-    expect(board.columns.backlog.map((item) => item.row.id)).toEqual(['reopened'])
+    expect(board.archived.map((item) => rowId(item))).toEqual(['done'])
+    expect(board.columns.backlog.map((item) => rowId(item))).toEqual(['reopened'])
   })
 
   it('puts unmatched or missing statuses in No Status', () => {
@@ -159,6 +167,6 @@ describe('buildZotzTaskBoard', () => {
       ],
       new Set()
     )
-    expect(board.unmapped.map((item) => item.row.id)).toEqual(['blocked', 'unset'])
+    expect(board.unmapped.map((item) => rowId(item))).toEqual(['blocked', 'unset'])
   })
 })

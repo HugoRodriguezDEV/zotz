@@ -24413,7 +24413,8 @@
       "card": {
         "draft": "Borrador",
         "openInGitHub": "Abrir en GitHub",
-        "restricted": "Elemento restringido"
+        "restricted": "Elemento restringido",
+        "openInSource": "Abrir en {{source}}"
       },
       "column": {
         "backlog": "Backlog",
@@ -24432,12 +24433,12 @@
         "subIssues": "Sub-issues"
       },
       "empty": {
-        "action": "Elegir proyectos",
-        "description": "Elige las organizaciones y los proyectos de GitHub cuyas tareas aparecen aquí.",
+        "action": "Elegir fuentes",
+        "description": "Elige las organizaciones y los proyectos de GitHub, o conecta un servicio de tareas, cuyas tareas aparecen aquí.",
         "title": "Aún no hay fuentes de tareas"
       },
       "loading": "Cargando tareas…",
-      "manageSources": "Elegir proyectos",
+      "manageSources": "Elegir fuentes",
       "mirrorNoColumns": "Esta vista del proyecto no tiene un campo Status ni de iteración para armar columnas.",
       "refresh": "Actualizar",
       "restore": "Restaurar",
@@ -24469,6 +24470,23 @@
         "closed": "Cerrado",
         "merged": "Integrado"
       }
+    },
+    "taskConnectors": {
+      "badUrl": "Usa una URL http:// o https://.",
+      "connect": "Conectar",
+      "connected": "{{name}} conectado: {{total}} tareas.",
+      "description": "Conecta un servicio que publique tareas en el formato zotz-tasks/v1 (JSON, YAML o TOML), por URL o desde un archivo.",
+      "failed": "No se pudo leer ese servicio.",
+      "fromFile": "Importado desde un archivo",
+      "importFile": "Importar archivo",
+      "noEncryption": "Este sistema no puede cifrar el token, así que no se guardó.",
+      "rejected": "Tareas omitidas: {{total}}. Primer problema: {{reason}}",
+      "remove": "Quitar",
+      "status": "{{total}} tareas · actualizado {{time}}",
+      "title": "Servicios de tareas externos",
+      "tokenPlaceholder": "Token (opcional)",
+      "withToken": "con token",
+      "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
     }
   }
 }

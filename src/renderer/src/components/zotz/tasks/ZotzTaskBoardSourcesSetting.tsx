@@ -17,7 +17,8 @@ import {
   zotzTaskBoardSourceKey,
   type ZotzTaskBoardSource
 } from '../../../../../shared/zotz/tasks/zotz-task-board-types'
-import { githubOwnerAvatarUrl, hideBrokenImage } from './ZotzTaskCard'
+import { hideBrokenImage } from './ZotzTaskCard'
+import { githubOwnerAvatarUrl } from './zotz-task-card-view'
 
 export const ZOTZ_TASK_BOARD_SOURCES_SECTION_ID = 'zotz-task-board-sources'
 

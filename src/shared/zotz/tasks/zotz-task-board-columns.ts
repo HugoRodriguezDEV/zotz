@@ -1,5 +1,11 @@
 import { resolveBoardColumnField } from '../../github/projects/project-board-columns'
 import type { GitHubProjectRow, GitHubProjectTable } from '../../github/projects/project-types'
+import {
+  zotzTasksStatusField,
+  type ZotzExternalTask,
+  type ZotzTasksDocument,
+  type ZotzTasksStatusOption
+} from './zotz-tasks-contract'
 
 export type ZotzTaskBoardColumnId = 'backlog' | 'in-progress' | 'in-review' | 'done'
 
@@ -142,13 +148,21 @@ export function projectRowStatusName(
   return null
 }
 
+export type ZotzExternalTaskSource = {
+  /** The Zotz connector the document came from, so two services can reuse task ids. */
+  connectorId: string
+  document: ZotzTasksDocument
+}
+
 export type ZotzTaskBoardItem = {
   /** Stable across projects, so the same issue on two boards is one card and one archive entry. */
   key: string
-  row: GitHubProjectRow
-  project: GitHubProjectTable['project']
+  title: string
   statusName: string | null
   column: ZotzTaskBoardColumnId | null
+  origin:
+    | { kind: 'github'; row: GitHubProjectRow; project: GitHubProjectTable['project'] }
+    | { kind: 'external'; task: ZotzExternalTask; source: ZotzExternalTaskSource }
 }
 
 export type ZotzTaskBoard = {
@@ -163,13 +177,58 @@ export function zotzTaskKey(project: GitHubProjectTable['project'], row: GitHubP
   return row.content.url ?? `${project.url}#${row.id}`
 }
 
+export function zotzExternalTaskKey(connectorId: string, taskId: string): string {
+  return `external:${connectorId}:${taskId}`
+}
+
+const CATEGORY_COLUMNS: Record<ZotzTasksStatusOption['category'] & string, ZotzTaskBoardColumnId> =
+  {
+    todo: 'backlog',
+    'in-progress': 'in-progress',
+    done: 'done'
+  }
+
+/** The option a task's Status points at; the parser already checked that it exists. */
+export function zotzExternalTaskStatus(
+  source: ZotzExternalTaskSource,
+  task: ZotzExternalTask
+): ZotzTasksStatusOption | null {
+  const field = zotzTasksStatusField(source.document.source)
+  return field?.options.find((option) => option.id === task.fieldValues.Status) ?? null
+}
+
+/** A service's own status name wins; its declared category is the fallback for names we can't read. */
+export function zotzExternalTaskColumn(
+  option: ZotzTasksStatusOption | null
+): ZotzTaskBoardColumnId | null {
+  if (!option) {
+    return null
+  }
+  return (
+    zotzTaskBoardColumnForStatus(option.name) ??
+    (option.category ? CATEGORY_COLUMNS[option.category] : null)
+  )
+}
+
+function place(board: ZotzTaskBoard, item: ZotzTaskBoardItem, archivedKeys: ReadonlySet<string>) {
+  if (item.column === 'done' && archivedKeys.has(item.key)) {
+    board.archived.push(item)
+  } else if (item.column) {
+    board.columns[item.column].push(item)
+  } else {
+    board.unmapped.push(item)
+  }
+}
+
 /**
- * Merges project tables in source order. The first copy of an issue wins, and a PR that an
- * issue on the board already links is shown on that issue instead of as its own card.
+ * Merges project tables in source order, then external services. The first copy of an issue
+ * wins, and a PR that an issue on the board already links is shown on that issue instead of
+ * as its own card.
  */
 export function buildZotzTaskBoard(
   tables: readonly GitHubProjectTable[],
-  archivedKeys: ReadonlySet<string>
+  archivedKeys: ReadonlySet<string>,
+  externalSources: readonly ZotzExternalTaskSource[] = []
 ): ZotzTaskBoard {
   const board: ZotzTaskBoard = {
     columns: { backlog: [], 'in-progress': [], 'in-review': [], done: [] },
@@ -196,15 +255,33 @@ export function buildZotzTaskBoard(
         continue
       }
       const statusName = projectRowStatusName(table, row)
-      const column = zotzTaskBoardColumnForStatus(statusName)
-      const item: ZotzTaskBoardItem = { key, row, project: table.project, statusName, column }
-      if (column === 'done' && archivedKeys.has(key)) {
-        board.archived.push(item)
-      } else if (column) {
-        board.columns[column].push(item)
-      } else {
-        board.unmapped.push(item)
-      }
+      place(
+        board,
+        {
+          key,
+          title: row.content.title,
+          statusName,
+          column: zotzTaskBoardColumnForStatus(statusName),
+          origin: { kind: 'github', row, project: table.project }
+        },
+        archivedKeys
+      )
+    }
+  }
+  for (const source of externalSources) {
+    for (const task of source.document.tasks) {
+      const option = zotzExternalTaskStatus(source, task)
+      place(
+        board,
+        {
+          key: zotzExternalTaskKey(source.connectorId, task.id),
+          title: task.title,
+          statusName: option?.name ?? null,
+          column: zotzExternalTaskColumn(option),
+          origin: { kind: 'external', task, source }
+        },
+        archivedKeys
+      )
     }
   }
   return board

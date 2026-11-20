@@ -1,22 +1,42 @@
-import { ExternalLink, FileText, GitPullRequest } from 'lucide-react'
+import { ExternalLink, FileText, GitPullRequest, Plug } from 'lucide-react'
 import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { useTranslate } from '@/i18n/use-translate'
+import { openAppHttpLink } from '@/lib/browser/navigation/app-http-link-open'
 import { chipStyle, labelChipColors } from '../../github-project/cells/project-cell-chip-colors'
 import type { GitHubProjectUser } from '../../../../../shared/github/projects/project-types'
 import type { ZotzTaskBoardItem } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
+import { zotzTaskCardView, type ZotzTaskCardView } from './zotz-task-card-view'
 
 /** Hides an avatar that fails to load instead of leaving a blank gap. */
 export function hideBrokenImage(event: React.SyntheticEvent<HTMLImageElement>): void {
   event.currentTarget.style.display = 'none'
 }
 
-/** GitHub serves every account's avatar at /<login>.png, so owners need no extra API call. */
-export function githubOwnerAvatarUrl(owner: string, host?: string): string {
-  return `https://${host ?? 'github.com'}/${encodeURIComponent(owner)}.png?size=40`
+export function openZotzTaskUrl(url: string): void {
+  openAppHttpLink(url)
 }
 
-export function openZotzTaskUrl(url: string): void {
-  void window.api.shell.openUrl(url)
+/** The source's mark: GitHub's logo, or an external service's own logo (a plug when it has none). */
+export function ZotzTaskBrand({
+  brand,
+  className
+}: {
+  brand: ZotzTaskCardView['brand']
+  className: string
+}): React.JSX.Element {
+  if (brand.kind === 'github') {
+    return <GitHubIcon className={className} />
+  }
+  return brand.logoUrl ? (
+    <img
+      src={brand.logoUrl}
+      alt=""
+      onError={hideBrokenImage}
+      className={`${className} rounded-sm`}
+    />
+  ) : (
+    <Plug className={className} />
+  )
 }
 
 export function ZotzTaskAvatars({
@@ -52,7 +72,7 @@ export function ZotzTaskAvatars({
   )
 }
 
-/** A task on the combined board: where it comes from, what it is, and a way out to GitHub. */
+/** A task on the board: where it comes from, what it is, and a way out to its own site. */
 export function ZotzTaskCard({
   item,
   onOpen
@@ -61,39 +81,44 @@ export function ZotzTaskCard({
   onOpen: () => void
 }): React.JSX.Element {
   const t = useTranslate()
-  const { row, project } = item
-  const url = row.content.url ?? project.url
+  const view = zotzTaskCardView(item)
+  const openLabel =
+    view.brand.kind === 'github'
+      ? t('zotz.taskBoard.card.openInGitHub', 'Open in GitHub')
+      : t('zotz.taskBoard.card.openInSource', 'Open in {{source}}', { source: view.brand.name })
   const Glyph =
-    row.itemType === 'PULL_REQUEST'
-      ? GitPullRequest
-      : row.itemType === 'DRAFT_ISSUE'
-        ? FileText
-        : null
+    view.itemType === 'pr' ? GitPullRequest : view.itemType === 'draft' ? FileText : null
   return (
     <div
       role="listitem"
       className="rounded-md border border-border/60 bg-card p-2 text-card-foreground shadow-xs"
     >
       <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-        <GitHubIcon className="size-3 shrink-0" />
-        <img
-          src={githubOwnerAvatarUrl(project.owner, project.host)}
-          alt=""
-          onError={hideBrokenImage}
-          className="size-3.5 shrink-0 rounded-sm"
-        />
+        <ZotzTaskBrand brand={view.brand} className="size-3 shrink-0" />
+        {view.ownerAvatarUrl ? (
+          <img
+            src={view.ownerAvatarUrl}
+            alt=""
+            onError={hideBrokenImage}
+            className="size-3.5 shrink-0 rounded-sm"
+          />
+        ) : null}
         <span className="min-w-0 flex-1 truncate">
-          {project.owner} / {project.title}
+          {view.ownerName === view.projectTitle
+            ? view.ownerName
+            : `${view.ownerName} / ${view.projectTitle}`}
         </span>
-        <button
-          type="button"
-          aria-label={t('zotz.taskBoard.card.openInGitHub', 'Open in GitHub')}
-          title={t('zotz.taskBoard.card.openInGitHub', 'Open in GitHub')}
-          onClick={() => openZotzTaskUrl(url)}
-          className="shrink-0 cursor-pointer rounded p-0.5 hover:bg-accent hover:text-foreground"
-        >
-          <ExternalLink className="size-3" />
-        </button>
+        {view.url ? (
+          <button
+            type="button"
+            aria-label={openLabel}
+            title={openLabel}
+            onClick={() => (view.url ? openZotzTaskUrl(view.url) : undefined)}
+            className="shrink-0 cursor-pointer rounded p-0.5 hover:bg-accent hover:text-foreground"
+          >
+            <ExternalLink className="size-3" />
+          </button>
+        ) : null}
       </div>
       <div className="mt-1.5 flex items-start gap-1.5">
         {Glyph ? <Glyph className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" /> : null}
@@ -104,25 +129,21 @@ export function ZotzTaskCard({
             className="block w-full cursor-pointer text-left text-xs font-medium leading-snug hover:underline"
           >
             <span className="line-clamp-2">
-              {row.itemType === 'REDACTED'
+              {view.itemType === 'restricted'
                 ? t('zotz.taskBoard.card.restricted', 'Restricted item')
-                : row.content.title}
+                : item.title}
             </span>
           </button>
           <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-            {row.itemType === 'DRAFT_ISSUE' ? (
+            {view.itemType === 'draft' ? (
               <span className="shrink-0">{t('zotz.taskBoard.card.draft', 'Draft')}</span>
             ) : null}
-            {row.content.number == null ? null : (
-              <span className="shrink-0">#{row.content.number}</span>
-            )}
-            {row.content.repository ? (
-              <span className="truncate">{row.content.repository}</span>
-            ) : null}
+            {view.numberLabel ? <span className="shrink-0">{view.numberLabel}</span> : null}
+            {view.repository ? <span className="truncate">{view.repository}</span> : null}
           </div>
-          {row.content.labels.length > 0 ? (
+          {view.labels.length > 0 ? (
             <div className="mt-1 flex min-w-0 flex-wrap gap-1">
-              {row.content.labels.slice(0, 2).map((label) => (
+              {view.labels.slice(0, 2).map((label) => (
                 <span
                   key={label.name}
                   className="max-w-full truncate rounded-full px-1.5 text-[11px] text-[var(--github-project-chip-fg-light)] dark:text-[var(--github-project-chip-fg-dark)]"
@@ -134,7 +155,7 @@ export function ZotzTaskCard({
             </div>
           ) : null}
         </div>
-        <ZotzTaskAvatars users={row.content.assignees} />
+        <ZotzTaskAvatars users={view.assignees} />
       </div>
     </div>
   )

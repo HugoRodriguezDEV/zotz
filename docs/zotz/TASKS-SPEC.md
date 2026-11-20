@@ -257,7 +257,7 @@ JSON es el formato oficial, con un JSON Schema publicado en `docs/zotz/schemas/z
 
 ### 7.2 Reglas del contrato
 
-- **Obligatorios:** `schema`, `source.id`, `source.name`, `source.fields` con un campo `Status` de tipo `single-select`, `capabilities.actionsUrl` y, por tarea, `id`, `title`, `state` y `fieldValues.Status`.
+- **Obligatorios:** `schema`, `source.id`, `source.name`, `source.fields` con un campo `Status` de tipo `single-select` y, por tarea, `id`, `title`, `state` y `fieldValues.Status`.
 - Tipos de campo: `text`, `number`, `date` (ISO `YYYY-MM-DD`), `single-select` (valor = `id` de la opción) e `iteration` (valor = `id` de la iteración). Son los de GitHub Projects; con ellos funcionan igual Column by, Group by, filtros y sumas.
 - Colores: los de GitHub (`GRAY`, `BLUE`, `GREEN`, `YELLOW`, `ORANGE`, `RED`, `PINK`, `PURPLE`). Zotz los pinta con los tokens del styleguide.
 - `category` (`todo` | `in-progress` | `done`) es opcional; ayuda a mapear en vistas combinadas (§5.3).
@@ -381,7 +381,11 @@ No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de
 - **9b, parte 1 — GitHub Projects.** Selector de organizaciones y Projects, tablero combinado, vista espejo de cada Project (reusa `ProjectBoard` de Orca en solo lectura), tarjetas con marca y org, búsqueda, "Actualizar", detalle de solo lectura, "Archivar terminadas" y Archivadas.
 - **9b, parte 2 — Repos y vistas.** Issues de repos sueltos, vistas guardadas (board/tabla, filtro con la sintaxis de GitHub, Column by, Group by, Sort, campos) y actualización cada 5 min con el modal abierto.
 - **9c — PRs de GitHub.** Línea de PR en la tarjeta y sección Desarrollo del detalle.
-- **9d — Conector externo.** Contrato `zotz-tasks/v1` con campos tipo Project, JSON Schema, feed por URL, CLI `push`/`validate`, importar archivo, detección por `taskIdPattern` y endpoint `link-pr`.
+- **9d, parte 1 — Conector externo.** Contrato `zotz-tasks/v1` con campos tipo Project (JSON, YAML, TOML), feed por URL con token cifrado, importar archivo, tareas en el tablero combinado, vista propia del servicio y detalle.
+- **9d, parte 2.** JSON Schema publicado, CLI `zotz tasks push`/`validate`, detección por `taskIdPattern` y endpoint `link-pr` (depende de 9c).
+
+`capabilities` es opcional en la parte 1: sin `actionsUrl` (o sin `link-pr` funcional) la fuente entra en modo solo lectura, como dice §7.4.
+
 - **9e — Tarea ↔ agente.** Chip de estado de agente en la tarjeta y "Crear workspace con esta tarea" (rama con el id de la tarea, `linkedIssue` en GitHub y el cuerpo como primer prompt).
 - **9f — Acción `move`** para fuentes externas, con comprobación previa.
 - **Parte 2 (después de 9a–9f):** relay (GitHub App + Vercel), vista roadmap, _Slice by_ y sumas de campos.

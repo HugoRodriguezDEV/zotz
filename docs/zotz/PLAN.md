@@ -342,7 +342,8 @@ Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 - [x] 9b, parte 1. GitHub Projects de solo lectura: elegir organizaciones/cuenta → Projects; tablero combinado (Backlog / In Progress / In Review / Done) y vista espejo de cada Project; tarjetas con marca de GitHub, logo y nombre de la org y el proyecto; búsqueda; detalle con "Abrir en GitHub"; "Archivar terminadas" (solo con botón) y vista Archivadas.
 - [ ] 9b, parte 2. Issues de repos sueltos; vistas guardadas (board/tabla, filtro con la sintaxis de GitHub, Column by, Group by, Sort); actualizar cada 5 min con el modal abierto.
 - [ ] 9c. PRs ligados estilo Avena: línea de PR en la tarjeta; en el detalle, PRs y ramas ligadas, los que la mencionan, commit y archivos.
-- [ ] 9d. Contrato `zotz-tasks/v1` con campos tipo Project (JSON, también YAML/TOML), feed por URL, `zotz tasks push`/`validate`, importar archivo y endpoint obligatorio `link-pr`.
+- [x] 9d, parte 1. Contrato `zotz-tasks/v1` con campos tipo Project (JSON, YAML, TOML), feed por URL con token cifrado, importar archivo, tareas externas en el tablero y vista propia de cada servicio.
+- [ ] 9d, parte 2. JSON Schema publicado, `zotz tasks push`/`validate` y endpoint obligatorio `link-pr`.
 - [ ] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
 - [ ] 9f. Acción `move` para fuentes externas, con comprobación previa.
 - Parte 2: relay propio en Vercel (GitHub App) para avisos al instante, vista roadmap, _Slice by_ y sumas de campos.
@@ -717,3 +718,21 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 - **Archivar terminadas** guarda en `zotzTaskBoardArchived` (setting, no archivo aparte). Una tarea archivada vuelve sola si sale de Done.
 - Avatares de dueños: `https://github.com/<login>.png`, sin llamada extra a la API; si no cargan, se ocultan.
 - Test de la lógica pura en `zotz-task-board-columns.test.ts` (mapeo, duplicados, PR ligado, archivado). Verificado con fixtures (`ZotzTaskBoard:combined`, `:detail`, `ZotzTaskBoardSourcesSetting:picker`) y `pnpm check:changed`. Sin verificar con GitHub real ni en la app.
+
+### 2026-11-20 — Fase 9d, parte 1: servicios de tareas externos (`zotz/fase-9-tareas`)
+
+- **Contrato** en `shared/zotz/tasks/zotz-tasks-contract.ts`. Un esquema `zod` lee JSON, YAML o TOML.
+  - Una tarea inválida se omite y se reporta con su motivo; un documento inválido no reemplaza al último bueno.
+  - Límites: 2 MB y 2,000 tareas.
+- **Main** (`main/zotz/tasks/`):
+  - `ZotzTaskConnectorService` descarga cada feed con `Authorization: Bearer`, 15 s de límite, y guarda el último documento en `zotz-task-connectors.json`.
+  - El token se cifra con el `SecretStore` del sistema en `zotz-task-connector-secrets.json` (modo 600). Si el sistema no puede cifrar, no se guarda.
+  - IPC `zotzTasks:*` y puente `window.api.zotzTaskConnectors`.
+- **Ajustes → Tareas → "External task services":** URL + token opcional, o "Import file". Muestra el número de tareas, la hora, la primera tarea omitida y el error.
+- **Tablero:**
+  - El modelo de tarjeta ahora acepta tareas de GitHub y externas (`origin`).
+  - El Status externo cae en la columna por nombre y, si no, por `category`.
+  - Cada servicio tiene su vista con sus columnas.
+  - El detalle muestra sus campos.
+- Probado en la app real con un feed local protegido por token: sin token da 401 y no se agrega; con token, 5 tareas y 1 omitida. Capturas en la evidencia de la sesión.
+- Tests: `zotz-tasks-contract.test.ts` (tareas omitidas, JSON/YAML/TOML iguales, versión, columna por nombre y por categoría).

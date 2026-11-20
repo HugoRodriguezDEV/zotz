@@ -26070,8 +26070,8 @@
       "toolbar": "Task board",
       "empty": {
         "title": "No task sources yet",
-        "description": "Pick the GitHub organizations and projects whose tasks show up here.",
-        "action": "Choose projects"
+        "description": "Pick the GitHub organizations and projects, or connect a task service, whose tasks show up here.",
+        "action": "Choose sources"
       },
       "view": {
         "all": "All projects"
@@ -26080,7 +26080,7 @@
       "updatedAt": "Updated {{time}}",
       "refresh": "Refresh",
       "archived": "Archived ({{total}})",
-      "manageSources": "Choose projects",
+      "manageSources": "Choose sources",
       "sourceError": "Couldn't load {{project}}: {{error}}",
       "backToBoard": "Back to the board",
       "archivedEmpty": "Nothing archived yet.",
@@ -26090,7 +26090,8 @@
       "card": {
         "openInGitHub": "Open in GitHub",
         "restricted": "Restricted item",
-        "draft": "Draft"
+        "draft": "Draft",
+        "openInSource": "Open in {{source}}"
       },
       "title": "Tasks",
       "description": "Tasks from all your projects in one board.",
@@ -26103,6 +26104,23 @@
         "closed": "Closed",
         "merged": "Merged"
       }
+    },
+    "taskConnectors": {
+      "badUrl": "Use an http:// or https:// URL.",
+      "connect": "Connect",
+      "connected": "Connected {{name}}: {{total}} tasks.",
+      "description": "Connect a service that publishes tasks in the zotz-tasks/v1 format (JSON, YAML or TOML), by URL or from a file.",
+      "failed": "Couldn't read that service.",
+      "fromFile": "Imported from a file",
+      "importFile": "Import file",
+      "noEncryption": "This system can't encrypt the token, so it wasn't saved.",
+      "rejected": "Skipped tasks: {{total}}. First problem: {{reason}}",
+      "remove": "Remove",
+      "status": "{{total}} tasks · updated {{time}}",
+      "title": "External task services",
+      "tokenPlaceholder": "Token (optional)",
+      "withToken": "with token",
+      "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
     }
   }
 }

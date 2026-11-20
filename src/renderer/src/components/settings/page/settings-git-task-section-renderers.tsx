@@ -3,6 +3,7 @@ import { GitPane } from '../source-control/GitPane'
 import { GitProviderApiBudgetPane } from '../source-control/GitProviderApiBudgetPane'
 import { TasksPane } from '../tasks/TasksPane'
 import { ZotzTaskBoardSourcesSetting } from '../../zotz/tasks/ZotzTaskBoardSourcesSetting'
+import { ZotzTaskConnectorsSetting } from '../../zotz/tasks/ZotzTaskConnectorsSetting'
 import { SettingsSection } from '../section-layout/SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
@@ -75,6 +76,11 @@ export function renderTasksSettingsSection(
         <>
           <TasksPane settings={model.settings} updateSettings={model.updateSettings} />
           <ZotzTaskBoardSourcesSetting
+            settings={model.settings}
+            updateSettings={model.updateSettings}
+          />
+
+          <ZotzTaskConnectorsSetting
             settings={model.settings}
             updateSettings={model.updateSettings}
           />

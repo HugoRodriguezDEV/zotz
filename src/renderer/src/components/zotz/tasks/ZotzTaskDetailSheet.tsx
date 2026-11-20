@@ -1,5 +1,4 @@
 import { ExternalLink, GitPullRequest } from 'lucide-react'
-import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -11,22 +10,21 @@ import {
 import { useTranslate } from '@/i18n/use-translate'
 import type {
   GitHubProjectFieldValue,
-  GitHubProjectRow,
   GitHubProjectTable
 } from '../../../../../shared/github/projects/project-types'
-import {
-  githubOwnerAvatarUrl,
-  hideBrokenImage,
-  openZotzTaskUrl,
-  ZotzTaskAvatars
-} from './ZotzTaskCard'
+import type { ZotzTaskBoardItem } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
+import { hideBrokenImage, openZotzTaskUrl, ZotzTaskAvatars, ZotzTaskBrand } from './ZotzTaskCard'
+import { zotzTaskCardView } from './zotz-task-card-view'
 
 export type ZotzTaskDetail = {
-  row: GitHubProjectRow
-  table: GitHubProjectTable
+  item: ZotzTaskBoardItem
+  /** The GitHub project table, for its field names; absent for external tasks. */
+  table?: GitHubProjectTable
 }
 
-function fieldValueText(value: GitHubProjectFieldValue): string {
+type Translate = ReturnType<typeof useTranslate>
+
+function githubFieldText(value: GitHubProjectFieldValue): string {
   switch (value.kind) {
     case 'single-select':
       return value.name
@@ -45,28 +43,36 @@ function fieldValueText(value: GitHubProjectFieldValue): string {
   }
 }
 
-function fieldValueName(value: GitHubProjectFieldValue): string | undefined {
-  return 'fieldName' in value ? value.fieldName : undefined
-}
-
-/** The project's fields for this item, in the view's field order; title and built-ins are shown above. */
-function projectFieldRows(detail: ZotzTaskDetail): { name: string; value: string }[] {
-  const names = new Map(detail.table.selectedView.fields.map((field) => [field.id, field.name]))
-  const rows: { name: string; value: string }[] = []
-  for (const value of Object.values(detail.row.fieldValuesByFieldId)) {
-    if (value.kind === 'labels' || value.kind === 'users') {
-      continue
-    }
-    const name = names.get(value.fieldId) ?? fieldValueName(value)
-    const text = fieldValueText(value)
-    if (name && text && name.toLowerCase() !== 'title') {
-      rows.push({ name, value: text })
-    }
+/** The task's own fields, in its source's order; built-ins like title are shown above. */
+function fieldRows(detail: ZotzTaskDetail): { name: string; value: string }[] {
+  const { origin } = detail.item
+  if (origin.kind === 'external') {
+    return origin.source.document.source.fields.flatMap((field) => {
+      const value = origin.task.fieldValues[field.name]
+      if (value === undefined || value === null || value === '') {
+        return []
+      }
+      const text =
+        field.type === 'single-select'
+          ? (field.options.find((option) => option.id === value)?.name ?? String(value))
+          : field.type === 'iteration'
+            ? (field.iterations.find((iteration) => iteration.id === value)?.title ?? String(value))
+            : String(value)
+      return [{ name: field.name, value: text }]
+    })
   }
-  return rows
+  const names = new Map(detail.table?.selectedView.fields.map((field) => [field.id, field.name]))
+  return Object.values(origin.row.fieldValuesByFieldId).flatMap((value) => {
+    if (value.kind === 'labels' || value.kind === 'users') {
+      return []
+    }
+    const name = names.get(value.fieldId) ?? ('fieldName' in value ? value.fieldName : undefined)
+    const text = githubFieldText(value)
+    return name && text && name.toLowerCase() !== 'title' ? [{ name, value: text }] : []
+  })
 }
 
-function stateLabel(state: string | null, t: ReturnType<typeof useTranslate>): string | null {
+function stateLabel(state: string | null | undefined, t: Translate): string | null {
   switch ((state ?? '').toUpperCase()) {
     case 'OPEN':
       return t('zotz.taskBoard.state.open', 'Open')
@@ -75,11 +81,11 @@ function stateLabel(state: string | null, t: ReturnType<typeof useTranslate>): s
     case 'MERGED':
       return t('zotz.taskBoard.state.merged', 'Merged')
     default:
-      return state
+      return state ?? null
   }
 }
 
-/** Read-only view of a task as its GitHub Project shows it; editing happens on GitHub. */
+/** Read-only view of a task as its source shows it; editing happens there. */
 export function ZotzTaskDetailSheet({
   detail,
   onClose
@@ -88,93 +94,104 @@ export function ZotzTaskDetailSheet({
   onClose: () => void
 }): React.JSX.Element {
   const t = useTranslate()
-  const row = detail?.row
-  const project = detail?.table.project
+  const view = detail ? zotzTaskCardView(detail.item) : null
+  const origin = detail?.item.origin
+  const state = origin?.kind === 'github' ? origin.row.content.state : origin?.task.state
+  const body = origin?.kind === 'github' ? origin.row.content.body : origin?.task.body
+  const linkedPullRequests =
+    origin?.kind === 'github' ? (origin.row.content.linkedPullRequests?.pullRequests ?? []) : []
+  const parentIssue = origin?.kind === 'github' ? origin.row.content.parentIssue : null
+  const subIssues = origin?.kind === 'github' ? origin.row.content.subIssuesProgress : null
   return (
     <Sheet open={detail !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
       <SheetContent side="right" className="w-full sm:max-w-md">
-        {detail && row && project ? (
+        {detail && view ? (
           <>
             <SheetHeader>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <GitHubIcon className="size-3.5" />
-                <img
-                  src={githubOwnerAvatarUrl(project.owner, project.host)}
-                  alt=""
-                  onError={hideBrokenImage}
-                  className="size-4 rounded-sm"
-                />
+                <ZotzTaskBrand brand={view.brand} className="size-3.5" />
+                {view.ownerAvatarUrl ? (
+                  <img
+                    src={view.ownerAvatarUrl}
+                    alt=""
+                    onError={hideBrokenImage}
+                    className="size-4 rounded-sm"
+                  />
+                ) : null}
                 <span className="truncate">
-                  {project.owner} / {project.title}
+                  {view.ownerName === view.projectTitle
+                    ? view.ownerName
+                    : `${view.ownerName} / ${view.projectTitle}`}
                 </span>
               </div>
-              <SheetTitle>{row.content.title}</SheetTitle>
+              <SheetTitle>{detail.item.title}</SheetTitle>
               <SheetDescription>
-                {[
-                  row.content.repository,
-                  row.content.number == null ? null : `#${row.content.number}`,
-                  stateLabel(row.content.state, t)
-                ]
+                {[view.repository, view.numberLabel, stateLabel(state, t)]
                   .filter(Boolean)
                   .join(' · ')}
               </SheetDescription>
             </SheetHeader>
             <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 text-sm scrollbar-sleek">
-              <Button
-                type="button"
-                className="self-start"
-                onClick={() => openZotzTaskUrl(row.content.url ?? project.url)}
-              >
-                <ExternalLink className="size-3.5" />
-                {t('zotz.taskBoard.detail.openInGitHub', 'Open in GitHub')}
-              </Button>
+              {view.url ? (
+                <Button
+                  type="button"
+                  className="self-start"
+                  onClick={() => (view.url ? openZotzTaskUrl(view.url) : undefined)}
+                >
+                  <ExternalLink className="size-3.5" />
+                  {view.brand.kind === 'github'
+                    ? t('zotz.taskBoard.detail.openInGitHub', 'Open in GitHub')
+                    : t('zotz.taskBoard.card.openInSource', 'Open in {{source}}', {
+                        source: view.brand.name
+                      })}
+                </Button>
+              ) : null}
 
               <dl className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-x-3 gap-y-2 text-xs">
-                {row.content.assignees.length > 0 ? (
+                {view.assignees.length > 0 ? (
                   <>
                     <dt className="text-muted-foreground">
                       {t('zotz.taskBoard.detail.assignees', 'Assignees')}
                     </dt>
                     <dd className="flex min-w-0 items-center gap-2">
-                      <ZotzTaskAvatars users={row.content.assignees} />
+                      <ZotzTaskAvatars users={view.assignees} />
                       <span className="truncate">
-                        {row.content.assignees.map((user) => user.login).join(', ')}
+                        {view.assignees.map((user) => user.name ?? user.login).join(', ')}
                       </span>
                     </dd>
                   </>
                 ) : null}
-                {row.content.labels.length > 0 ? (
+                {view.labels.length > 0 ? (
                   <>
                     <dt className="text-muted-foreground">
                       {t('zotz.taskBoard.detail.labels', 'Labels')}
                     </dt>
                     <dd className="min-w-0 break-words">
-                      {row.content.labels.map((label) => label.name).join(', ')}
+                      {view.labels.map((label) => label.name).join(', ')}
                     </dd>
                   </>
                 ) : null}
-                {row.content.parentIssue ? (
+                {parentIssue ? (
                   <>
                     <dt className="text-muted-foreground">
                       {t('zotz.taskBoard.detail.parent', 'Parent issue')}
                     </dt>
                     <dd className="min-w-0 truncate">
-                      #{row.content.parentIssue.number} {row.content.parentIssue.title}
+                      #{parentIssue.number} {parentIssue.title}
                     </dd>
                   </>
                 ) : null}
-                {row.content.subIssuesProgress && row.content.subIssuesProgress.total > 0 ? (
+                {subIssues && subIssues.total > 0 ? (
                   <>
                     <dt className="text-muted-foreground">
                       {t('zotz.taskBoard.detail.subIssues', 'Sub-issues')}
                     </dt>
                     <dd>
-                      {row.content.subIssuesProgress.completed} /{' '}
-                      {row.content.subIssuesProgress.total}
+                      {subIssues.completed} / {subIssues.total}
                     </dd>
                   </>
                 ) : null}
-                {projectFieldRows(detail).map((field) => (
+                {fieldRows(detail).map((field) => (
                   <div key={field.name} className="contents">
                     <dt className="truncate text-muted-foreground">{field.name}</dt>
                     <dd className="min-w-0 break-words">{field.value}</dd>
@@ -182,13 +199,12 @@ export function ZotzTaskDetailSheet({
                 ))}
               </dl>
 
-              {row.content.linkedPullRequests &&
-              row.content.linkedPullRequests.pullRequests.length > 0 ? (
+              {linkedPullRequests.length > 0 ? (
                 <div className="flex flex-col gap-1.5">
                   <p className="text-xs font-medium text-muted-foreground">
                     {t('zotz.taskBoard.detail.linkedPullRequests', 'Linked pull requests')}
                   </p>
-                  {row.content.linkedPullRequests.pullRequests.map((pullRequest) => (
+                  {linkedPullRequests.map((pullRequest) => (
                     <button
                       key={pullRequest.url}
                       type="button"
@@ -203,10 +219,8 @@ export function ZotzTaskDetailSheet({
                 </div>
               ) : null}
 
-              {row.content.body ? (
-                <p className="whitespace-pre-wrap text-xs text-muted-foreground">
-                  {row.content.body}
-                </p>
+              {body ? (
+                <p className="whitespace-pre-wrap text-xs text-muted-foreground">{body}</p>
               ) : null}
             </div>
           </>
