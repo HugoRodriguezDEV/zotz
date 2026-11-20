@@ -26,7 +26,7 @@ Zotz es un fork de [stablyai/orca](https://github.com/stablyai/orca) para correr
 - [x] Agregar el remote upstream: `git remote add upstream https://github.com/stablyai/orca.git`.
 - [x] Documentar en `docs/zotz/SYNC.md` cómo sincronizar: `git fetch upstream && git rebase upstream/main` (o merge) en una rama `zotz/sync-YYYY-MM-DD`, resolver conflictos y correr los gates.
 - [x] `LICENSE`: **dejar intacto** el copyright de StablyAI (MIT lo exige) y agregar debajo `Copyright (c) 2026 Hugo Rodríguez (Zotz modifications)`.
-- [x] README: agregar arriba una sección corta "Zotz es un fork de Orca" con link al original. El resto del README se queda.
+- [x] README: agregar arriba una sección corta "Zotz es un fork de Orca" con link al original. El resto del README se queda. (Reemplazado el 2026-11-20: el README es de Zotz, sin nombres ni enlaces de Orca; el crédito queda en `LICENSE`.)
 - [x] Revisar `.github/workflows`: desactivar los workflows de release/publish que apunten a stablyai o requieran sus secrets (renombrar a `.disabled` o agregar `if: github.repository == 'stablyai/orca'`). Los de CI (lint/test) se quedan.
 
 **Listo cuando:** CI corre verde en el fork y ningún workflow intenta publicar.
