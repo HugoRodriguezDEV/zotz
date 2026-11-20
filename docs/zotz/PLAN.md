@@ -771,3 +771,10 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
   - **Ajustes sin el conector de `push`:** no se enteraba porque faltaba `notifyListeners`.
 - **Probado** en la app real con el Project TEDYC, un repo suelto, un servicio local con token y `zotz tasks push` desde la CLI compilada. El servicio recibió los `dryRun`, dos `link-pr` reales (un PR detectado por la rama `feature/issue-19-…` y otro declarado) y un `move`.
 - Los 4 tests de `cross-version-wire` fallan en esta máquina: una copia vieja en caché (`tests/e2e/.cross-version-checkouts/v1.4.265`) importa un paquete `cloud/` que no existe aquí. No es por este cambio.
+
+### 2026-11-20 — README de Zotz y carpeta `~/zotz` (`zotz/readme-zotz`)
+
+- **README:** reescrito en español para Zotz, sin nombres, enlaces ni imágenes de Orca. Imágenes de las fixtures en `docs/assets/zotz/` y `social-preview.png` para la vista previa del repo (se sube a mano: GitHub no tiene API). Los README traducidos y los assets viejos de `docs/assets/` se quedan por el costo de sync.
+- **Carpeta visible:** los worktrees nuevos van a `~/zotz/workspaces` y los proyectos nuevos a `~/zotz/projects` (antes `~/orca/...`). `getDefaultWorkspaceDir` y el espejo de WSL usan `ZOTZ_HOME_FOLDER_NAME` (`src/shared/zotz/zotz-home-folders.ts`). `~/.orca` sigue igual (decisión de Fase 1c).
+- **Migración al cargar el perfil** (`src/main/zotz/zotz-workspace-dir-migration.ts`): si el ajuste guardado era el default viejo (o no existía), pasa a `~/zotz/workspaces` y `~/orca/workspaces` entra a `workspaceDirHistory`, así que los worktrees que ya están ahí conservan dueño y visibilidad. Una carpeta elegida a mano no se toca. La clasificación de WSL reconoce ambas raíces.
+- **No se mueven los worktrees existentes:** git los registra por ruta absoluta y pueden tener agentes corriendo. Siguen en `~/orca/workspaces` hasta que se borren; cuando la carpeta quede vacía se puede borrar a mano.
