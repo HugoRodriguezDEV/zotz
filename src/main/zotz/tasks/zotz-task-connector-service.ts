@@ -1,111 +1,38 @@
 import { join } from 'node:path'
-import { readJsonFile, SerialJsonWriter } from '../zotz-json-file'
+import { SerialJsonWriter } from '../zotz-json-file'
 import { getSecretStore, hasSecretStore } from '../../../shared/secure-storage/secret-store'
 import {
   parseZotzTasks,
-  ZOTZ_TASKS_MAX_BYTES,
   type ZotzTasksFormat
 } from '../../../shared/zotz/tasks/zotz-tasks-contract'
 import type {
   ZotzTaskConnectorImportResult,
   ZotzTaskConnectorSnapshot
 } from '../../../shared/zotz/tasks/zotz-task-connector-types'
+import { matchZotzTaskPullRequests } from '../../../shared/zotz/tasks/zotz-task-pr-matching'
+import { fetchZotzFeedText } from './zotz-task-feed'
+import { postZotzTaskAction } from './zotz-task-actions'
+import { fetchZotzPullRequests, fetchZotzRecentPullRequests } from './zotz-task-development'
+import {
+  normalizeStoredZotzConnector,
+  publicZotzConnectorSnapshot,
+  readJsonRecord,
+  type StoredZotzConnector
+} from './zotz-task-connector-record'
+import {
+  applyZotzManualLinks,
+  checkZotzConnectorActions,
+  sendZotzConnectorLinks
+} from './zotz-task-connector-sync'
 
 const CACHE_FILE = 'zotz-task-connectors.json'
 const SECRETS_FILE = 'zotz-task-connector-secrets.json'
-const FETCH_TIMEOUT_MS = 15_000
 
-async function readJsonRecord(path: string): Promise<Record<string, unknown>> {
-  const value = await readJsonFile(path)
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? Object.fromEntries(Object.entries(value))
-    : {}
-}
-
-function isSnapshot(value: unknown): value is ZotzTaskConnectorSnapshot {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'id' in value &&
-    typeof value.id === 'string' &&
-    'error' in value &&
-    'document' in value
-  )
-}
-
-function formatFromResponse(url: string, contentType: string | null): ZotzTasksFormat | 'auto' {
-  const type = contentType?.toLowerCase() ?? ''
-  if (type.includes('json')) {
-    return 'json'
-  }
-  if (type.includes('yaml')) {
-    return 'yaml'
-  }
-  if (type.includes('toml')) {
-    return 'toml'
-  }
-  return formatFromName(new URL(url).pathname)
-}
-
-export function formatFromName(name: string): ZotzTasksFormat | 'auto' {
-  const lower = name.toLowerCase()
-  if (lower.endsWith('.json')) {
-    return 'json'
-  }
-  if (lower.endsWith('.yaml') || lower.endsWith('.yml')) {
-    return 'yaml'
-  }
-  return lower.endsWith('.toml') ? 'toml' : 'auto'
-}
-
-async function fetchFeedText(
-  url: string,
-  token: string | null
-): Promise<
-  { ok: true; text: string; format: ZotzTasksFormat | 'auto' } | { ok: false; error: string }
-> {
-  if (!/^https?:\/\//i.test(url)) {
-    return { ok: false, error: 'The feed URL must start with http:// or https://' }
-  }
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
-  try {
-    // Fetch drops Authorization on a cross-origin redirect, so a token never leaks to another host.
-    const response = await fetch(url, {
-      headers: {
-        Accept: 'application/json, application/yaml, application/toml;q=0.9, text/plain;q=0.8',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      signal: controller.signal
-    })
-    if (!response.ok) {
-      return { ok: false, error: `The service answered HTTP ${response.status}` }
-    }
-    if (Number(response.headers.get('content-length') ?? 0) > ZOTZ_TASKS_MAX_BYTES) {
-      return { ok: false, error: 'The feed is larger than 2 MB' }
-    }
-    return {
-      ok: true,
-      text: await response.text(),
-      format: formatFromResponse(url, response.headers.get('content-type'))
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      error: controller.signal.aborted
-        ? 'The service did not answer within 15 seconds'
-        : `Could not reach the service: ${error instanceof Error ? error.message : String(error)}`
-    }
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-/** Reads external task feeds and keeps the last good document of each on disk. */
+/** Reads external task feeds, checks their actions and keeps the last good document on disk. */
 export class ZotzTaskConnectorService {
   private readonly cachePath: string
   private readonly secretsPath: string
-  private readonly cache: Promise<Record<string, ZotzTaskConnectorSnapshot>>
+  private readonly cache: Promise<Record<string, StoredZotzConnector>>
   private readonly writer = new SerialJsonWriter()
 
   constructor(userDataPath: string) {
@@ -113,15 +40,16 @@ export class ZotzTaskConnectorService {
     this.secretsPath = join(userDataPath, SECRETS_FILE)
     this.cache = readJsonRecord(this.cachePath).then((stored) =>
       Object.fromEntries(
-        Object.entries(stored).filter((entry): entry is [string, ZotzTaskConnectorSnapshot] =>
-          isSnapshot(entry[1])
-        )
+        Object.values(stored).flatMap((value) => {
+          const entry = normalizeStoredZotzConnector(value)
+          return entry ? [[entry.id, entry]] : []
+        })
       )
     )
   }
 
   async snapshot(): Promise<ZotzTaskConnectorSnapshot[]> {
-    return Object.values(await this.cache)
+    return Object.values(await this.cache).map(publicZotzConnectorSnapshot)
   }
 
   async refresh(
@@ -130,30 +58,39 @@ export class ZotzTaskConnectorService {
     const cache = await this.cache
     await Promise.all(
       connectors.map(async ({ id, url }) => {
-        const previous = cache[id]
-        const feed = await fetchFeedText(url, await this.readToken(id))
+        const feed = await fetchZotzFeedText(url, await this.readToken(id))
         const parsed = feed.ok ? parseZotzTasks(feed.text, feed.format) : null
-        cache[id] =
-          parsed?.ok === true
-            ? {
-                id,
-                fetchedAt: Date.now(),
-                document: parsed.document,
-                rejected: parsed.rejected,
-                error: null
-              }
-            : {
-                // Keep showing the last good tasks while the service is down or sends a bad feed.
-                id,
-                fetchedAt: previous?.fetchedAt ?? null,
-                document: previous?.document ?? null,
-                rejected: previous?.rejected ?? [],
-                error: feed.ok ? (parsed?.ok === false ? parsed.error : null) : feed.error
-              }
+        // Read after the download: a PR sync may have updated the entry meanwhile.
+        const previous = cache[id]
+        if (parsed?.ok === true) {
+          cache[id] = {
+            ...(previous ?? { verifiedActions: [], actionError: null, pullRequests: {} }),
+            id,
+            fetchedAt: Date.now(),
+            document: parsed.document,
+            rejected: parsed.rejected,
+            error: null
+          }
+          await checkZotzConnectorActions(cache[id], await this.readToken(id))
+        } else {
+          // Keep showing the last good tasks while the service is down or sends a bad feed.
+          cache[id] = {
+            ...(previous ?? {
+              id,
+              fetchedAt: null,
+              document: null,
+              rejected: [],
+              verifiedActions: [],
+              actionError: null,
+              pullRequests: {}
+            }),
+            error: feed.ok ? (parsed?.ok === false ? parsed.error : null) : feed.error
+          }
+        }
       })
     )
     await this.write(this.cachePath, cache)
-    return Object.values(cache)
+    return Object.values(cache).map(publicZotzConnectorSnapshot)
   }
 
   async importDocument(
@@ -165,21 +102,108 @@ export class ZotzTaskConnectorService {
       return { ok: false, error: parsed.error }
     }
     const id = `file-${parsed.document.source.id}`
-    const snapshot: ZotzTaskConnectorSnapshot = {
+    const cache = await this.cache
+    cache[id] = {
+      ...(cache[id] ?? { pullRequests: {} }),
       id,
       fetchedAt: Date.now(),
       document: parsed.document,
       rejected: parsed.rejected,
-      error: null
+      error: null,
+      verifiedActions: [],
+      actionError: null
     }
-    const cache = await this.cache
-    cache[id] = snapshot
+    await checkZotzConnectorActions(cache[id], await this.readToken(id))
     await this.write(this.cachePath, cache)
     return {
       ok: true,
       connector: { id, kind: 'file', name: parsed.document.source.name },
-      snapshot
+      snapshot: publicZotzConnectorSnapshot(cache[id])
     }
+  }
+
+  /**
+   * Finds each task's pull requests in these repos and the ones its service declares, then
+   * tells services that verified link-pr about every link that changed since the last call.
+   */
+  async syncPullRequests(repos: readonly string[]): Promise<ZotzTaskConnectorSnapshot[]> {
+    const cache = await this.cache
+    const connectors = Object.values(cache).filter((entry) => entry.document)
+    if (connectors.length === 0) {
+      return []
+    }
+    const declared = connectors.flatMap((entry) =>
+      (entry.document?.tasks ?? []).flatMap((task) => task.pullRequests)
+    )
+    const recent = await fetchZotzRecentPullRequests([
+      ...repos,
+      ...declared.map((pullRequest) => pullRequest.repo)
+    ])
+    const known = new Set(
+      recent.map((pullRequest) => `${pullRequest.repo.toLowerCase()}#${pullRequest.number}`)
+    )
+    const missing = declared.filter(
+      (pullRequest) => !known.has(`${pullRequest.repo.toLowerCase()}#${pullRequest.number}`)
+    )
+    const pullRequests = [...recent, ...(await fetchZotzPullRequests(missing))]
+    for (const { id } of connectors) {
+      // A refresh during the GitHub reads may have replaced the entry; update the current one.
+      const entry = cache[id]
+      if (!entry?.document) {
+        continue
+      }
+      entry.pullRequests = matchZotzTaskPullRequests(entry.document, pullRequests)
+      applyZotzManualLinks(entry)
+      await sendZotzConnectorLinks(entry, await this.readToken(entry.id))
+    }
+    await this.write(this.cachePath, cache)
+    return Object.values(cache).map(publicZotzConnectorSnapshot)
+  }
+
+  /** Moves a task to another Status option on its service; the board only offers verified moves. */
+  async move(
+    id: string,
+    taskId: string,
+    optionId: string
+  ): Promise<{ ok: true; snapshot: ZotzTaskConnectorSnapshot } | { ok: false; error: string }> {
+    const cache = await this.cache
+    const entry = cache[id]
+    const task = entry?.document?.tasks.find((item) => item.id === taskId)
+    const actionsUrl = entry?.document?.capabilities?.actionsUrl
+    if (!entry || !task || !actionsUrl || !entry.verifiedActions.includes('move')) {
+      return { ok: false, error: 'This service does not accept moves' }
+    }
+    const result = await postZotzTaskAction(actionsUrl, await this.readToken(id), {
+      action: 'move',
+      taskId,
+      dryRun: false,
+      field: 'Status',
+      value: optionId
+    })
+    if (!result.ok) {
+      return { ok: false, error: result.error }
+    }
+    task.fieldValues = { ...task.fieldValues, Status: optionId }
+    await this.write(this.cachePath, cache)
+    return { ok: true, snapshot: publicZotzConnectorSnapshot(entry) }
+  }
+
+  /** Turns a mention into a link and tells the service, like adding "Closes #N" on GitHub. */
+  async linkPullRequest(
+    id: string,
+    taskId: string,
+    url: string
+  ): Promise<ZotzTaskConnectorSnapshot | null> {
+    const cache = await this.cache
+    const entry = cache[id]
+    if (!entry) {
+      return null
+    }
+    entry.manualLinks = [...new Set([...(entry.manualLinks ?? []), `${taskId}|${url}`])]
+    applyZotzManualLinks(entry)
+    await sendZotzConnectorLinks(entry, await this.readToken(entry.id))
+    await this.write(this.cachePath, cache)
+    return publicZotzConnectorSnapshot(entry)
   }
 
   async remove(id: string): Promise<void> {

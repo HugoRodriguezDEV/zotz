@@ -6,6 +6,7 @@ import {
   type ZotzTasksDocument,
   type ZotzTasksStatusOption
 } from './zotz-tasks-contract'
+import type { ZotzMatchedPullRequest } from './zotz-task-pr-matching'
 
 export type ZotzTaskBoardColumnId = 'backlog' | 'in-progress' | 'in-review' | 'done'
 
@@ -152,6 +153,10 @@ export type ZotzExternalTaskSource = {
   /** The Zotz connector the document came from, so two services can reuse task ids. */
   connectorId: string
   document: ZotzTasksDocument
+  /** Pull requests Zotz matched to each task id (§7.5). */
+  pullRequests?: Record<string, ZotzMatchedPullRequest[]>
+  /** Actions the service passed a dry run for, e.g. "move". */
+  verifiedActions?: string[]
 }
 
 export type ZotzTaskBoardItem = {

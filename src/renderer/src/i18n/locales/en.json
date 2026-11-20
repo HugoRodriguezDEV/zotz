@@ -26049,7 +26049,10 @@
         "loading": "Loading your GitHub Projects…",
         "none": "GitHub returned no Projects for your account.",
         "personal": "Personal account",
-        "organization": "Organization"
+        "organization": "Organization",
+        "repos": "Repos (issues without a Project)",
+        "reposLoading": "Loading…",
+        "reposShow": "Show repos"
       },
       "column": {
         "backlog": "Backlog",
@@ -26064,8 +26067,7 @@
         "assignees": "Assignees",
         "labels": "Labels",
         "parent": "Parent issue",
-        "subIssues": "Sub-issues",
-        "linkedPullRequests": "Linked pull requests"
+        "subIssues": "Sub-issues"
       },
       "toolbar": "Task board",
       "empty": {
@@ -26076,7 +26078,6 @@
       "view": {
         "all": "All projects"
       },
-      "search": "Search tasks",
       "updatedAt": "Updated {{time}}",
       "refresh": "Refresh",
       "archived": "Archived ({{total}})",
@@ -26103,7 +26104,71 @@
         "open": "Open",
         "closed": "Closed",
         "merged": "Merged"
-      }
+      },
+      "agent": {
+        "createWorkspace": "Create workspace with this task",
+        "done": "Agent finished",
+        "openWorkspace": "Open workspace",
+        "waiting": "Agent waiting on you",
+        "working": "Agent working",
+        "workspace": "Workspace"
+      },
+      "dev": {
+        "empty": "No pull requests or branches yet.",
+        "files": "{{total}} files",
+        "link": "Link",
+        "linkOnGitHub": "Link on GitHub",
+        "mentioned": "Mentioned (not linked)",
+        "moreFiles": "and {{total}} more",
+        "title": "Development",
+        "unverified": "Not verified on GitHub yet",
+        "verifiedAt": "Checked on GitHub at {{time}}"
+      },
+      "filterPlaceholder": "Filter: is:open assignee:@me label:bug",
+      "group": {
+        "assignee": "Group by assignee",
+        "empty": "None",
+        "none": "No grouping",
+        "project": "Group by project",
+        "source": "Group by source",
+        "status": "Group by status"
+      },
+      "layout": {
+        "board": "Board",
+        "table": "Table"
+      },
+      "moveFailed": "Couldn't move the task: {{error}}",
+      "pr": {
+        "closed": "PR closed without merging · {{ref}}",
+        "draft": "→ {{base}} · draft PR · {{ref}}",
+        "merged": "PR merged into {{base}} · {{ref}}",
+        "more": "+{{total}}",
+        "open": "→ {{base}} · PR open · {{ref}}"
+      },
+      "sort": {
+        "manual": "Source order",
+        "title": "Title",
+        "updated": "Recently updated"
+      },
+      "table": {
+        "assignees": "Assignees",
+        "labels": "Labels",
+        "pullRequest": "Pull request",
+        "source": "Source",
+        "status": "Status",
+        "title": "Title",
+        "updated": "Updated"
+      },
+      "views": {
+        "all": "All",
+        "defaultName": "View {{number}}",
+        "delete": "Delete view",
+        "discard": "Discard",
+        "new": "New view",
+        "renameHint": "Double-click to rename",
+        "save": "Save view"
+      },
+      "repoMissing": "GitHub did not return this repo"
     },
     "taskConnectors": {
       "badUrl": "Use an http:// or https:// URL.",

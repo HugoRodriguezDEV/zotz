@@ -1,15 +1,33 @@
 import { readFile, stat } from 'node:fs/promises'
 import { BrowserWindow, dialog, ipcMain, type IpcMainInvokeEvent } from 'electron'
-import { ZOTZ_TASKS_MAX_BYTES } from '../../../shared/zotz/tasks/zotz-tasks-contract'
+import {
+  ZOTZ_TASKS_MAX_BYTES,
+  zotzTasksFormatFromName
+} from '../../../shared/zotz/tasks/zotz-tasks-contract'
+import {
+  setActiveZotzTaskConnectors,
+  type ZotzTaskSettingsStore
+} from './zotz-task-connector-registry'
+import { sendToTrustedUIRenderer } from '../../ipc/ui'
 import type { ZotzTaskConnectorImportResult } from '../../../shared/zotz/tasks/zotz-task-connector-types'
-import { formatFromName, ZotzTaskConnectorService } from './zotz-task-connector-service'
+import { ZotzTaskConnectorService } from './zotz-task-connector-service'
+import { fetchZotzIssueDevelopment, fetchZotzViewerLogin } from './zotz-task-development'
+import { fetchZotzRepoIssues, listZotzOwnerRepos, listZotzOwners } from './zotz-task-repos'
 
 const CHANNELS = [
   'zotzTasks:snapshot',
   'zotzTasks:refresh',
   'zotzTasks:setToken',
   'zotzTasks:importFile',
-  'zotzTasks:remove'
+  'zotzTasks:remove',
+  'zotzTasks:syncPullRequests',
+  'zotzTasks:move',
+  'zotzTasks:development',
+  'zotzTasks:viewer',
+  'zotzTasks:linkPullRequest',
+  'zotzTasks:listOwnerRepos',
+  'zotzTasks:repoIssues',
+  'zotzTasks:owners'
 ] as const
 
 // Only the app's own windows may change connectors or their tokens.
@@ -54,11 +72,46 @@ async function importFromDialog(
   if ((await stat(path)).size > ZOTZ_TASKS_MAX_BYTES) {
     return { ok: false, error: 'The file is larger than 2 MB' }
   }
-  return service.importDocument(await readFile(path, 'utf8'), formatFromName(path))
+  return service.importDocument(await readFile(path, 'utf8'), zotzTasksFormatFromName(path))
 }
 
-export function startZotzTaskConnectors(userDataPath: string): () => void {
+function repoList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value
+        .filter(
+          (repo): repo is string => typeof repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(repo)
+        )
+        .slice(0, 100)
+    : []
+}
+
+function issueRefs(value: unknown): { repo: string; number: number }[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+  return value.slice(0, 500).flatMap((entry: unknown) => {
+    if (typeof entry !== 'object' || entry === null || !('repo' in entry) || !('number' in entry)) {
+      return []
+    }
+    const repo = repoList([entry.repo])[0]
+    return repo && typeof entry.number === 'number' ? [{ repo, number: entry.number }] : []
+  })
+}
+
+function shortText(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value.length <= 200 ? value : null
+}
+
+export function startZotzTaskConnectors(
+  userDataPath: string,
+  store: ZotzTaskSettingsStore
+): () => void {
   const service = new ZotzTaskConnectorService(userDataPath)
+  setActiveZotzTaskConnectors({
+    service,
+    store,
+    notifyChanged: () => sendToTrustedUIRenderer('zotzTasks:changed', null)
+  })
   ipcMain.handle('zotzTasks:snapshot', () => service.snapshot())
   ipcMain.handle('zotzTasks:refresh', (_event, connectors: unknown) =>
     service.refresh(feedList(connectors))
@@ -83,7 +136,46 @@ export function startZotzTaskConnectors(userDataPath: string): () => void {
     }
     return undefined
   })
+  ipcMain.handle('zotzTasks:syncPullRequests', (_event, repos: unknown) =>
+    service.syncPullRequests(repoList(repos))
+  )
+  ipcMain.handle('zotzTasks:move', (event, id: unknown, taskId: unknown, optionId: unknown) => {
+    const valid = connectorId(id)
+    const task = shortText(taskId)
+    const option = shortText(optionId)
+    return isWindowRenderer(event) && valid && task && option
+      ? service.move(valid, task, option)
+      : { ok: false, error: 'Not allowed' }
+  })
+  ipcMain.handle('zotzTasks:development', (_event, refs: unknown) =>
+    fetchZotzIssueDevelopment(issueRefs(refs))
+  )
+  ipcMain.handle('zotzTasks:viewer', () => fetchZotzViewerLogin())
+  ipcMain.handle('zotzTasks:listOwnerRepos', (_event, owner: unknown, ownerType: unknown) =>
+    typeof owner === 'string' && (ownerType === 'organization' || ownerType === 'user')
+      ? listZotzOwnerRepos(owner, ownerType)
+      : { ok: false, error: 'Invalid owner' }
+  )
+  ipcMain.handle('zotzTasks:owners', () => listZotzOwners())
+  ipcMain.handle('zotzTasks:repoIssues', (_event, repos: unknown) =>
+    fetchZotzRepoIssues(repoList(repos))
+  )
+  ipcMain.handle(
+    'zotzTasks:linkPullRequest',
+    (event, id: unknown, taskId: unknown, url: unknown) => {
+      const valid = connectorId(id)
+      const task = shortText(taskId)
+      const pullRequestUrl =
+        typeof url === 'string' && /^https:\/\/[^/]+\/[\w.-]+\/[\w.-]+\/pull\/\d+$/.test(url)
+          ? url
+          : null
+      return isWindowRenderer(event) && valid && task && pullRequestUrl
+        ? service.linkPullRequest(valid, task, pullRequestUrl)
+        : null
+    }
+  )
   return () => {
+    setActiveZotzTaskConnectors(null)
     for (const channel of CHANNELS) {
       ipcMain.removeHandler(channel)
     }

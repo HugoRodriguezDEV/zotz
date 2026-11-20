@@ -1,4 +1,5 @@
 import type { ZotzTasksDocument, ZotzTasksRejectedTask } from './zotz-tasks-contract'
+import type { ZotzMatchedPullRequest } from './zotz-task-pr-matching'
 
 /** An external task service in settings. Its token, if any, lives encrypted in main, never here. */
 export type ZotzTaskConnectorConfig = {
@@ -16,6 +17,12 @@ export type ZotzTaskConnectorSnapshot = {
   document: ZotzTasksDocument | null
   rejected: ZotzTasksRejectedTask[]
   error: string | null
+  /** Actions the service answered a dry run for; only these are offered (§7.4). */
+  verifiedActions: string[]
+  /** Why a declared action is off, e.g. the dry run failed. */
+  actionError: string | null
+  /** Pull requests Zotz found for each task id, linked or only mentioning it. */
+  pullRequests: Record<string, ZotzMatchedPullRequest[]>
 }
 
 export type ZotzTaskConnectorImportResult =

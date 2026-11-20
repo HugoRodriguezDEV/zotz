@@ -24427,7 +24427,6 @@
       "detail": {
         "assignees": "Asignados",
         "labels": "Etiquetas",
-        "linkedPullRequests": "Pull requests ligados",
         "openInGitHub": "Abrir en GitHub",
         "parent": "Issue padre",
         "subIssues": "Sub-issues"
@@ -24442,7 +24441,6 @@
       "mirrorNoColumns": "Esta vista del proyecto no tiene un campo Status ni de iteración para armar columnas.",
       "refresh": "Actualizar",
       "restore": "Restaurar",
-      "search": "Buscar tareas",
       "settings": {
         "description": "Elige las organizaciones y los Projects de GitHub cuyas tareas aparecen en el tablero. En Zotz las tareas son de solo lectura; se editan en GitHub.",
         "loading": "Cargando tus Projects de GitHub…",
@@ -24452,7 +24450,10 @@
         "personal": "Cuenta personal",
         "reload": "Recargar desde GitHub",
         "selectedCount": "{{total}} elegidos",
-        "title": "Tablero de tareas de Zotz"
+        "title": "Tablero de tareas de Zotz",
+        "repos": "Repos (issues sin Project)",
+        "reposLoading": "Cargando…",
+        "reposShow": "Mostrar repos"
       },
       "sourceError": "No se pudo cargar {{project}}: {{error}}",
       "tab": {
@@ -24469,7 +24470,71 @@
         "open": "Abierto",
         "closed": "Cerrado",
         "merged": "Integrado"
-      }
+      },
+      "agent": {
+        "createWorkspace": "Crear workspace con esta tarea",
+        "done": "El agente terminó",
+        "openWorkspace": "Abrir workspace",
+        "waiting": "El agente espera tu respuesta",
+        "working": "Agente trabajando",
+        "workspace": "Workspace"
+      },
+      "dev": {
+        "empty": "Todavía no hay pull requests ni ramas.",
+        "files": "{{total}} archivos",
+        "link": "Ligar",
+        "linkOnGitHub": "Ligar en GitHub",
+        "mentioned": "Lo mencionan (sin ligar)",
+        "moreFiles": "y {{total}} más",
+        "title": "Development",
+        "unverified": "Todavía sin verificar en GitHub",
+        "verifiedAt": "Verificado en GitHub a las {{time}}"
+      },
+      "filterPlaceholder": "Filtro: is:open assignee:@me label:bug",
+      "group": {
+        "assignee": "Agrupar por asignado",
+        "empty": "Ninguno",
+        "none": "Sin agrupar",
+        "project": "Agrupar por proyecto",
+        "source": "Agrupar por fuente",
+        "status": "Agrupar por estado"
+      },
+      "layout": {
+        "board": "Tablero",
+        "table": "Tabla"
+      },
+      "moveFailed": "No se pudo mover la tarea: {{error}}",
+      "pr": {
+        "closed": "PR cerrado sin integrar · {{ref}}",
+        "draft": "→ {{base}} · PR en borrador · {{ref}}",
+        "merged": "PR integrado en {{base}} · {{ref}}",
+        "more": "+{{total}}",
+        "open": "→ {{base}} · PR abierto · {{ref}}"
+      },
+      "sort": {
+        "manual": "Orden de la fuente",
+        "title": "Título",
+        "updated": "Actualizadas recientemente"
+      },
+      "table": {
+        "assignees": "Asignados",
+        "labels": "Etiquetas",
+        "pullRequest": "Pull request",
+        "source": "Fuente",
+        "status": "Estado",
+        "title": "Título",
+        "updated": "Actualizada"
+      },
+      "views": {
+        "all": "Todas",
+        "defaultName": "Vista {{number}}",
+        "delete": "Borrar vista",
+        "discard": "Descartar",
+        "new": "Nueva vista",
+        "renameHint": "Doble clic para renombrar",
+        "save": "Guardar vista"
+      },
+      "repoMissing": "GitHub no devolvió este repo"
     },
     "taskConnectors": {
       "badUrl": "Usa una URL http:// o https://.",

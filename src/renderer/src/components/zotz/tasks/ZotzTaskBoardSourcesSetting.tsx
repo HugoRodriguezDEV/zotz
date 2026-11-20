@@ -15,6 +15,8 @@ import type {
 import {
   readZotzTaskBoardSources,
   zotzTaskBoardSourceKey,
+  type ZotzTaskBoardProjectSource,
+  type ZotzTaskBoardRepoSource,
   type ZotzTaskBoardSource
 } from '../../../../../shared/zotz/tasks/zotz-task-board-types'
 import { hideBrokenImage } from './ZotzTaskCard'
@@ -23,13 +25,21 @@ import { githubOwnerAvatarUrl } from './zotz-task-card-view'
 export const ZOTZ_TASK_BOARD_SOURCES_SECTION_ID = 'zotz-task-board-sources'
 
 type OwnerGroup = {
+  key: string
   owner: string
   ownerType: GitHubProjectOwnerType
   host?: string
-  projects: ZotzTaskBoardSource[]
+  projects: ZotzTaskBoardProjectSource[]
+  /** Repos of this owner already on the board, shown even before the list loads. */
+  selectedRepos: string[]
 }
 
-function toSource(project: GitHubProjectSummary): ZotzTaskBoardSource {
+type OwnerRepos =
+  | { status: 'loading' }
+  | { status: 'ready'; repos: string[] }
+  | { status: 'error'; error: string }
+
+function toSource(project: GitHubProjectSummary): ZotzTaskBoardProjectSource {
   return {
     kind: 'github-project',
     owner: project.owner,
@@ -40,12 +50,29 @@ function toSource(project: GitHubProjectSummary): ZotzTaskBoardSource {
   }
 }
 
+/** No host and github.com are the same place, so an org listed both ways is one group. */
+function ownerGroupKey(host: string | undefined, ownerType: string, owner: string): string {
+  return `${host ?? 'github.com'}/${ownerType}/${owner}`.toLowerCase()
+}
+
 /** Selected projects GitHub no longer lists stay visible so they can still be removed. */
 function groupByOwner(
   projects: GitHubProjectSummary[],
-  selected: ZotzTaskBoardSource[]
+  selected: ZotzTaskBoardSource[],
+  owners: readonly { login: string; ownerType: GitHubProjectOwnerType }[]
 ): OwnerGroup[] {
   const groups = new Map<string, OwnerGroup>()
+  // Every account and org shows up, even with no Projects, so its repos can be picked.
+  for (const owner of owners) {
+    const key = ownerGroupKey(undefined, owner.ownerType, owner.login)
+    groups.set(key, {
+      key,
+      owner: owner.login,
+      ownerType: owner.ownerType,
+      projects: [],
+      selectedRepos: []
+    })
+  }
   const seen = new Set<string>()
   const add = (source: ZotzTaskBoardSource): void => {
     const sourceKey = zotzTaskBoardSourceKey(source)
@@ -53,20 +80,84 @@ function groupByOwner(
       return
     }
     seen.add(sourceKey)
-    const ownerKey = `${source.host ?? ''}/${source.ownerType}/${source.owner}`.toLowerCase()
+    const host = source.kind === 'github-project' ? source.host : undefined
+    const ownerKey = ownerGroupKey(host, source.ownerType, source.owner)
     const group = groups.get(ownerKey) ?? {
+      key: ownerKey,
       owner: source.owner,
       ownerType: source.ownerType,
-      host: source.host,
-      projects: []
+      host,
+      projects: [],
+      selectedRepos: []
     }
-    group.projects.push(source)
+    if (source.kind === 'github-project') {
+      group.projects.push(source)
+    } else {
+      group.selectedRepos.push(source.repo)
+    }
     groups.set(ownerKey, group)
   }
   projects.map(toSource).forEach(add)
   selected.forEach(add)
   return [...groups.values()].sort((a, b) =>
     a.ownerType === b.ownerType ? a.owner.localeCompare(b.owner) : a.ownerType === 'user' ? -1 : 1
+  )
+}
+
+/** An owner's repos without a Project: loaded on demand, chosen ones always listed. */
+function OwnerRepoList({
+  group,
+  state,
+  selectedKeys,
+  onLoad,
+  onToggle
+}: {
+  group: OwnerGroup
+  state: OwnerRepos | undefined
+  selectedKeys: ReadonlySet<string>
+  onLoad: () => void
+  onToggle: (repo: string, checked: boolean) => void
+}): React.JSX.Element {
+  const t = useTranslate()
+  const repos = [
+    ...new Set([...group.selectedRepos, ...(state?.status === 'ready' ? state.repos : [])])
+  ]
+  const keyOf = (repo: string): string =>
+    zotzTaskBoardSourceKey({
+      kind: 'github-repo',
+      owner: group.owner,
+      ownerType: group.ownerType,
+      repo
+    })
+  return (
+    <div className="mt-1 flex flex-col gap-1">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span>{t('zotz.taskBoard.settings.repos', 'Repos (issues without a Project)')}</span>
+        {state?.status !== 'ready' ? (
+          <Button
+            variant="ghost"
+            size="xs"
+            type="button"
+            onClick={onLoad}
+            disabled={state?.status === 'loading'}
+          >
+            {state?.status === 'loading'
+              ? t('zotz.taskBoard.settings.reposLoading', 'Loading…')
+              : t('zotz.taskBoard.settings.reposShow', 'Show repos')}
+          </Button>
+        ) : null}
+      </div>
+      {state?.status === 'error' ? <p className="text-xs text-destructive">{state.error}</p> : null}
+      {repos.map((repo) => (
+        <label key={repo} className="flex cursor-pointer items-center gap-2 text-xs">
+          <Checkbox
+            checked={selectedKeys.has(keyOf(repo))}
+            onCheckedChange={(value) => onToggle(repo, value === true)}
+          />
+          <span className="truncate">{repo}</span>
+        </label>
+      ))}
+    </div>
   )
 }
 
@@ -88,6 +179,33 @@ export function ZotzTaskBoardSourcesSetting({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [partialFailures, setPartialFailures] = useState<string[]>([])
+  const [ownerRepos, setOwnerRepos] = useState<Record<string, OwnerRepos>>({})
+  const [owners, setOwners] = useState<{ login: string; ownerType: GitHubProjectOwnerType }[]>([])
+
+  const loadOwnerRepos = (group: OwnerGroup): void => {
+    const api = window.api?.zotzTaskConnectors
+    if (!api) {
+      return
+    }
+    setOwnerRepos((previous) => ({ ...previous, [group.key]: { status: 'loading' } }))
+    void api.listOwnerRepos(group.owner, group.ownerType).then(
+      (result) =>
+        setOwnerRepos((previous) => ({
+          ...previous,
+          [group.key]: result.ok
+            ? { status: 'ready', repos: result.repos }
+            : { status: 'error', error: result.error }
+        })),
+      (cause: unknown) =>
+        setOwnerRepos((previous) => ({
+          ...previous,
+          [group.key]: {
+            status: 'error',
+            error: cause instanceof Error ? cause.message : String(cause)
+          }
+        }))
+    )
+  }
 
   const load = useCallback((wake: boolean) => {
     setLoading(true)
@@ -107,9 +225,13 @@ export function ZotzTaskBoardSourcesSetting({
 
   useEffect(() => {
     load(false)
+    void window.api?.zotzTaskConnectors?.owners().then(setOwners, () => undefined)
   }, [load])
 
-  const groups = useMemo(() => groupByOwner(projects, selected), [projects, selected])
+  const groups = useMemo(
+    () => groupByOwner(projects, selected, owners),
+    [owners, projects, selected]
+  )
 
   const setSelected = (next: ZotzTaskBoardSource[]): void => {
     updateSettings({ zotzTaskBoardSources: next })
@@ -121,6 +243,15 @@ export function ZotzTaskBoardSourcesSetting({
         ? [...selected.filter((item) => zotzTaskBoardSourceKey(item) !== key), source]
         : selected.filter((item) => zotzTaskBoardSourceKey(item) !== key)
     )
+  }
+  const toggleRepo = (group: OwnerGroup, repo: string, checked: boolean): void => {
+    const source: ZotzTaskBoardRepoSource = {
+      kind: 'github-repo',
+      owner: group.owner,
+      ownerType: group.ownerType,
+      repo
+    }
+    toggleProject(source, checked)
   }
   const toggleOwner = (group: OwnerGroup, checked: boolean): void => {
     const groupKeys = new Set(group.projects.map(zotzTaskBoardSourceKey))
@@ -203,6 +334,7 @@ export function ZotzTaskBoardSourcesSetting({
               <label className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm">
                 <Checkbox
                   checked={ownerState}
+                  disabled={group.projects.length === 0}
                   onCheckedChange={(value) => toggleOwner(group, value === true)}
                 />
                 <img
@@ -232,6 +364,13 @@ export function ZotzTaskBoardSourcesSetting({
                     <span className="text-muted-foreground">#{project.number}</span>
                   </label>
                 ))}
+                <OwnerRepoList
+                  group={group}
+                  state={ownerRepos[group.key]}
+                  selectedKeys={selectedKeys}
+                  onLoad={() => loadOwnerRepos(group)}
+                  onToggle={(repo, checked) => toggleRepo(group, repo, checked)}
+                />
               </div>
             </div>
           )

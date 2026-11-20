@@ -1,119 +1,108 @@
-import { useMemo, useState } from 'react'
-import { Archive, RefreshCw, Settings2, SquareKanban } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { SquareKanban } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
-import { cn } from '@/lib/class-names'
+import { useNow } from '@/hooks/use-now'
+import { useTranslate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store/index'
 import ProjectBoard from '../../github-project/board/ProjectBoard'
 import {
-  buildZotzTaskBoard,
   zotzTaskKey,
-  type ZotzExternalTaskSource,
   type ZotzTaskBoardItem
 } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
+import { distributeZotzTaskItems } from '../../../../../shared/zotz/tasks/zotz-task-board-views'
 import {
   readZotzTaskBoardArchived,
-  zotzTaskBoardSourceKey
+  type ZotzTaskBoardArchivedTask,
+  zotzTaskBoardSourceKey,
+  zotzTaskBoardSourceLabel
 } from '../../../../../shared/zotz/tasks/zotz-task-board-types'
 import { closeZotzBoard } from './zotz-board-modal-store'
 import { useZotzTaskBoardData } from './use-zotz-task-board-data'
 import { useZotzTaskConnectors } from './use-zotz-task-connectors'
+import { useZotzTaskBoardViews } from './use-zotz-task-board-views'
+import { useZotzTaskBoardModel } from './use-zotz-task-board-model'
+import { useZotzIssueDevelopment, ZotzIssueDevelopmentContext } from './use-zotz-task-development'
+import { useZotzTaskWorkspaces, ZotzTaskWorkspacesContext } from './use-zotz-task-workspaces'
 import { ZotzTaskBoardColumns, ZotzTaskColumns } from './ZotzTaskBoardColumns'
 import { ZotzTaskDetailSheet, type ZotzTaskDetail } from './ZotzTaskDetailSheet'
 import { ZotzTaskArchivedList } from './ZotzTaskArchivedList'
+import { ZotzTaskTable } from './ZotzTaskTable'
+import { ZotzTaskViewTabs } from './ZotzTaskViewTabs'
+import { ZotzTaskBoardToolbar, ZOTZ_TASK_SCOPE_EXTERNAL } from './ZotzTaskBoardToolbar'
 import { ZOTZ_TASK_BOARD_SOURCES_SECTION_ID } from './ZotzTaskBoardSourcesSetting'
-import {
-  externalSourceColumns,
-  filterExternalSource,
-  filterTable
-} from './zotz-task-board-filtering'
+import { externalSourceColumns } from './zotz-task-board-filtering'
 
-const ALL_VIEW = 'all'
-const EXTERNAL_VIEW_PREFIX = 'external:'
+const AUTO_REFRESH_MS = 5 * 60_000
 
-function EmptyState({
-  title,
-  description,
-  action
-}: {
-  title: string
-  description: string
-  action?: React.ReactNode
-}): React.JSX.Element {
-  return (
-    <div className="flex min-h-64 flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center">
-      <SquareKanban className="size-6 text-muted-foreground" />
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="max-w-sm text-xs text-muted-foreground">{description}</p>
-      {action}
-    </div>
-  )
+/** Done tasks not archived yet, stamped now; kept out of render so the clock is read on click. */
+function archiveEntries(
+  items: readonly ZotzTaskBoardItem[],
+  known: ReadonlySet<string>
+): ZotzTaskBoardArchivedTask[] {
+  const archivedAt = Date.now()
+  return items
+    .filter((item) => item.column === 'done' && !known.has(item.key))
+    .map((item) => ({ key: item.key, title: item.title, archivedAt }))
 }
 
 /**
- * The Tasks tab: GitHub Projects and external services merged into Zotz's columns, or one
- * source exactly as it shows itself.
+ * The Tasks tab: GitHub Projects, repos and external services in saved views, merged into Zotz's
+ * columns or shown as their own source does.
  */
 export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Element {
   const t = useTranslate()
-  const locale = useIntlLocale()
   const github = useZotzTaskBoardData(active)
   const external = useZotzTaskConnectors(active)
+  const views = useZotzTaskBoardViews()
+  const workspaces = useZotzTaskWorkspaces()
   const rawArchived = useAppStore((s) => s.settings?.zotzTaskBoardArchived)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
-  const [view, setView] = useState(ALL_VIEW)
-  const [query, setQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const [detail, setDetail] = useState<ZotzTaskDetail | null>(null)
+  const [viewer, setViewer] = useState<string | null>(null)
+  const [revision, setRevision] = useState(0)
+  const now = useNow(AUTO_REFRESH_MS, active)
 
-  const trimmedQuery = query.trim()
   const archived = useMemo(() => readZotzTaskBoardArchived(rawArchived), [rawArchived])
-  const tables = useMemo(
-    () =>
-      github.states.flatMap((state) =>
-        state.table ? [filterTable(state.table, trimmedQuery)] : []
-      ),
-    [github.states, trimmedQuery]
-  )
-  const externalSources = useMemo(
-    () =>
-      external.states.flatMap(({ connector, snapshot }): ZotzExternalTaskSource[] =>
-        snapshot?.document
-          ? [
-              filterExternalSource(
-                { connectorId: connector.id, document: snapshot.document },
-                trimmedQuery
-              )
-            ]
-          : []
-      ),
-    [external.states, trimmedQuery]
-  )
-  const tablesByProjectId = useMemo(
-    () => new Map(tables.map((table) => [table.project.id, table])),
-    [tables]
-  )
-  const board = useMemo(
-    () => buildZotzTaskBoard(tables, new Set(archived.map((entry) => entry.key)), externalSources),
-    [archived, externalSources, tables]
-  )
-  const githubMirror = github.states.find((state) => zotzTaskBoardSourceKey(state.source) === view)
-  const externalMirror = view.startsWith(EXTERNAL_VIEW_PREFIX)
-    ? externalSources.find(
-        (source) => source.connectorId === view.slice(EXTERNAL_VIEW_PREFIX.length)
-      )
-    : undefined
-  const refreshing = github.refreshing || external.refreshing
+  const archivedKeys = useMemo(() => new Set(archived.map((entry) => entry.key)), [archived])
+  const model = useZotzTaskBoardModel({
+    githubStates: github.states,
+    connectorStates: external.states,
+    archivedKeys,
+    view: views.view,
+    viewer,
+    now
+  })
+  const development = useZotzIssueDevelopment(model.items, active, revision)
+  const { refresh: refreshGithub } = github
+  const { refresh: refreshExternal, syncPullRequests } = external
+
+  useEffect(() => {
+    if (active && viewer === null) {
+      void window.api?.zotzTaskConnectors?.viewer().then(setViewer, () => undefined)
+    }
+  }, [active, viewer])
+
+  // Every 5 minutes while the board is open, reload everything, like a manual Refresh.
+  const firstTick = useRef(now)
+  useEffect(() => {
+    if (active && now !== firstTick.current) {
+      refreshGithub()
+      refreshExternal()
+      setRevision((value) => value + 1)
+    }
+  }, [active, now, refreshExternal, refreshGithub])
+
+  // Services' PR links follow the repos on the board, so match them after GitHub loads.
+  const reposKey = model.repos.join(',')
+  useEffect(() => {
+    if (active && github.lastUpdatedAt) {
+      syncPullRequests(reposKey ? reposKey.split(',') : [])
+    }
+  }, [active, github.lastUpdatedAt, reposKey, syncPullRequests])
 
   const openSourceSettings = (): void => {
     closeZotzBoard()
@@ -127,35 +116,46 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
   const openItem = (item: ZotzTaskBoardItem): void => {
     setDetail(
       item.origin.kind === 'github'
-        ? { item, table: tablesByProjectId.get(item.origin.project.id) }
+        ? { item, table: model.tablesByProjectId.get(item.origin.project.id) }
         : { item }
     )
   }
-  const archiveDone = (): void => {
-    const known = new Set(archived.map((entry) => entry.key))
-    const now = Date.now()
-    const added = board.columns.done
-      .filter((item) => !known.has(item.key))
-      .map((item) => ({ key: item.key, title: item.title, archivedAt: now }))
+  const archiveDone = (items: readonly ZotzTaskBoardItem[]): void => {
+    const added = archiveEntries(items, archivedKeys)
     if (added.length > 0) {
-      updateSettings({ zotzTaskBoardArchived: [...archived, ...added] })
+      void updateSettings({ zotzTaskBoardArchived: [...archived, ...added] })
     }
+  }
+  const moveExternal = (itemKey: string, optionId: string): void => {
+    const source = model.externalMirror
+    const prefix = source ? `external:${source.connectorId}:` : null
+    if (!source || !prefix || !itemKey.startsWith(prefix)) {
+      return
+    }
+    void external.move(source.connectorId, itemKey.slice(prefix.length), optionId).then((error) => {
+      if (error) {
+        toast.error(t('zotz.taskBoard.moveFailed', "Couldn't move the task: {{error}}", { error }))
+      }
+    })
   }
 
   if (github.sources.length === 0 && external.states.length === 0) {
     return (
-      <EmptyState
-        title={t('zotz.taskBoard.empty.title', 'No task sources yet')}
-        description={t(
-          'zotz.taskBoard.empty.description',
-          'Pick the GitHub organizations and projects, or connect a task service, whose tasks show up here.'
-        )}
-        action={
-          <Button type="button" size="sm" className="mt-2" onClick={openSourceSettings}>
-            {t('zotz.taskBoard.empty.action', 'Choose sources')}
-          </Button>
-        }
-      />
+      <div className="flex min-h-64 flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center">
+        <SquareKanban className="size-6 text-muted-foreground" />
+        <p className="text-sm font-medium text-foreground">
+          {t('zotz.taskBoard.empty.title', 'No task sources yet')}
+        </p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          {t(
+            'zotz.taskBoard.empty.description',
+            'Pick the GitHub organizations and projects, or connect a task service, whose tasks show up here.'
+          )}
+        </p>
+        <Button type="button" size="sm" className="mt-2" onClick={openSourceSettings}>
+          {t('zotz.taskBoard.empty.action', 'Choose sources')}
+        </Button>
+      </div>
     )
   }
 
@@ -165,7 +165,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
         ? [
             {
               key: zotzTaskBoardSourceKey(state.source),
-              name: `${state.source.owner} / ${state.source.title}`,
+              name: zotzTaskBoardSourceLabel(state.source),
               error: state.error
             }
           ]
@@ -183,147 +183,163 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
         : []
     )
   ]
-  const firstLoad = tables.length === 0 && externalSources.length === 0 && refreshing
+  const refreshing = github.refreshing || external.refreshing
+  const firstLoad = model.items.length === 0 && model.board.archived.length === 0 && refreshing
+  const scopes = [
+    ...github.sources.map((source) => ({
+      value: zotzTaskBoardSourceKey(source),
+      label: zotzTaskBoardSourceLabel(source)
+    })),
+    ...external.states.map(({ connector, snapshot }) => ({
+      value: `${ZOTZ_TASK_SCOPE_EXTERNAL}${connector.id}`,
+      label: snapshot?.document?.source.name ?? connector.name
+    }))
+  ]
+  const { layout, groupBy } = views.view
+
+  const renderBoard = (): React.ReactNode => {
+    if (model.githubMirror && layout === 'board') {
+      const table = model.githubMirror
+      return (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/50">
+          <ProjectBoard
+            table={table}
+            onOpenDialog={(row) =>
+              setDetail({
+                item: {
+                  key: zotzTaskKey(table.project, row),
+                  title: row.content.title,
+                  statusName: null,
+                  column: null,
+                  origin: { kind: 'github', row, project: table.project }
+                },
+                table
+              })
+            }
+            fallback={
+              <p className="p-3 text-xs text-muted-foreground">
+                {t(
+                  'zotz.taskBoard.mirrorNoColumns',
+                  'This project view has no Status or iteration field to make columns from.'
+                )}
+              </p>
+            }
+          />
+        </div>
+      )
+    }
+    if (layout === 'table') {
+      return <ZotzTaskTable groups={model.groups} facts={model.facts} onOpen={openItem} />
+    }
+    const mirror = model.externalMirror
+    const canMove = mirror?.verifiedActions?.includes('move') === true
+    const lanes = model.groups.map((group) => {
+      const taskIds = new Set(
+        group.items.flatMap((item) =>
+          item.origin.kind === 'external' ? [item.origin.task.id] : []
+        )
+      )
+      const columns = mirror ? (
+        <ZotzTaskColumns
+          columns={externalSourceColumns({
+            ...mirror,
+            document: {
+              ...mirror.document,
+              tasks: mirror.document.tasks.filter((task) => taskIds.has(task.id))
+            }
+          })}
+          onOpen={openItem}
+          canDrag={() => canMove}
+          onMove={canMove ? moveExternal : undefined}
+        />
+      ) : (
+        <ZotzTaskBoardColumns
+          board={distributeZotzTaskItems(group.items)}
+          onOpen={openItem}
+          onArchiveDone={() => archiveDone(group.items)}
+        />
+      )
+      return groupBy === 'none' ? (
+        <div key={group.key} className="flex min-h-0 flex-1">
+          {columns}
+        </div>
+      ) : (
+        <section key={group.key} className="flex h-80 shrink-0 flex-col gap-1.5">
+          <p className="text-xs font-medium text-muted-foreground">
+            {group.label ?? t('zotz.taskBoard.group.empty', 'None')} · {group.items.length}
+          </p>
+          {columns}
+        </section>
+      )
+    })
+    return groupBy === 'none' ? (
+      lanes
+    ) : (
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto scrollbar-sleek">
+        {lanes}
+      </div>
+    )
+  }
 
   return (
-    <div className="flex h-[min(68vh,640px)] min-h-0 flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={view} onValueChange={setView}>
-          <SelectTrigger size="sm" className="w-56">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_VIEW}>{t('zotz.taskBoard.view.all', 'All projects')}</SelectItem>
-            {github.sources.map((source) => (
-              <SelectItem
-                key={zotzTaskBoardSourceKey(source)}
-                value={zotzTaskBoardSourceKey(source)}
-              >
-                {source.owner} / {source.title}
-              </SelectItem>
-            ))}
-            {external.states.map(({ connector, snapshot }) => (
-              <SelectItem key={connector.id} value={`${EXTERNAL_VIEW_PREFIX}${connector.id}`}>
-                {snapshot?.document?.source.name ?? connector.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('zotz.taskBoard.search', 'Search tasks')}
-          className="h-8 w-56"
-        />
-        <div className="ml-auto flex items-center gap-1">
-          {github.lastUpdatedAt ? (
-            <span className="text-xs text-muted-foreground">
-              {t('zotz.taskBoard.updatedAt', 'Updated {{time}}', {
-                time: new Date(github.lastUpdatedAt).toLocaleTimeString(locale, {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })
-              })}
-            </span>
-          ) : null}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            type="button"
-            aria-label={t('zotz.taskBoard.refresh', 'Refresh')}
-            title={t('zotz.taskBoard.refresh', 'Refresh')}
-            onClick={() => {
+    <ZotzIssueDevelopmentContext.Provider value={development}>
+      <ZotzTaskWorkspacesContext.Provider value={workspaces}>
+        <div className="flex h-[min(72vh,700px)] min-h-0 flex-col gap-2">
+          <ZotzTaskViewTabs state={views} />
+          <ZotzTaskBoardToolbar
+            state={views}
+            scopes={scopes}
+            lastUpdatedAt={github.lastUpdatedAt}
+            refreshing={refreshing}
+            onRefresh={() => {
               github.refresh()
               external.refresh()
+              setRevision((value) => value + 1)
             }}
-            disabled={refreshing}
-          >
-            <RefreshCw className={cn('size-3.5', refreshing && 'animate-spin')} />
-          </Button>
-          <Button
-            variant={showArchived ? 'secondary' : 'ghost'}
-            size="sm"
-            type="button"
-            onClick={() => setShowArchived((value) => !value)}
-          >
-            <Archive className="size-3.5" />
-            {t('zotz.taskBoard.archived', 'Archived ({{total}})', { total: archived.length })}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            type="button"
-            aria-label={t('zotz.taskBoard.manageSources', 'Choose sources')}
-            title={t('zotz.taskBoard.manageSources', 'Choose sources')}
-            onClick={openSourceSettings}
-          >
-            <Settings2 className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      {errors.map((error) => (
-        <div
-          key={error.key}
-          className="rounded-md border border-status-warning-border bg-status-warning-background px-3 py-2 text-xs text-muted-foreground"
-        >
-          {t('zotz.taskBoard.sourceError', "Couldn't load {{project}}: {{error}}", {
-            project: error.name,
-            error: error.error
-          })}
-        </div>
-      ))}
-
-      {showArchived ? (
-        <ZotzTaskArchivedList
-          archived={archived}
-          onBack={() => setShowArchived(false)}
-          onRestore={(key) =>
-            updateSettings({ zotzTaskBoardArchived: archived.filter((entry) => entry.key !== key) })
-          }
-        />
-      ) : firstLoad ? (
-        <p className="px-2 py-6 text-xs text-muted-foreground">
-          {t('zotz.taskBoard.loading', 'Loading tasks…')}
-        </p>
-      ) : githubMirror ? (
-        githubMirror.table ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/50">
-            <ProjectBoard
-              table={filterTable(githubMirror.table, trimmedQuery)}
-              onOpenDialog={(row) => {
-                const table = githubMirror.table
-                if (table) {
-                  setDetail({
-                    item: {
-                      key: zotzTaskKey(table.project, row),
-                      title: row.content.title,
-                      statusName: null,
-                      column: null,
-                      origin: { kind: 'github', row, project: table.project }
-                    },
-                    table
-                  })
-                }
-              }}
-              fallback={
-                <p className="p-3 text-xs text-muted-foreground">
-                  {t(
-                    'zotz.taskBoard.mirrorNoColumns',
-                    'This project view has no Status or iteration field to make columns from.'
-                  )}
-                </p>
+            archivedCount={archived.length}
+            showArchived={showArchived}
+            onToggleArchived={() => setShowArchived((value) => !value)}
+            onManageSources={openSourceSettings}
+          />
+          {errors.map((error) => (
+            <div
+              key={error.key}
+              className="rounded-md border border-status-warning-border bg-status-warning-background px-3 py-2 text-xs text-muted-foreground"
+            >
+              {t('zotz.taskBoard.sourceError', "Couldn't load {{project}}: {{error}}", {
+                project: error.name,
+                error: error.error
+              })}
+            </div>
+          ))}
+          {showArchived ? (
+            <ZotzTaskArchivedList
+              archived={archived}
+              onBack={() => setShowArchived(false)}
+              onRestore={(key) =>
+                void updateSettings({
+                  zotzTaskBoardArchived: archived.filter((entry) => entry.key !== key)
+                })
               }
             />
-          </div>
-        ) : null
-      ) : externalMirror ? (
-        <ZotzTaskColumns columns={externalSourceColumns(externalMirror)} onOpen={openItem} />
-      ) : (
-        <ZotzTaskBoardColumns board={board} onOpen={openItem} onArchiveDone={archiveDone} />
-      )}
-
-      <ZotzTaskDetailSheet detail={detail} onClose={() => setDetail(null)} />
-    </div>
+          ) : firstLoad ? (
+            <p className="px-2 py-6 text-xs text-muted-foreground">
+              {t('zotz.taskBoard.loading', 'Loading tasks…')}
+            </p>
+          ) : (
+            renderBoard()
+          )}
+          <ZotzTaskDetailSheet
+            detail={detail}
+            onClose={() => setDetail(null)}
+            onLinkPullRequest={(item, url) =>
+              item.origin.kind === 'external'
+                ? external.linkPullRequest(item.origin.source.connectorId, item.origin.task.id, url)
+                : undefined
+            }
+          />
+        </div>
+      </ZotzTaskWorkspacesContext.Provider>
+    </ZotzIssueDevelopmentContext.Provider>
   )
 }

@@ -108,7 +108,7 @@ export function initializeMainProcessObservers(): void {
     server: agentHookServer,
     userDataPath: getCanonicalUserDataPath()
   })
-  const stopZotzTaskConnectors = startZotzTaskConnectors(getCanonicalUserDataPath())
+  const stopZotzTaskConnectors = startZotzTaskConnectors(getCanonicalUserDataPath(), store)
   const unsubscribeStatusChanges = agentHookServer.subscribeStatusRowMutations(
     ({ before, after }) => {
       for (const paneKey of new Set([before?.paneKey, after?.paneKey])) {

@@ -11,7 +11,16 @@ export type ZotzTaskBoardProjectSource = {
   host?: string
 }
 
-export type ZotzTaskBoardSource = ZotzTaskBoardProjectSource
+/** A repo whose issues show up even though they are in no Project. */
+export type ZotzTaskBoardRepoSource = {
+  kind: 'github-repo'
+  owner: string
+  ownerType: GitHubProjectOwnerType
+  /** owner/name */
+  repo: string
+}
+
+export type ZotzTaskBoardSource = ZotzTaskBoardProjectSource | ZotzTaskBoardRepoSource
 
 /** A task hidden from Done by "Archive finished"; it comes back if it leaves Done. */
 export type ZotzTaskBoardArchivedTask = {
@@ -29,11 +38,14 @@ export function readZotzTaskBoardSources(value: unknown): ZotzTaskBoardSource[] 
     (entry): entry is ZotzTaskBoardSource =>
       typeof entry === 'object' &&
       entry !== null &&
-      entry.kind === 'github-project' &&
       typeof entry.owner === 'string' &&
       (entry.ownerType === 'organization' || entry.ownerType === 'user') &&
-      Number.isInteger(entry.number) &&
-      typeof entry.title === 'string'
+      ((entry.kind === 'github-project' &&
+        Number.isInteger(entry.number) &&
+        typeof entry.title === 'string') ||
+        (entry.kind === 'github-repo' &&
+          typeof entry.repo === 'string' &&
+          /^[\w.-]+\/[\w.-]+$/.test(entry.repo)))
   )
 }
 
@@ -52,5 +64,12 @@ export function readZotzTaskBoardArchived(value: unknown): ZotzTaskBoardArchived
 }
 
 export function zotzTaskBoardSourceKey(source: ZotzTaskBoardSource): string {
-  return `${source.host ?? 'github.com'}/${source.ownerType}/${source.owner}/${source.number}`.toLowerCase()
+  return source.kind === 'github-repo'
+    ? `github.com/repo/${source.repo}`.toLowerCase()
+    : `${source.host ?? 'github.com'}/${source.ownerType}/${source.owner}/${source.number}`.toLowerCase()
+}
+
+/** "acme / Producto 2026" for a Project, "acme/api" for a repo. */
+export function zotzTaskBoardSourceLabel(source: ZotzTaskBoardSource): string {
+  return source.kind === 'github-repo' ? source.repo : `${source.owner} / ${source.title}`
 }

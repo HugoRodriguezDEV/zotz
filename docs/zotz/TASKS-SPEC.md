@@ -384,7 +384,15 @@ No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de
 - **9d, parte 1 — Conector externo.** Contrato `zotz-tasks/v1` con campos tipo Project (JSON, YAML, TOML), feed por URL con token cifrado, importar archivo, tareas en el tablero combinado, vista propia del servicio y detalle.
 - **9d, parte 2.** JSON Schema publicado, CLI `zotz tasks push`/`validate`, detección por `taskIdPattern` y endpoint `link-pr` (depende de 9c).
 
-`capabilities` es opcional en la parte 1: sin `actionsUrl` (o sin `link-pr` funcional) la fuente entra en modo solo lectura, como dice §7.4.
+`capabilities` es opcional: sin `actionsUrl` (o sin `link-pr` funcional) la fuente entra en modo solo lectura, como dice §7.4.
+
+**Estado (2026-11-20):** 9a a 9f implementadas. Diferencias con lo escrito arriba:
+
+- _Column by_ no se elige por vista. El combinado usa el Status de Zotz; la vista de un Project usa la columna de su vista en GitHub.
+- Los issues de repos sueltos se leen de GitHub (los 100 más recientes), no de clones locales.
+- Development no muestra despliegues ni en qué otras ramas cayó un merge.
+- "Crear workspace con esta tarea" no pone el cuerpo como primer prompt (el composer de Orca no lo acepta). El chip no puede decir "En cola" porque la cola no guarda el workspace.
+- El relay queda para después, por decisión de Hugo.
 
 - **9e — Tarea ↔ agente.** Chip de estado de agente en la tarjeta y "Crear workspace con esta tarea" (rama con el id de la tarea, `linkedIssue` en GitHub y el cuerpo como primer prompt).
 - **9f — Acción `move`** para fuentes externas, con comprobación previa.

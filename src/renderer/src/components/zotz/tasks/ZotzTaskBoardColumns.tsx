@@ -10,7 +10,7 @@ import {
   type ZotzTaskBoard,
   type ZotzTaskBoardItem
 } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
-import { ZotzTaskCard } from './ZotzTaskCard'
+import { ZOTZ_TASK_DRAG_MIME, ZotzTaskCard } from './ZotzTaskCard'
 
 const COLUMN_WIDTH_PX = 260
 
@@ -24,13 +24,21 @@ export type ZotzTaskColumnModel = {
   action?: React.ReactNode
 }
 
+type DragProps = {
+  /** Lets a card be dragged; only sources that verified `move` say yes. */
+  canDrag?: (item: ZotzTaskBoardItem) => boolean
+  onMove?: (itemKey: string, columnKey: string) => void
+}
+
 function TaskColumn({
   column,
-  onOpen
+  onOpen,
+  canDrag,
+  onMove
 }: {
   column: ZotzTaskColumnModel
   onOpen: (item: ZotzTaskBoardItem) => void
-}): React.JSX.Element {
+} & DragProps): React.JSX.Element {
   const colors = column.color ? singleSelectChipColors(column.color) : null
   return (
     <div
@@ -39,6 +47,19 @@ function TaskColumn({
       title={column.description}
       className="flex h-full min-h-0 shrink-0 flex-col rounded-lg border border-border/50 bg-muted/20"
       style={{ width: COLUMN_WIDTH_PX }}
+      onDragOver={(event) => {
+        if (onMove && event.dataTransfer.types.includes(ZOTZ_TASK_DRAG_MIME)) {
+          event.preventDefault()
+          event.dataTransfer.dropEffect = 'move'
+        }
+      }}
+      onDrop={(event) => {
+        const key = event.dataTransfer.getData(ZOTZ_TASK_DRAG_MIME)
+        if (onMove && key) {
+          event.preventDefault()
+          onMove(key, column.key)
+        }
+      }}
     >
       <div className="flex h-9 flex-none items-center gap-1.5 px-2.5 text-xs">
         {colors ? (
@@ -56,7 +77,12 @@ function TaskColumn({
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-2 pb-2 scrollbar-sleek">
         {column.items.map((item) => (
-          <ZotzTaskCard key={item.key} item={item} onOpen={() => onOpen(item)} />
+          <ZotzTaskCard
+            key={item.key}
+            item={item}
+            onOpen={() => onOpen(item)}
+            draggable={canDrag?.(item) ?? false}
+          />
         ))}
       </div>
     </div>
@@ -66,15 +92,23 @@ function TaskColumn({
 /** A row of columns; the combined board and a service's own view both use it. */
 export function ZotzTaskColumns({
   columns,
-  onOpen
+  onOpen,
+  canDrag,
+  onMove
 }: {
   columns: ZotzTaskColumnModel[]
   onOpen: (item: ZotzTaskBoardItem) => void
-}): React.JSX.Element {
+} & DragProps): React.JSX.Element {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden pb-1 scrollbar-sleek">
       {columns.map((column) => (
-        <TaskColumn key={column.key} column={column} onOpen={onOpen} />
+        <TaskColumn
+          key={column.key}
+          column={column}
+          onOpen={onOpen}
+          canDrag={canDrag}
+          onMove={onMove}
+        />
       ))}
     </div>
   )
@@ -101,9 +135,9 @@ export function ZotzTaskBoardColumns({
   onOpen,
   onArchiveDone
 }: {
-  board: ZotzTaskBoard
+  board: Pick<ZotzTaskBoard, 'columns' | 'unmapped'>
   onOpen: (item: ZotzTaskBoardItem) => void
-  onArchiveDone: () => void
+  onArchiveDone?: () => void
 }): React.JSX.Element {
   const t = useTranslate()
   const columns: ZotzTaskColumnModel[] = ZOTZ_TASK_BOARD_COLUMNS.map((column) => ({
@@ -112,7 +146,7 @@ export function ZotzTaskBoardColumns({
     color: column.color,
     items: board.columns[column.id],
     action:
-      column.id === 'done' && board.columns.done.length > 0 ? (
+      column.id === 'done' && onArchiveDone && board.columns.done.length > 0 ? (
         <Button
           variant="ghost"
           size="xs"

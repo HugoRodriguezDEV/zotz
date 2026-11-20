@@ -274,3 +274,23 @@ export function parseZotzTasks(
     rejected
   }
 }
+
+/** The contract as JSON Schema, for services that validate before they publish. */
+export function zotzTasksJsonSchema(): unknown {
+  return z.toJSONSchema(
+    documentSchema.extend({ tasks: z.array(taskSchema).max(ZOTZ_TASKS_MAX_TASKS) }),
+    { unrepresentable: 'any' }
+  )
+}
+
+/** Format from a file name or URL path; anything else is detected from the content. */
+export function zotzTasksFormatFromName(name: string): ZotzTasksFormat | 'auto' {
+  const lower = name.toLowerCase()
+  if (lower.endsWith('.json')) {
+    return 'json'
+  }
+  if (lower.endsWith('.yaml') || lower.endsWith('.yml')) {
+    return 'yaml'
+  }
+  return lower.endsWith('.toml') ? 'toml' : 'auto'
+}

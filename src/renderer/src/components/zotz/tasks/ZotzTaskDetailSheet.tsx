@@ -1,4 +1,4 @@
-import { ExternalLink, GitPullRequest } from 'lucide-react'
+import { Bot, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -15,6 +15,8 @@ import type {
 import type { ZotzTaskBoardItem } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
 import { hideBrokenImage, openZotzTaskUrl, ZotzTaskAvatars, ZotzTaskBrand } from './ZotzTaskCard'
 import { zotzTaskCardView } from './zotz-task-card-view'
+import { ZotzTaskDevelopmentSection } from './ZotzTaskDevelopmentSection'
+import { useZotzTaskWorkspaceFor } from './use-zotz-task-workspaces'
 
 export type ZotzTaskDetail = {
   item: ZotzTaskBoardItem
@@ -85,21 +87,42 @@ function stateLabel(state: string | null | undefined, t: Translate): string | nu
   }
 }
 
+/** Opens the task's workspace, or starts one from the task with its id in the branch. */
+function TaskWorkspaceAction({ item }: { item: ZotzTaskBoardItem }): React.JSX.Element | null {
+  const t = useTranslate()
+  const { workspace, actions } = useZotzTaskWorkspaceFor(item)
+  if (!actions) {
+    return null
+  }
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => (workspace ? actions.open(workspace) : actions.create(item))}
+    >
+      <Bot className="size-3.5" />
+      {workspace
+        ? t('zotz.taskBoard.agent.openWorkspace', 'Open workspace')
+        : t('zotz.taskBoard.agent.createWorkspace', 'Create workspace with this task')}
+    </Button>
+  )
+}
+
 /** Read-only view of a task as its source shows it; editing happens there. */
 export function ZotzTaskDetailSheet({
   detail,
-  onClose
+  onClose,
+  onLinkPullRequest
 }: {
   detail: ZotzTaskDetail | null
   onClose: () => void
+  onLinkPullRequest: (item: ZotzTaskBoardItem, url: string) => void
 }): React.JSX.Element {
   const t = useTranslate()
   const view = detail ? zotzTaskCardView(detail.item) : null
   const origin = detail?.item.origin
   const state = origin?.kind === 'github' ? origin.row.content.state : origin?.task.state
   const body = origin?.kind === 'github' ? origin.row.content.body : origin?.task.body
-  const linkedPullRequests =
-    origin?.kind === 'github' ? (origin.row.content.linkedPullRequests?.pullRequests ?? []) : []
   const parentIssue = origin?.kind === 'github' ? origin.row.content.parentIssue : null
   const subIssues = origin?.kind === 'github' ? origin.row.content.subIssuesProgress : null
   return (
@@ -132,20 +155,23 @@ export function ZotzTaskDetailSheet({
               </SheetDescription>
             </SheetHeader>
             <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 text-sm scrollbar-sleek">
-              {view.url ? (
-                <Button
-                  type="button"
-                  className="self-start"
-                  onClick={() => (view.url ? openZotzTaskUrl(view.url) : undefined)}
-                >
-                  <ExternalLink className="size-3.5" />
-                  {view.brand.kind === 'github'
-                    ? t('zotz.taskBoard.detail.openInGitHub', 'Open in GitHub')
-                    : t('zotz.taskBoard.card.openInSource', 'Open in {{source}}', {
-                        source: view.brand.name
-                      })}
-                </Button>
-              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {view.url ? (
+                  <Button
+                    type="button"
+
+                    onClick={() => (view.url ? openZotzTaskUrl(view.url) : undefined)}
+                  >
+                    <ExternalLink className="size-3.5" />
+                    {view.brand.kind === 'github'
+                      ? t('zotz.taskBoard.detail.openInGitHub', 'Open in GitHub')
+                      : t('zotz.taskBoard.card.openInSource', 'Open in {{source}}', {
+                          source: view.brand.name
+                        })}
+                  </Button>
+                ) : null}
+                <TaskWorkspaceAction item={detail.item} />
+              </div>
 
               <dl className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-x-3 gap-y-2 text-xs">
                 {view.assignees.length > 0 ? (
@@ -199,25 +225,10 @@ export function ZotzTaskDetailSheet({
                 ))}
               </dl>
 
-              {linkedPullRequests.length > 0 ? (
-                <div className="flex flex-col gap-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t('zotz.taskBoard.detail.linkedPullRequests', 'Linked pull requests')}
-                  </p>
-                  {linkedPullRequests.map((pullRequest) => (
-                    <button
-                      key={pullRequest.url}
-                      type="button"
-                      onClick={() => openZotzTaskUrl(pullRequest.url)}
-                      className="flex min-w-0 cursor-pointer items-center gap-1.5 text-left text-xs hover:underline"
-                    >
-                      <GitPullRequest className="size-3.5 shrink-0 text-muted-foreground" />
-                      <span className="shrink-0 text-muted-foreground">#{pullRequest.number}</span>
-                      <span className="truncate">{pullRequest.title}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
+              <ZotzTaskDevelopmentSection
+                item={detail.item}
+                onLinkPullRequest={onLinkPullRequest}
+              />
 
               {body ? (
                 <p className="whitespace-pre-wrap text-xs text-muted-foreground">{body}</p>

@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store/index'
 import { listProjectViewsForRuntime } from '../../github-project/picker/project-picker-runtime'
 import { projectViewErrorMessage } from '../../github-project/auth-errors/project-view-error-copy'
 import type { GetProjectViewTableResult } from '../../../../../shared/github/projects/project-result-types'
 import type { GitHubProjectTable } from '../../../../../shared/github/projects/project-types'
+import { zotzRepoIssuesTable } from '../../../../../shared/zotz/tasks/zotz-repo-issues'
 import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import {
   readZotzTaskBoardSources,
   zotzTaskBoardSourceKey,
+  type ZotzTaskBoardProjectSource,
+  type ZotzTaskBoardRepoSource,
   type ZotzTaskBoardSource
 } from '../../../../../shared/zotz/tasks/zotz-task-board-types'
 
@@ -26,7 +30,7 @@ type FetchProjectViewTable = ReturnType<typeof useAppStore.getState>['fetchProje
 /** Roadmap views can't be read as a table, so fall back to the project's first board or table view. */
 async function fetchSourceTable(
   fetchProjectViewTable: FetchProjectViewTable,
-  source: ZotzTaskBoardSource,
+  source: ZotzTaskBoardProjectSource,
   force: boolean
 ): Promise<GetProjectViewTableResult> {
   const args = {
@@ -65,45 +69,96 @@ export function useZotzTaskBoardData(active: boolean): {
   const load = useCallback(
     (force: boolean) => {
       const current = ++generation.current
-      setByKey((previous) => {
-        const next: Record<string, ZotzTaskBoardSourceState> = {}
-        for (const source of sources) {
-          const key = zotzTaskBoardSourceKey(source)
-          next[key] = {
-            source,
-            loading: true,
-            table: previous[key]?.table ?? null,
-            error: null
-          }
+      // Marked once the request is under way, so a mount never renders a loading flash first.
+      void Promise.resolve().then(() => {
+        if (generation.current !== current) {
+          return
         }
-        return next
-      })
-      void Promise.all(
-        sources.map(async (source) => {
-          const key = zotzTaskBoardSourceKey(source)
-          let state: Omit<ZotzTaskBoardSourceState, 'source' | 'loading'>
-          try {
-            const result = await fetchSourceTable(fetchProjectViewTable, source, force)
-            state = result.ok
-              ? { table: result.data, error: null }
-              : { table: null, error: projectViewErrorMessage(result.error) }
-          } catch (error) {
-            state = { table: null, error: error instanceof Error ? error.message : String(error) }
+        setByKey((previous) => {
+          const next: Record<string, ZotzTaskBoardSourceState> = {}
+          for (const source of sources) {
+            const key = zotzTaskBoardSourceKey(source)
+            next[key] = {
+              source,
+              loading: true,
+              table: previous[key]?.table ?? null,
+              error: null
+            }
           }
-          if (generation.current !== current) {
+          return next
+        })
+      })
+      const settle = (
+        source: ZotzTaskBoardSource,
+        state: Omit<ZotzTaskBoardSourceState, 'source' | 'loading'>
+      ): void => {
+        if (generation.current !== current) {
+          return
+        }
+        const key = zotzTaskBoardSourceKey(source)
+        setByKey((previous) => ({
+          ...previous,
+          [key]: {
+            source,
+            loading: false,
+            table: state.table ?? previous[key]?.table ?? null,
+            error: state.error
+          }
+        }))
+      }
+      const failure = (error: unknown) => ({
+        table: null,
+        error: error instanceof Error ? error.message : String(error)
+      })
+      const repoSources = sources.filter(
+        (source): source is ZotzTaskBoardRepoSource => source.kind === 'github-repo'
+      )
+      const loadRepos = async (): Promise<void> => {
+        const api = window.api?.zotzTaskConnectors
+        if (repoSources.length === 0 || !api) {
+          return
+        }
+        try {
+          const found = await api.repoIssues(repoSources.map((source) => source.repo))
+          const byRepo = new Map(found.map((item) => [item.repo.toLowerCase(), item]))
+          for (const source of repoSources) {
+            const issues = byRepo.get(source.repo.toLowerCase())
+            settle(
+              source,
+              issues
+                ? { table: zotzRepoIssuesTable(issues), error: null }
+                : {
+                    table: null,
+                    error: translate(
+                      'zotz.taskBoard.repoMissing',
+                      'GitHub did not return this repo'
+                    )
+                  }
+            )
+          }
+        } catch (error) {
+          repoSources.forEach((source) => settle(source, failure(error)))
+        }
+      }
+      void Promise.all([
+        loadRepos(),
+        ...sources.map(async (source) => {
+          if (source.kind !== 'github-project') {
             return
           }
-          setByKey((previous) => ({
-            ...previous,
-            [key]: {
+          try {
+            const result = await fetchSourceTable(fetchProjectViewTable, source, force)
+            settle(
               source,
-              loading: false,
-              table: state.table ?? previous[key]?.table ?? null,
-              error: state.error
-            }
-          }))
+              result.ok
+                ? { table: result.data, error: null }
+                : { table: null, error: projectViewErrorMessage(result.error) }
+            )
+          } catch (error) {
+            settle(source, failure(error))
+          }
         })
-      ).then(() => {
+      ]).then(() => {
         if (generation.current === current) {
           setLastUpdatedAt(Date.now())
         }
