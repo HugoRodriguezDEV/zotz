@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { FolderPlus, Plus } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
@@ -26,6 +26,7 @@ import { ProjectHeaderHostLabel } from '../../sidebar/worktree-list/rows/Project
 import {
   buildZotzFolderConversations,
   buildZotzProjectSections,
+  buildZotzShortNames,
   summarizeZotzConversationStatus,
   type ZotzConversationStatus
 } from './zotz-project-conversations'
@@ -37,6 +38,9 @@ import { ZotzProjectMenu } from './ZotzProjectMenu'
 import HiddenProjectsSection from '../../sidebar/hidden-projects/HiddenProjectsSection'
 import { ZotzConversationRow } from './ZotzConversationRow'
 import { ZotzArchivedSection } from './ZotzArchivedSection'
+import { ZotzShortNameDialog, type ZotzShortNameRequest } from './ZotzShortNameDialog'
+import { canEditZotzShortName, useZotzCustomShortNames } from './zotz-short-name-store'
+import type { Worktree } from '../../../../../shared/worktree/types'
 
 function AddProjectButton(): React.JSX.Element {
   const t = useTranslate()
@@ -150,6 +154,44 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     return result
   }, [allQueues])
 
+  const hostIds = useMemo(() => [...new Set(repos.map(getRepoExecutionHostId))], [repos])
+  const customShortNames = useZotzCustomShortNames(hostIds)
+  const shortNames = useMemo(
+    () =>
+      buildZotzShortNames({
+        repos,
+        worktreesByRepoId: worktreesByRepo,
+        customByHost: customShortNames
+      }),
+    [repos, worktreesByRepo, customShortNames]
+  )
+  const [shortNameRequest, setShortNameRequest] = useState<ZotzShortNameRequest | null>(null)
+  const editShortName = (repo: Repo, worktree: Worktree | null): (() => void) | undefined => {
+    const hostId = getRepoExecutionHostId(repo)
+    const current = worktree ? shortNames.get(worktree.id) : undefined
+    if (!worktree || !current || !canEditZotzShortName(hostId)) {
+      return undefined
+    }
+    return () => {
+      const sameHost = repos.filter((other) => getRepoExecutionHostId(other) === hostId)
+      const taken = new Set(
+        sameHost.flatMap((other) =>
+          (worktreesByRepo[other.id] ?? []).flatMap((candidate) => {
+            const name = candidate.id === worktree.id ? undefined : shortNames.get(candidate.id)
+            return name ? [name] : []
+          })
+        )
+      )
+      setShortNameRequest({
+        hostId,
+        path: worktree.path,
+        current,
+        isCustom: customShortNames.get(hostId)?.[worktree.path] !== undefined,
+        taken
+      })
+    }
+  }
+
   const sections = useMemo(
     () =>
       buildZotzProjectSections({
@@ -159,9 +201,10 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
           ...statusByWorkspace.keys(),
           ...canceledWorkspaces,
           ...queuedSince.keys()
-        ])
+        ]),
+        shortNames
       }),
-    [repos, worktreesByRepo, statusByWorkspace, canceledWorkspaces, queuedSince]
+    [repos, worktreesByRepo, statusByWorkspace, canceledWorkspaces, queuedSince, shortNames]
   )
   // Upstream refreshes PR status only for cards it reports as on screen; this list is the cards here.
   const setVisibleReviewIds = useAppStore((s) => s.setVisibleReviewCardWorktreeIds)
@@ -207,7 +250,11 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
           <section key={repo.id} className="mb-2">
             <ProjectHeader repo={repo} />
             {conversations.map((row) => (
-              <ZotzConversationMenu key={row.id} worktree={row.worktree}>
+              <ZotzConversationMenu
+                key={row.id}
+                worktree={row.worktree}
+                onEditShortName={editShortName(repo, row.worktree)}
+              >
                 <ZotzConversationRow
                   row={row}
                   repo={repo}
@@ -241,6 +288,7 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
       </div>
       <ZotzArchivedSection />
       <HiddenProjectsSection />
+      <ZotzShortNameDialog request={shortNameRequest} onClose={() => setShortNameRequest(null)} />
     </div>
   )
 }

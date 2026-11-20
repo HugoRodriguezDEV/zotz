@@ -795,6 +795,7 @@ import {
   ZotzAgentQueueSubscribeParams,
   ZotzAgentQueueTaskParams
 } from './zotz/zotz-agent-queue-params'
+import { ZotzShortNameSetParams, ZotzShortNamesListParams } from './zotz/zotz-short-name-params'
 import { RepoIconDataUrlsParams } from '../sidebar-list/catalog/repo-icon-data-urls-contract'
 import { SidebarInputsReadParams } from '../sidebar-list/feed/sidebar-inputs-feed-contract'
 import {
@@ -1710,7 +1711,9 @@ export const RPC_PARAMS_BY_METHOD = {
   'zotz.agentQueue.dismissCanceled': ZotzAgentQueueTaskParams,
   'zotz.agentQueue.forceStart': ZotzAgentQueueTaskParams,
   'zotz.agentQueue.snapshot': ZotzAgentQueueSnapshotParams,
-  'zotz.agentQueue.subscribe': ZotzAgentQueueSubscribeParams
+  'zotz.agentQueue.subscribe': ZotzAgentQueueSubscribeParams,
+  'zotz.shortNames.list': ZotzShortNamesListParams,
+  'zotz.shortNames.set': ZotzShortNameSetParams
 } as const
 
 // Why: these methods bind a schema the shared contract cannot hold because its value

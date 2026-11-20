@@ -159,6 +159,7 @@ export const queuedConversation = defineFixture({
           worktree: queuedWorktree,
           title: 'Indicador de la cola',
           branch: 'memory-limiter',
+          shortName: 'memory-limiter',
           lastActivityAt: 1
         }}
         repo={zotz}
@@ -166,6 +167,35 @@ export const queuedConversation = defineFixture({
         status={{ state: 'working', unread: false }}
         canceled={false}
         queuedSince={Date.now() - 20 * 60_000}
+      />
+    </div>
+  )
+})
+
+const salmonWorktree = {
+  ...worktree('zotz', 'zotz/fase-9-tareas', 'Chat workspace board options'),
+  path: '/code/zotz/salmon'
+}
+
+export const shortName = defineFixture({
+  width: 300,
+  store: { repos: [zotz], worktreesByRepo: { zotz: [salmonWorktree] } },
+  render: () => (
+    <div className="bg-worktree-sidebar p-2">
+      <ZotzConversationRow
+        row={{
+          id: salmonWorktree.id,
+          worktree: salmonWorktree,
+          title: 'Chat workspace board options',
+          branch: 'zotz/fase-9-tareas',
+          shortName: 'salmon',
+          lastActivityAt: 1
+        }}
+        repo={zotz}
+        active={false}
+        status={null}
+        canceled={false}
+        queuedSince={null}
       />
     </div>
   )

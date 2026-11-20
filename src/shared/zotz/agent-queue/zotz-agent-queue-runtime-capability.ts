@@ -4,7 +4,11 @@ export const ZOTZ_AGENT_QUEUE_RUNTIME_CAPABILITY = 'zotz.agent-queue.v1' as cons
 // Why separate: a host that publishes its queue may predate the calls that cancel or force a launch.
 export const ZOTZ_AGENT_QUEUE_CONTROL_RUNTIME_CAPABILITY = 'zotz.agent-queue-control.v1' as const
 
+// Why: a client edits another host's short names only when that host keeps them; older hosts show folder names.
+export const ZOTZ_SHORT_NAMES_RUNTIME_CAPABILITY = 'zotz.short-names.v1' as const
+
 export const ZOTZ_RUNTIME_CAPABILITIES = [
   ZOTZ_AGENT_QUEUE_RUNTIME_CAPABILITY,
-  ZOTZ_AGENT_QUEUE_CONTROL_RUNTIME_CAPABILITY
+  ZOTZ_AGENT_QUEUE_CONTROL_RUNTIME_CAPABILITY,
+  ZOTZ_SHORT_NAMES_RUNTIME_CAPABILITY
 ] as const
