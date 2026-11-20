@@ -15,7 +15,7 @@ export function ZotzBoardToolbarButton(): React.JSX.Element | null {
   }
 
   const active = open && tab === 'tasks'
-  const label = t('zotz.taskBoard.toolbar', 'Tasks')
+  const label = t('zotz.taskBoard.toolbar', 'Task board')
   return (
     <Tooltip>
       <TooltipTrigger asChild>

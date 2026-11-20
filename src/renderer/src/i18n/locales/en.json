@@ -26067,7 +26067,7 @@
         "subIssues": "Sub-issues",
         "linkedPullRequests": "Linked pull requests"
       },
-      "toolbar": "Tasks",
+      "toolbar": "Task board",
       "empty": {
         "title": "No task sources yet",
         "description": "Pick the GitHub organizations and projects whose tasks show up here.",

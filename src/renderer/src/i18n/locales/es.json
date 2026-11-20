@@ -24459,7 +24459,7 @@
         "tasks": "Tareas"
       },
       "title": "Tareas",
-      "toolbar": "Tareas",
+      "toolbar": "Tablero de tareas",
       "updatedAt": "Actualizado {{time}}",
       "view": {
         "all": "Todos los proyectos"
