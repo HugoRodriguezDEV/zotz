@@ -82,7 +82,7 @@ Pendiente de confirmar en la doc: el detalle de la columna "No Status" y la list
 - Se abre desde:
   - El botón de kanban de la barra lateral → pestaña **Tareas**.
   - El indicador de la cola en la barra de estado → pestaña **Agentes**.
-- La pestaña elegida se recuerda (`localStorage`, solo comodidad).
+- El atajo y el comando de Orca que abrían el Workspace board ahora abren la pestaña **Tareas**.
 - En la ventana web pareada (`isPairedWebClientWindow`) se comporta igual que el indicador de la cola hoy: no se muestra.
 
 ### 5.2 Vistas

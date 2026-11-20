@@ -5915,11 +5915,6 @@
           "f8a2c91d4e": "Milestones",
           "b7e4d2a19c": "Onboarding"
         },
-        "SidebarToolbar": {
-          "87d0064026": "El tablero de espacios de trabajo se movió a la barra inferior",
-          "a30e34eb5c": "Cerrar tablero de espacios de trabajo",
-          "49f62c5665": "Tablero de espacios de trabajo"
-        },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "Ocultar rama predeterminada",
           "ed1611b65b": "Ocultar en reposo",
@@ -24409,6 +24404,19 @@
       "changesKept_one": "{{count}} cambio sin commitear",
       "changesKept_other": "{{count}} cambios sin commitear",
       "changesKept_many": "{{count}} cambios sin commitear"
+    },
+    "taskBoard": {
+      "title": "Tareas",
+      "description": "Las tareas de todos tus proyectos en un solo tablero.",
+      "toolbar": "Tareas",
+      "tab": {
+        "tasks": "Tareas",
+        "agents": "Agentes"
+      },
+      "empty": {
+        "title": "Aún no hay fuentes de tareas",
+        "description": "Aquí aparecerán las tareas de los proyectos y repos de GitHub que elijas y de los servicios de tareas que conectes."
+      }
     }
   }
 }

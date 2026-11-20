@@ -12741,11 +12741,6 @@
           "workspacesMatch_other": "Espaços de trabalho correspondentes: {{matchCount}} de {{count}}",
           "workspacesMatch_many": "Espaços de trabalho correspondentes: {{matchCount}} de {{count}}"
         },
-        "SidebarToolbar": {
-          "87d0064026": "O quadro do espaço de trabalho foi movido para a barra inferior",
-          "a30e34eb5c": "Fechar o quadro do espaço de trabalho",
-          "49f62c5665": "Quadro do espaço de trabalho"
-        },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "Definir a cor de {{value0}} para {{value1}}",
           "setStatusIcon": "Definir o ícone de {{value0}} para {{value1}}",

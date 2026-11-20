@@ -338,7 +338,7 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 
 Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 
-- [ ] 9a. Modal unificado con pestañas Tareas y Agentes; el botón de kanban de la barra lateral lo abre y el Workspace board queda oculto (no borrado).
+- [x] 9a. Modal unificado con pestañas Tareas y Agentes; el botón de kanban de la barra lateral lo abre y el Workspace board queda oculto (no borrado).
 - [ ] 9b. GitHub de solo lectura con el modelo de GitHub Projects: elegir organizaciones/cuenta → Projects y repos; vistas (board/tabla, filtro con su sintaxis, Column by, Group by, Sort) y vistas espejo de un Project; tarjetas con marca de GitHub, logo y nombre de la org y el proyecto; detalle con "Abrir en GitHub"; "Archivar terminadas" (solo con botón) y vista Archivadas.
 - [ ] 9c. PRs ligados estilo Avena: línea de PR en la tarjeta; en el detalle, PRs y ramas ligadas, los que la mencionan, commit y archivos.
 - [ ] 9d. Contrato `zotz-tasks/v1` con campos tipo Project (JSON, también YAML/TOML), feed por URL, `zotz tasks push`/`validate`, importar archivo y endpoint obligatorio `link-pr`.
@@ -694,3 +694,12 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 - **Marca propia para el segundo plano:** cuando el agente terminó y solo sigue un proceso en segundo plano (estado `monitoring`), la barra lateral mostraba la misma onda que con el agente trabajando. Ahora muestra `ZotzBackgroundSonar` (un punto con dos arcos de eco que pulsan). La onda queda solo para `working`, que siempre gana: si en la conversación el agente trabaja y además hay un proceso en segundo plano, se ve la onda.
 - **Se quita `useArchiveOnMerge`:** una conversación ya no se archiva sola al mergear su PR; solo Hugo la archiva desde el menú. También salió la cadena `zotz.sidebar.archivedMerged`. La limpieza automática de upstream (`workspaceCleanup`) sigue apagada por defecto y no se tocó.
 - Verificado con la fixture `ZotzWorkingRipple:backgroundOnly`; no se probó con un proceso real en segundo plano.
+
+### 2026-11-19 — Fase 9a: modal de tareas y agentes (`zotz/fase-9-tareas`)
+
+- Spec: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
+- Un solo modal (`ZotzBoardModal`) con pestañas **Tareas** y **Agentes**, montado una vez desde `ZotzRootOverlays` en la raíz de la app. El botón de kanban de la barra lateral abre Tareas; el indicador de la cola en la barra de estado abre Agentes. Tareas todavía muestra un estado vacío hasta la 9b.
+- El Workspace board de Orca queda oculto, no borrado: `useZotzWorkspaceBoardPanel` reemplaza a `useWorkspaceBoardPanel` en la barra lateral, deja el drawer siempre cerrado, apaga la vista previa al arrastrar y manda el atajo y el comando del board a la pestaña Tareas.
+- Se borraron de los 11 idiomas los 3 textos del botón viejo (`auto.components.sidebar.SidebarToolbar.*`): el gate de localización no deja textos sin uso.
+- Sorpresa: el store de la cola tronaba si `snapshot()` devolvía `undefined` (cliente web sin runtime). Ahora lo trata como vacío.
+- Verificado con la fixture `zotz/tasks/ZotzBoardModal` (ambas pestañas, ambos temas) y `pnpm check:changed`. Sin verificar en la app real.

@@ -7040,11 +7040,6 @@
           "f8a2c91d4e": "Milestones",
           "b7e4d2a19c": "Onboarding"
         },
-        "SidebarToolbar": {
-          "87d0064026": "Workspace board moved to the bottom bar",
-          "a30e34eb5c": "Close workspace board",
-          "49f62c5665": "Workspace board"
-        },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "Hide default branch",
           "ed1611b65b": "Hide sleeping",
@@ -26043,6 +26038,19 @@
       "useFolder": "Use folder name",
       "cancel": "Cancel",
       "save": "Save"
+    },
+    "taskBoard": {
+      "title": "Tasks",
+      "description": "Tasks from all your projects in one board.",
+      "toolbar": "Tasks",
+      "tab": {
+        "tasks": "Tasks",
+        "agents": "Agents"
+      },
+      "empty": {
+        "title": "No task sources yet",
+        "description": "Tasks from the GitHub projects and repos you pick, and from connected task services, will show up here."
+      }
     }
   }
 }
