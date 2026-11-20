@@ -15,6 +15,29 @@ import {
 
 export const ZOTZ_TASK_RELAY_SECTION_ID = 'zotz-task-relay'
 
+type RelayApi = NonNullable<typeof window.api.zotzTaskConnectors>
+
+/** Saves the token, then asks the relay once; a token the relay refuses is not kept. */
+async function connectRelay(
+  api: RelayApi,
+  url: string,
+  token: string
+): Promise<{ kind: 'ok' } | { kind: 'no-encryption' } | { kind: 'failed'; error: string | null }> {
+  try {
+    if (!(await api.relaySetToken(token))) {
+      return { kind: 'no-encryption' }
+    }
+    const check = await api.relayCheck(url)
+    if (check?.ok) {
+      return { kind: 'ok' }
+    }
+    await api.relaySetToken(null)
+    return { kind: 'failed', error: check?.error ?? null }
+  } catch (error) {
+    return { kind: 'failed', error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
 /**
  * Settings → Tasks: the optional zotz-relay (off by default). It is the user's own service; Zotz
  * only makes outgoing calls to it, with a device token kept encrypted in main.
@@ -59,28 +82,24 @@ export function ZotzTaskRelaySetting({
     }
     setBusy(true)
     setError(null)
-    try {
-      if (!(await api.relaySetToken(token.trim()))) {
-        setError(
-          t(
-            'zotz.taskConnectors.noEncryption',
-            "This system can't encrypt the token, so it wasn't saved."
-          )
+    const outcome = await connectRelay(api, relayUrl, token.trim())
+    setBusy(false)
+    if (outcome.kind === 'no-encryption') {
+      setError(
+        t(
+          'zotz.taskConnectors.noEncryption',
+          "This system can't encrypt the token, so it wasn't saved."
         )
-        return
-      }
-      const check = await api.relayCheck(relayUrl)
-      if (!check?.ok) {
-        await api.relaySetToken(null)
-        setError(check?.error ?? t('zotz.taskRelay.unreachable', "Couldn't reach the relay."))
-        return
-      }
-      updateSettings({ zotzTaskRelay: { url: relayUrl, enabled: true, hasToken: true } })
-      setUrl('')
-      setToken('')
-    } finally {
-      setBusy(false)
+      )
+      return
     }
+    if (outcome.kind === 'failed') {
+      setError(outcome.error ?? t('zotz.taskRelay.unreachable', "Couldn't reach the relay."))
+      return
+    }
+    updateSettings({ zotzTaskRelay: { url: relayUrl, enabled: true, hasToken: true } })
+    setUrl('')
+    setToken('')
   }
 
   const remove = async (): Promise<void> => {

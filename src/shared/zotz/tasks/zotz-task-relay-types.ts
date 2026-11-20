@@ -73,11 +73,18 @@ export const ZOTZ_TASK_RELAY_OFF: ZotzTaskRelayStatus = {
 }
 
 export function readZotzTaskRelayConfig(value: unknown): ZotzTaskRelayConfig | null {
-  if (typeof value !== 'object' || value === null) {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('url' in value) ||
+    typeof value.url !== 'string' ||
+    !/^https?:\/\//i.test(value.url)
+  ) {
     return null
   }
-  const { url, enabled, hasToken } = value as Record<string, unknown>
-  return typeof url === 'string' && /^https?:\/\//i.test(url)
-    ? { url, enabled: enabled === true, hasToken: hasToken === true }
-    : null
+  return {
+    url: value.url,
+    enabled: 'enabled' in value && value.enabled === true,
+    hasToken: 'hasToken' in value && value.hasToken === true
+  }
 }

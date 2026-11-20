@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { installWindowVisibilityInterval } from '@/lib/window-activity/window-visibility-interval'
 import {
   planZotzRelayReload,
   type ZotzRelayBoardSource
@@ -58,7 +59,11 @@ export function useZotzTaskRelay(
   const [status, setStatus] = useState<ZotzTaskRelayStatus>(ZOTZ_TASK_RELAY_OFF)
   // Read at apply time so a debounced batch sees the board as it is then.
   const latest = useRef(targets)
-  latest.current = targets
+  useEffect(() => {
+    latest.current = targets
+  })
+  // The board loads on open, so the first full refresh is one interval away.
+  const lastFullRefresh = useRef(0)
   const pending = useRef<{ notices: ZotzRelayNotice[]; reset: boolean }>({
     notices: [],
     reset: false
@@ -101,8 +106,12 @@ export function useZotzTaskRelay(
         return
       }
       pending.current.notices.push(...update.notices)
-      pending.current.reset ||= update.reset
-      timer ??= setTimeout(apply, NOTICE_DEBOUNCE_MS)
+      if (update.reset) {
+        pending.current.reset = true
+      }
+      if (timer === null) {
+        timer = setTimeout(apply, NOTICE_DEBOUNCE_MS)
+      }
     })
     return () => {
       stop()
@@ -129,11 +138,25 @@ export function useZotzTaskRelay(
     if (!active) {
       return
     }
-    const timer = setInterval(
-      () => latest.current.refreshAll(),
-      live ? RELAY_FULL_REFRESH_MS : POLL_FULL_REFRESH_MS
-    )
-    return () => clearInterval(timer)
+    const intervalMs = live ? RELAY_FULL_REFRESH_MS : POLL_FULL_REFRESH_MS
+    if (lastFullRefresh.current === 0) {
+      lastFullRefresh.current = Date.now()
+    }
+    const refresh = (): void => {
+      lastFullRefresh.current = Date.now()
+      latest.current.refreshAll()
+    }
+    // Paused while the window is hidden; on return it catches up only if a refresh is overdue.
+    return installWindowVisibilityInterval({
+      run: refresh,
+      runOnVisible: () => {
+        if (Date.now() - lastFullRefresh.current >= intervalMs) {
+          refresh()
+        }
+      },
+      intervalMs,
+      slowWhileUnfocused: true
+    })
   }, [active, live])
 
   return status

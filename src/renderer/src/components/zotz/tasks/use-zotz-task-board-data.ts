@@ -94,24 +94,21 @@ export function useZotzTaskBoardData(active: boolean): {
       }
       // Marked once the request is under way, so a mount never renders a loading flash first.
       void Promise.resolve().then(() => {
-        setByKey((previous) => {
+        const current = new Set(targets.filter(isCurrent))
+        setByKey((previous) => ({
           // A full load also drops sources the user removed.
-          const next: Record<string, ZotzTaskBoardSourceState> = only ? { ...previous } : {}
-          for (const source of targets) {
-            const key = zotzTaskBoardSourceKey(source)
-            if (isCurrent(source)) {
-              next[key] = {
-                source,
-                loading: true,
-                table: previous[key]?.table ?? null,
-                error: null
+          ...(only ? previous : {}),
+          ...Object.fromEntries(
+            targets.flatMap((source): [string, ZotzTaskBoardSourceState][] => {
+              const key = zotzTaskBoardSourceKey(source)
+              const known = previous[key]
+              if (current.has(source)) {
+                return [[key, { source, loading: true, table: known?.table ?? null, error: null }]]
               }
-            } else if (previous[key]) {
-              next[key] = previous[key]
-            }
-          }
-          return next
-        })
+              return known ? [[key, known]] : []
+            })
+          )
+        }))
       })
       const settle = (
         source: ZotzTaskBoardSource,
