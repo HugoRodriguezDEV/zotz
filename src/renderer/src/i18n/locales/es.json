@@ -24456,10 +24456,6 @@
         "reposShow": "Mostrar repos"
       },
       "sourceError": "No se pudo cargar {{project}}: {{error}}",
-      "tab": {
-        "agents": "Agentes",
-        "tasks": "Tareas"
-      },
       "title": "Tareas",
       "toolbar": "Tablero de tareas",
       "updatedAt": "Actualizado {{time}}",

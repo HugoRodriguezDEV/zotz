@@ -82,7 +82,10 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
 
   useEffect(() => {
     if (active && viewer === null) {
-      void window.api?.zotzTaskConnectors?.viewer().then(setViewer, () => undefined)
+      void window.api?.zotzTaskConnectors?.viewer().then(
+        (login) => setViewer(typeof login === 'string' ? login : null),
+        () => undefined
+      )
     }
   }, [active, viewer])
 

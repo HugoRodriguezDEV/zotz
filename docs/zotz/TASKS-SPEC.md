@@ -393,6 +393,7 @@ No entra en v1; va en la parte 2 de la fase. Se documenta para que el diseño de
 - Development no muestra despliegues ni en qué otras ramas cayó un merge.
 - "Crear workspace con esta tarea" no pone el cuerpo como primer prompt (el composer de Orca no lo acepta). El chip no puede decir "En cola" porque la cola no guarda el workspace.
 - El relay queda para después, por decisión de Hugo.
+- La pestaña "Agentes" del modal se quitó: desde el PR #33 la cola de memoria tiene su propio panel lateral con todas las máquinas, que abre el indicador de la barra de estado. El modal es solo el tablero de tareas.
 
 - **9e — Tarea ↔ agente.** Chip de estado de agente en la tarjeta y "Crear workspace con esta tarea" (rama con el id de la tarea, `linkedIssue` en GitHub y el cuerpo como primer prompt).
 - **9f — Acción `move`** para fuentes externas, con comprobación previa.

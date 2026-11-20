@@ -21,6 +21,7 @@ import {
 } from '../../../../../shared/zotz/tasks/zotz-task-board-types'
 import { hideBrokenImage } from './ZotzTaskCard'
 import { githubOwnerAvatarUrl } from './zotz-task-card-view'
+import { asArray } from './zotz-task-bridge-results'
 
 export const ZOTZ_TASK_BOARD_SOURCES_SECTION_ID = 'zotz-task-board-sources'
 
@@ -192,9 +193,9 @@ export function ZotzTaskBoardSourcesSetting({
       (result) =>
         setOwnerRepos((previous) => ({
           ...previous,
-          [group.key]: result.ok
-            ? { status: 'ready', repos: result.repos }
-            : { status: 'error', error: result.error }
+          [group.key]: result?.ok
+            ? { status: 'ready', repos: asArray(result.repos) }
+            : { status: 'error', error: result?.error ?? 'Unavailable' }
         })),
       (cause: unknown) =>
         setOwnerRepos((previous) => ({
@@ -225,7 +226,10 @@ export function ZotzTaskBoardSourcesSetting({
 
   useEffect(() => {
     load(false)
-    void window.api?.zotzTaskConnectors?.owners().then(setOwners, () => undefined)
+    void window.api?.zotzTaskConnectors?.owners().then(
+      (list) => setOwners(asArray(list)),
+      () => undefined
+    )
   }, [load])
 
   const groups = useMemo(

@@ -1,45 +1,28 @@
 import { useSyncExternalStore } from 'react'
 
-export type ZotzBoardTab = 'tasks' | 'agents'
-
-export type ZotzBoardModalState = {
-  open: boolean
-  tab: ZotzBoardTab
-}
-
-let state: ZotzBoardModalState = { open: false, tab: 'tasks' }
+let open = false
 const listeners = new Set<() => void>()
 
-function publish(next: ZotzBoardModalState): void {
-  state = next
+function publish(next: boolean): void {
+  if (open === next) {
+    return
+  }
+  open = next
   for (const listener of listeners) {
     listener()
   }
 }
 
-export function openZotzBoard(tab: ZotzBoardTab): void {
-  publish({ open: true, tab })
+export function openZotzBoard(): void {
+  publish(true)
 }
 
 export function closeZotzBoard(): void {
-  if (state.open) {
-    publish({ ...state, open: false })
-  }
+  publish(false)
 }
 
-export function setZotzBoardTab(tab: ZotzBoardTab): void {
-  if (state.tab !== tab) {
-    publish({ ...state, tab })
-  }
-}
-
-/** Closes only when the modal already shows this tab; otherwise opens it there. */
-export function toggleZotzBoard(tab: ZotzBoardTab): void {
-  if (state.open && state.tab === tab) {
-    closeZotzBoard()
-    return
-  }
-  openZotzBoard(tab)
+export function toggleZotzBoard(): void {
+  publish(!open)
 }
 
 function subscribe(listener: () => void): () => void {
@@ -49,6 +32,7 @@ function subscribe(listener: () => void): () => void {
   }
 }
 
-export function useZotzBoardModal(): ZotzBoardModalState {
-  return useSyncExternalStore(subscribe, () => state)
+/** Whether the task board modal is open; any surface can open it (sidebar, shortcut, command). */
+export function useZotzBoardOpen(): boolean {
+  return useSyncExternalStore(subscribe, () => open)
 }

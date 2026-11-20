@@ -12,9 +12,9 @@ const HIDDEN_WORKSPACE_BOARD: WorkspaceBoardPanelState = {
   workspaceBoardRenderedOpen: false,
   workspaceBoardDragPreviewOpen: false,
   workspaceBoardMenuOpen: false,
-  openWorkspaceBoard: () => toggleZotzBoard('tasks'),
+  openWorkspaceBoard: toggleZotzBoard,
   closeWorkspaceBoard: ignore,
-  toggleWorkspaceBoard: () => toggleZotzBoard('tasks'),
+  toggleWorkspaceBoard: toggleZotzBoard,
   handleWorkspaceBoardOpenChange: ignore,
   setWorkspaceBoardMenuOpen: ignore,
   previewWorkspaceBoardFromDrag: ignore,
@@ -22,12 +22,11 @@ const HIDDEN_WORKSPACE_BOARD: WorkspaceBoardPanelState = {
   cancelWorkspaceBoardDragPreview: ignore
 }
 
-/** Zotz hides Orca's workspace board: its shortcut and command open the task board instead. */
+/** Zotz hides Orca's workspace board: its shortcut and command toggle the task board instead. */
 export function useZotzWorkspaceBoardPanel(): WorkspaceBoardPanelState {
   useEffect(() => {
-    const toggle = (): void => toggleZotzBoard('tasks')
-    window.addEventListener(TOGGLE_WORKSPACE_BOARD_EVENT, toggle)
-    return () => window.removeEventListener(TOGGLE_WORKSPACE_BOARD_EVENT, toggle)
+    window.addEventListener(TOGGLE_WORKSPACE_BOARD_EVENT, toggleZotzBoard)
+    return () => window.removeEventListener(TOGGLE_WORKSPACE_BOARD_EVENT, toggleZotzBoard)
   }, [])
   return HIDDEN_WORKSPACE_BOARD
 }

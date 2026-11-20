@@ -12,6 +12,7 @@ import {
   type ZotzTaskConnectorSnapshot
 } from '../../../../../shared/zotz/tasks/zotz-task-connector-types'
 import { hideBrokenImage } from './ZotzTaskCard'
+import { asArray } from './zotz-task-bridge-results'
 
 export const ZOTZ_TASK_CONNECTORS_SECTION_ID = 'zotz-task-connectors'
 
@@ -32,7 +33,7 @@ async function connectFeed(
   if (token && !(await api.setToken(id, token))) {
     return { kind: 'no-encryption' }
   }
-  const result = (await api.refresh([{ id, url }])).find((item) => item.id === id)
+  const result = asArray(await api.refresh([{ id, url }])).find((item) => item.id === id)
   if (!result?.document) {
     await api.remove(id)
     return { kind: 'failed', error: result?.error ?? null }
@@ -72,7 +73,10 @@ export function ZotzTaskConnectorsSetting({
   const [message, setMessage] = useState<{ tone: 'error' | 'ok'; text: string } | null>(null)
 
   const reload = useCallback(() => {
-    void api?.snapshot().then(setSnapshots, () => undefined)
+    void api?.snapshot().then(
+      (next) => setSnapshots(asArray(next)),
+      () => undefined
+    )
   }, [api])
   useEffect(reload, [reload])
 
@@ -138,7 +142,7 @@ export function ZotzTaskConnectorsSetting({
   const importFile = async (): Promise<void> => {
     setMessage(null)
     const result = await api.importFile()
-    if (result.ok) {
+    if (result?.ok) {
       upsert(result.connector)
       reload()
       setMessage({
@@ -148,14 +152,14 @@ export function ZotzTaskConnectorsSetting({
           total: result.snapshot.document?.tasks.length ?? 0
         })
       })
-    } else if (!result.canceled) {
+    } else if (result && !result.canceled) {
       setMessage({ tone: 'error', text: result.error })
     }
   }
 
   const refreshOne = async (connector: ZotzTaskConnectorConfig): Promise<void> => {
     if (connector.url) {
-      setSnapshots(await api.refresh([{ id: connector.id, url: connector.url }]))
+      setSnapshots(asArray(await api.refresh([{ id: connector.id, url: connector.url }])))
     }
   }
   const remove = async (connector: ZotzTaskConnectorConfig): Promise<void> => {

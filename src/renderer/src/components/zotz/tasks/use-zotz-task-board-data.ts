@@ -6,6 +6,7 @@ import { projectViewErrorMessage } from '../../github-project/auth-errors/projec
 import type { GetProjectViewTableResult } from '../../../../../shared/github/projects/project-result-types'
 import type { GitHubProjectTable } from '../../../../../shared/github/projects/project-types'
 import { zotzRepoIssuesTable } from '../../../../../shared/zotz/tasks/zotz-repo-issues'
+import { asArray } from './zotz-task-bridge-results'
 import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import {
   readZotzTaskBoardSources,
@@ -119,7 +120,7 @@ export function useZotzTaskBoardData(active: boolean): {
           return
         }
         try {
-          const found = await api.repoIssues(repoSources.map((source) => source.repo))
+          const found = asArray(await api.repoIssues(repoSources.map((source) => source.repo)))
           const byRepo = new Map(found.map((item) => [item.repo.toLowerCase(), item]))
           for (const source of repoSources) {
             const issues = byRepo.get(source.repo.toLowerCase())

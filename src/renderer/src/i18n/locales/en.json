@@ -26096,10 +26096,6 @@
       },
       "title": "Tasks",
       "description": "Tasks from all your projects in one board.",
-      "tab": {
-        "tasks": "Tasks",
-        "agents": "Agents"
-      },
       "state": {
         "open": "Open",
         "closed": "Closed",

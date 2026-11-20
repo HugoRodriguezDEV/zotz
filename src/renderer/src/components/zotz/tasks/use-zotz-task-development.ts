@@ -5,6 +5,7 @@ import {
   type ZotzIssueRef,
   type ZotzTaskDevelopment
 } from '../../../../../shared/zotz/tasks/zotz-task-development-types'
+import { asRecord } from './zotz-task-bridge-results'
 
 const FRESH_MS = 5 * 60_000
 
@@ -48,17 +49,27 @@ export function useZotzIssueDevelopment(
   revision: number
 ): ReadonlyMap<string, ZotzTaskDevelopment> {
   const [, setVersion] = useState(0)
-  const refs = useMemo(() => {
-    const unique = new Map<string, ZotzIssueRef>()
+  // A string key keeps the request stable while the board re-renders with the same issues.
+  const refsKey = useMemo(() => {
+    const keys = new Set<string>()
     for (const item of items) {
       const ref = githubIssueRef(item)
       if (ref) {
-        unique.set(zotzIssueRefKey(ref), ref)
+        keys.add(zotzIssueRefKey(ref))
       }
     }
-    return [...unique.values()]
+    return [...keys].join(',')
   }, [items])
-  const refsKey = refs.map(zotzIssueRefKey).join(',')
+  const refs = useMemo(
+    () =>
+      refsKey
+        ? refsKey.split(',').map((key): ZotzIssueRef => {
+            const hash = key.lastIndexOf('#')
+            return { repo: key.slice(0, hash), number: Number(key.slice(hash + 1)) }
+          })
+        : [],
+    [refsKey]
+  )
 
   useEffect(() => {
     const api = window.api?.zotzTaskConnectors
@@ -76,7 +87,7 @@ export function useZotzIssueDevelopment(
     let canceled = false
     void api.development(stale).then(
       (result) => {
-        for (const [key, value] of Object.entries(result)) {
+        for (const [key, value] of Object.entries(asRecord(result))) {
           cache.set(key, value)
         }
         if (!canceled) {
@@ -88,9 +99,7 @@ export function useZotzIssueDevelopment(
     return () => {
       canceled = true
     }
-    // refsKey stands for refs: same issues, same request.
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, refsKey, revision])
+  }, [active, refs, revision])
 
   return cache
 }

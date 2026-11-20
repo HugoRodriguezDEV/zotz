@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppStore } from '@/store/index'
+import { asArray } from './zotz-task-bridge-results'
 import {
   readZotzTaskConnectors,
   type ZotzTaskConnectorConfig,
@@ -43,7 +44,10 @@ export function useZotzTaskConnectors(active: boolean): {
     )
     setRefreshing(true)
     void (feeds.length > 0 ? api.refresh(feeds) : api.snapshot())
-      .then(setSnapshots, () => undefined)
+      .then(
+        (next) => setSnapshots(asArray(next)),
+        () => undefined
+      )
       .finally(() => setRefreshing(false))
   }, [connectors])
 
@@ -52,7 +56,7 @@ export function useZotzTaskConnectors(active: boolean): {
       const api = window.api?.zotzTaskConnectors
       if (api && connectors.length > 0) {
         void api.syncPullRequests(repos).then(
-          (next) => (next.length > 0 ? setSnapshots(next) : undefined),
+          (next) => (asArray(next).length > 0 ? setSnapshots(asArray(next)) : undefined),
           () => undefined
         )
       }
@@ -75,8 +79,8 @@ export function useZotzTaskConnectors(active: boolean): {
         return 'Unavailable'
       }
       const result = await api.move(connectorId, taskId, optionId)
-      if (!result.ok) {
-        return result.error
+      if (!result?.ok) {
+        return result?.error ?? 'Unavailable'
       }
       setSnapshots((list) => mergeSnapshot(list, result.snapshot))
       return null
@@ -87,7 +91,10 @@ export function useZotzTaskConnectors(active: boolean): {
   useEffect(() => {
     const api = window.api?.zotzTaskConnectors
     const reload = (): void => {
-      void api?.snapshot().then(setSnapshots, () => undefined)
+      void api?.snapshot().then(
+        (next) => setSnapshots(asArray(next)),
+        () => undefined
+      )
     }
     reload()
     return api?.onChanged(reload)

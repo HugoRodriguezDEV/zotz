@@ -764,6 +764,7 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
   - **Crear workspace:** "Crear workspace con esta tarea" usa el composer de Orca. Para GitHub liga el issue; para servicios pone el id en el nombre.
   - **Pendiente:** el cuerpo de la tarea como primer prompt no se puede, porque el composer no lo acepta. "En cola" tampoco, porque la cola no guarda el workspace de cada espera.
 - **9f:** arrastrar en la vista de un servicio que verificó `move` manda la acción y mueve la tarjeta; si falla, avisa.
+- **Rebase sobre #33:** la cola de memoria pasó a un panel lateral propio con todas las máquinas. El modal de tareas ya no tiene pestaña "Agentes" para no duplicarla, y el indicador de la barra de estado abre ese panel, como en `main`.
 - **Arreglos que salieron al probar con datos reales:**
   - **Grupos duplicados en Ajustes:** una organización salía dos veces (sin host y con `github.com`).
   - **PRs perdidos:** la sincronización de PRs podía escribir sobre un conector que un refresh acababa de reemplazar.
