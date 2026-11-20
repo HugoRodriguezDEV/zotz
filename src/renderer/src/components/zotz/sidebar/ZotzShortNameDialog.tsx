@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useTranslate } from '@/i18n/use-translate'
+import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -28,6 +28,28 @@ export type ZotzShortNameRequest = {
   taken: ReadonlySet<string>
 }
 
+/** True once the host kept the name; refusals and transport errors become a toast. */
+async function saveShortName(
+  request: ZotzShortNameRequest,
+  shortName: string,
+  t: Translate
+): Promise<boolean> {
+  try {
+    const result = await saveZotzShortName(request.hostId, request.path, shortName)
+    if (!result.ok) {
+      toast.error(
+        result.reason === 'taken'
+          ? t('zotz.shortName.taken', 'Another conversation on this machine uses that name.')
+          : t('zotz.shortName.invalid', 'Use letters, numbers or dashes.')
+      )
+    }
+    return result.ok
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : String(error))
+    return false
+  }
+}
+
 export function ZotzShortNameDialog({
   request,
   onClose
@@ -53,21 +75,10 @@ export function ZotzShortNameDialog({
       return
     }
     setSaving(true)
-    try {
-      const result = await saveZotzShortName(request.hostId, request.path, shortName)
-      if (result.ok) {
-        onClose()
-      } else {
-        toast.error(
-          result.reason === 'taken'
-            ? t('zotz.shortName.taken', 'Another conversation on this machine uses that name.')
-            : t('zotz.shortName.invalid', 'Use letters, numbers or dashes.')
-        )
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error))
-    } finally {
-      setSaving(false)
+    const saved = await saveShortName(request, shortName, t)
+    setSaving(false)
+    if (saved) {
+      onClose()
     }
   }
 
@@ -97,7 +108,8 @@ export function ZotzShortNameDialog({
             value={value}
             placeholder={folderName}
             onChange={(event) => setValue(event.target.value)}
-            className="h-8 font-mono text-xs"
+            variant="code"
+            className="h-8"
           />
           <p className="min-h-4 text-xs text-muted-foreground">
             {invalid

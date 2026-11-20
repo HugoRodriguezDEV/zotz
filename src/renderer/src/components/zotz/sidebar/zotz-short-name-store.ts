@@ -78,13 +78,13 @@ export function useZotzCustomShortNames(
   )
   useEffect(() => {
     const state = useAppStore.getState()
-    for (const hostId of reachable ? (reachable.split('\n') as ExecutionHostId[]) : []) {
+    for (const hostId of hostIds) {
       const target = shortNameTarget(state, hostId)
       if (target) {
         void loadHostNames(hostId, target)
       }
     }
-  }, [reachable])
+  }, [hostIds, reachable])
   return names
 }
 

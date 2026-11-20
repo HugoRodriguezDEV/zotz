@@ -25962,7 +25962,8 @@
       "viewArchived": "View archived",
       "archiveFailed": "Could not archive: {{error}}",
       "archivedTitle": "Archived",
-      "restore": "Restore {{name}}"
+      "restore": "Restore {{name}}",
+      "shortName": "Short name…"
     },
     "composer": {
       "worktreeLabel": "Worktree",
@@ -26029,6 +26030,16 @@
       "uncommittedDetail": "They stay on disk, but this project and its conversations leave Zotz. Open a list to review each change.",
       "changesKept_one": "{{count}} uncommitted change",
       "changesKept_other": "{{count}} uncommitted changes"
+    },
+    "shortName": {
+      "taken": "Another conversation on this machine uses that name.",
+      "invalid": "Use letters, numbers or dashes.",
+      "title": "Short name",
+      "description": "Agents use it to message this conversation. Unique on this machine; letters, numbers and dashes.",
+      "preview": "Saved as {{name}}",
+      "useFolder": "Use folder name",
+      "cancel": "Cancel",
+      "save": "Save"
     }
   }
 }
