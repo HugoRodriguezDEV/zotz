@@ -2,6 +2,8 @@ import type { AgentDotState } from '../../AgentStateDot'
 import type { FolderWorkspace } from '../../../../../shared/folder-workspaces/folder-workspace-types'
 import { isRepoHidden } from '../../../../../shared/hidden-projects'
 import type { Repo } from '../../../../../shared/repository/repo-types'
+import { getRepoExecutionHostId, type ExecutionHostId } from '../../../../../shared/execution-host'
+import { resolveZotzShortNames } from '../../../../../shared/zotz/zotz-short-name'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
 
@@ -10,6 +12,8 @@ export type ZotzConversationRow = {
   id: string
   title: string
   branch: string | null
+  /** What agents type to message it (`salmon`); null for loose folders. */
+  shortName: string | null
   lastActivityAt: number
   /** Null for loose folders, which have no worktree actions. */
   worktree: Worktree | null
@@ -56,6 +60,7 @@ export function buildZotzProjectSections(input: {
   repos: readonly Repo[]
   worktreesByRepoId: Readonly<Record<string, readonly Worktree[] | undefined>>
   workspacesWithAgents: ReadonlySet<string>
+  shortNames?: ReadonlyMap<string, string>
 }): ZotzProjectSection[] {
   const seen = new Set<string>()
   const sections: ZotzProjectSection[] = []
@@ -72,6 +77,7 @@ export function buildZotzProjectSections(input: {
           id: worktree.id,
           title: worktree.displayName || branch || worktree.path,
           branch,
+          shortName: input.shortNames?.get(worktree.id) ?? null,
           lastActivityAt: worktree.lastActivityAt,
           worktree
         }
@@ -80,6 +86,38 @@ export function buildZotzProjectSections(input: {
     sections.push({ repo, conversations })
   }
   return sections
+}
+
+/**
+ * Short name of every workspace by id. Names are unique per machine, so each host's workspaces
+ * (archived too, as its own resolver sees them) are resolved together.
+ */
+export function buildZotzShortNames(input: {
+  repos: readonly Repo[]
+  worktreesByRepoId: Readonly<Record<string, readonly Worktree[] | undefined>>
+  customByHost: ReadonlyMap<ExecutionHostId, Readonly<Record<string, string>>>
+}): Map<string, string> {
+  const worktreesByHost = new Map<ExecutionHostId, Worktree[]>()
+  for (const repo of input.repos) {
+    const hostId = getRepoExecutionHostId(repo)
+    const list = worktreesByHost.get(hostId) ?? []
+    list.push(...(input.worktreesByRepoId[repo.id] ?? []))
+    worktreesByHost.set(hostId, list)
+  }
+  const result = new Map<string, string>()
+  for (const [hostId, worktrees] of worktreesByHost) {
+    const names = resolveZotzShortNames(
+      worktrees.map((worktree) => worktree.path),
+      input.customByHost.get(hostId) ?? {}
+    )
+    for (const worktree of worktrees) {
+      const name = names.get(worktree.path)
+      if (name) {
+        result.set(worktree.id, name)
+      }
+    }
+  }
+  return result
 }
 
 /** Loose folders (like `~`) appear only while they hold a conversation. */
@@ -96,6 +134,7 @@ export function buildZotzFolderConversations(input: {
       id: folderWorkspaceKey(folder.id),
       title: folder.name || folder.folderPath,
       branch: null,
+      shortName: null,
       lastActivityAt: 0,
       worktree: null
     }))

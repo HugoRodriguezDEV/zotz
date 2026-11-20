@@ -24,6 +24,7 @@ import { archiveZotzConversation } from './zotz-archive'
 import { ZotzPrStatusIcon } from '../pr-status/ZotzPrStatusIcon'
 import { minutesSince } from '../agent-queue/zotz-memory-format'
 import type { Worktree } from '../../../../../shared/worktree/types'
+import { normalizeZotzShortName } from '../../../../../shared/zotz/zotz-short-name'
 
 function StatusMark({
   status,
@@ -104,7 +105,13 @@ function LineTotalBadge({ worktreeId }: { worktreeId: string }): React.JSX.Eleme
   )
 }
 
-/** Conductor-style row: title and line totals, then branch · PR #N · its state (or how long ago). */
+/** A worktree whose folder is named after its branch (`fix/login` in `login`) shows it once. */
+function branchRepeatsShortName(row: Row): boolean {
+  const lastSegment = row.branch?.split('/').at(-1) ?? ''
+  return row.shortName !== null && normalizeZotzShortName(lastSegment) === row.shortName
+}
+
+/** Conductor-style row: title and line totals, then short name · branch · PR #N · its state (or how long ago). */
 export function ZotzConversationRow({
   row,
   repo,
@@ -128,6 +135,8 @@ export function ZotzConversationRow({
   const prTone = pr ? zotzPrTone(pr.status) : null
   useArchiveOnMerge(row.worktree, pr?.status ?? null)
   const lastActivity = row.worktree?.lastActivityAt ?? 0
+  const showBranch = row.branch !== null && row.branch !== row.title && !branchRepeatsShortName(row)
+  const hasLeading = showBranch || row.shortName !== null
   return (
     <button
       type="button"
@@ -150,12 +159,20 @@ export function ZotzConversationRow({
           {row.worktree ? <LineTotalBadge worktreeId={row.worktree.id} /> : null}
         </span>
         <span className="flex min-w-0 items-center gap-1 text-2xs text-worktree-sidebar-foreground/50">
-          {row.branch && row.branch !== row.title ? (
-            <span className="min-w-0 truncate font-mono">{row.branch}</span>
+          {row.shortName ? (
+            <span className="max-w-[45%] shrink-0 truncate font-medium text-worktree-sidebar-foreground/70">
+              {row.shortName}
+            </span>
+          ) : null}
+          {showBranch ? (
+            <>
+              {row.shortName ? <span aria-hidden>·</span> : null}
+              <span className="min-w-8 truncate font-mono">{row.branch}</span>
+            </>
           ) : null}
           {queuedSince !== null ? (
             <>
-              {row.branch && row.branch !== row.title ? <span aria-hidden>·</span> : null}
+              {hasLeading ? <span aria-hidden>·</span> : null}
               <span className="shrink-0 font-medium text-zotz-gh-pending">
                 {t('zotz.agentQueue.queuedFor', 'Queued · {{minutes}} min', {
                   minutes: minutesSince(queuedSince, now)
@@ -164,7 +181,7 @@ export function ZotzConversationRow({
             </>
           ) : pr && prTone ? (
             <>
-              {row.branch && row.branch !== row.title ? <span aria-hidden>·</span> : null}
+              {hasLeading ? <span aria-hidden>·</span> : null}
               <GitPullRequest className="size-3 shrink-0" />
               <span className="shrink-0">#{pr.pr.number}</span>
               <span aria-hidden>·</span>
@@ -175,7 +192,7 @@ export function ZotzConversationRow({
             </>
           ) : lastActivity > 0 ? (
             <>
-              {row.branch && row.branch !== row.title ? <span aria-hidden>·</span> : null}
+              {hasLeading ? <span aria-hidden>·</span> : null}
               <span className="shrink-0">{formatRelativeTime(lastActivity)}</span>
             </>
           ) : null}
