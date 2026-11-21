@@ -147,11 +147,13 @@ export function useZotzLinkConversations(
 /** Mail among a linked group, merged from every machine that holds some of it (ids are shared). */
 export function useZotzLinkMessages(
   hosts: readonly ZotzLinkHost[],
-  addresses: readonly string[],
+  /** Newline-joined `orca_session_id:` addresses of the group's members. */
+  addressKey: string,
   enabled: boolean
 ): ZotzLinkMessage[] {
   const [messages, setMessages] = useState<ZotzLinkMessage[]>([])
   useEffect(() => {
+    const addresses = addressKey ? addressKey.split('\n') : []
     if (!enabled || addresses.length < 2) {
       setMessages([])
       return
@@ -164,7 +166,7 @@ export function useZotzLinkMessages(
           callRuntimeRpc<ZotzLinkMessagesResult>(
             host.target,
             'zotz.links.messages',
-            { addresses: [...addresses], limit: 200 },
+            { addresses, limit: 200 },
             { timeoutMs: 10_000 }
           )
             .then((result) => result.messages)
@@ -187,6 +189,6 @@ export function useZotzLinkMessages(
       cancelled = true
       stop()
     }
-  }, [enabled, hosts, addresses])
+  }, [enabled, hosts, addressKey])
   return messages
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { Link2, Link2Off, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -70,19 +70,14 @@ export default function ZotzLinksPanel(): React.JSX.Element {
   const context: ZotzLinkContext = { hosts, entryFor }
   const group = active ? findZotzLinkGroup(groups, active) : null
   const partners = group?.members.filter((m) => !active || !sameZotzLinkMember(m, active)) ?? []
-  const addresses = useMemo(
-    () =>
-      (group?.members ?? []).flatMap((member) => {
-        const list = conversations.get(member.hostId)
-        const address =
-          list?.status === 'ready'
-            ? list.conversations.find((entry) => entry.path === member.path)?.address
-            : null
-        return address ? [address] : []
-      }),
-    [group, conversations]
-  )
-  const messages = useZotzLinkMessages(hosts, addresses, group !== null)
+  // One string so polling restarts only when the group's addresses really change.
+  const addressKey = (group?.members ?? [])
+    .flatMap((member) => {
+      const address = entryFor(member)?.address
+      return address ? [address] : []
+    })
+    .join('\n')
+  const messages = useZotzLinkMessages(hosts, addressKey, group !== null)
 
   const nameFor = (addressOrLabel: string): string => {
     for (const member of group?.members ?? []) {
