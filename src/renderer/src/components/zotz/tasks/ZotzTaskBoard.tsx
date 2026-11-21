@@ -17,7 +17,6 @@ import {
   zotzTaskBoardSourceKey,
   zotzTaskBoardSourceLabel
 } from '../../../../../shared/zotz/tasks/zotz-task-board-types'
-import { closeZotzBoard } from './zotz-board-modal-store'
 import { useZotzTaskBoardData } from './use-zotz-task-board-data'
 import { useZotzTaskConnectors } from './use-zotz-task-connectors'
 import { useZotzTaskBoardViews } from './use-zotz-task-board-views'
@@ -133,7 +132,6 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
   }, [active, github.lastUpdatedAt, reposKey, syncPullRequests])
 
   const openSourceSettings = (): void => {
-    closeZotzBoard()
     openSettingsTarget({
       pane: 'tasks',
       repoId: null,
@@ -343,7 +341,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
   return (
     <ZotzIssueDevelopmentContext.Provider value={development.byIssue}>
       <ZotzTaskWorkspacesContext.Provider value={workspaces}>
-        <div className="flex h-[min(72vh,700px)] min-h-0 flex-col gap-2">
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
           <ZotzTaskViewTabs state={views} />
           <ZotzTaskBoardToolbar
             state={views}

@@ -139,6 +139,7 @@ export type UiViewHistory =
   | 'skills'
   | 'artifacts'
   | 'mobile'
+  | 'zotz-board'
 
 export type UISliceCore = {
   sidebarOpen: boolean
