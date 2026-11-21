@@ -1,12 +1,14 @@
 import React from 'react'
-import { Home, Plus, Search } from 'lucide-react'
+import { Home, Kanban, Plus, Search } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { useShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
 import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
+import { isPairedWebClientWindow } from '@/app-shell/chrome/desktop-window-chrome'
 import { openWorkspaceCreationComposerWithTourHandoff } from '../../contextual-tours/workspace-creation-tour-handoff'
+import { openZotzBoard, useZotzBoardOpen } from '../tasks/zotz-board-page-store'
 
 function NavButton({
   icon: Icon,
@@ -53,13 +55,14 @@ function NavButton({
   )
 }
 
-/** Home, Create and Search: the whole top of the simple sidebar. */
+/** Home, Tasks, Create and Search: the whole top of the simple sidebar. */
 export default function ZotzSidebarTopNav(): React.JSX.Element {
   const t = useTranslate()
   const openModal = useAppStore((s) => s.openModal)
   const setActiveView = useAppStore((s) => s.setActiveView)
   const setActiveWorktree = useAppStore((s) => s.setActiveWorktree)
   const atHome = useAppStore((s) => s.activeView === 'terminal' && s.activeWorktreeId === null)
+  const atBoard = useZotzBoardOpen()
 
   const goHome = (): void => {
     setActiveView('terminal')
@@ -74,6 +77,14 @@ export default function ZotzSidebarTopNav(): React.JSX.Element {
         active={atHome}
         onClick={goHome}
       />
+      {isPairedWebClientWindow() ? null : (
+        <NavButton
+          icon={Kanban}
+          label={t('zotz.taskBoard.title', 'Tasks')}
+          active={atBoard}
+          onClick={openZotzBoard}
+        />
+      )}
       <NavButton
         icon={Plus}
         label={t('zotz.sidebar.create', 'Create')}

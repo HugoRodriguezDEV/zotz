@@ -417,6 +417,7 @@ Implementado (2026-11-20). Guía de puesta en marcha y API: [`RELAY.md`](./RELAY
 - El relay (§8) llegó después, en su propio PR; ver §8.4.
 - **Sumas, _Slice by_ y roadmap** (2026-11-20, después de 9a–9f) entraron como en GitHub, con estas diferencias: los campos se casan por nombre entre fuentes (el "Estimate" de dos Projects y de un servicio se suman juntos); el valor elegido en el panel de _Slice by_ no se guarda en la vista, solo el campo; el roadmap tiene zoom mes y trimestre (no año) y no se arrastran barras.
 - La pestaña "Agentes" del modal se quitó: desde el PR #33 la cola de memoria tiene su propio panel lateral con todas las máquinas, que abre el indicador de la barra de estado. El modal es solo el tablero de tareas.
+- El tablero dejó de ser modal: es una página completa (vista `zotz-board`), con su botón "Tareas" bajo Inicio en la barra lateral simple.
 
 - **9e — Tarea ↔ agente.** Chip de estado de agente en la tarjeta y "Crear workspace con esta tarea" (rama con el id de la tarea, `linkedIssue` en GitHub y el cuerpo como primer prompt).
 - **9f — Acción `move`** para fuentes externas, con comprobación previa.

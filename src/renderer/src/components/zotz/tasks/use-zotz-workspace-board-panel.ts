@@ -3,7 +3,7 @@ import {
   TOGGLE_WORKSPACE_BOARD_EVENT,
   type WorkspaceBoardPanelState
 } from '../../sidebar/workspace-board/surface/useWorkspaceBoardPanel'
-import { toggleZotzBoard } from './zotz-board-modal-store'
+import { toggleZotzBoard } from './zotz-board-page-store'
 
 function ignore(): void {}
 

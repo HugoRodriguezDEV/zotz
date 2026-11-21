@@ -7,7 +7,6 @@ import { activateAndRevealWorktree } from '@/lib/workspace/activation/worktree-a
 import type { Worktree } from '../../../../../shared/worktree/types'
 import type { ZotzTaskBoardItem } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
 import { useZotzAgentQueue } from '../agent-queue/zotz-agent-queue-store'
-import { closeZotzBoard } from './zotz-board-modal-store'
 
 export type ZotzTaskWorkspace = {
   worktreeId: string
@@ -72,13 +71,11 @@ export function useZotzTaskWorkspaces(): ZotzTaskWorkspaces {
   )
 
   const open = useCallback((workspace: ZotzTaskWorkspace) => {
-    closeZotzBoard()
     activateAndRevealWorktree(workspace.worktreeId)
   }, [])
 
   const create = useCallback(
     (item: ZotzTaskBoardItem) => {
-      closeZotzBoard()
       if (item.origin.kind === 'github') {
         const { row } = item.origin
         const repoId = lookupSlug(row.content.repository)[0]?.id
