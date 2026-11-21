@@ -24578,6 +24578,15 @@
       "tokenPlaceholder": "Token (opcional)",
       "withToken": "con token",
       "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
+    },
+    "hostFolder": {
+      "description": "{{project}} solo existe en otra máquina. Elige o crea una carpeta en {{host}} para trabajar ahí.",
+      "newFolder": "Carpeta nueva",
+      "newFolderHelp": "Crea una carpeta vacía en zotz/projects de {{host}}.",
+      "namePlaceholder": "Nombre de la carpeta",
+      "resolvingParent": "Buscando la carpeta de proyectos…",
+      "create": "Crear carpeta",
+      "created": "Carpeta creada"
     }
   }
 }

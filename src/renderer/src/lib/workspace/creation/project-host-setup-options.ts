@@ -20,6 +20,7 @@ import type { Repo } from '../../../../../shared/repository/repo-types'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
 import { translateHostDisplayLabel } from '@/components/sidebar/execution-host-label'
+import { addsHostFolderAsOwnProject } from './zotz-host-folder-project-target'
 import {
   dedupeReadySetupRows,
   type SelectedProjectHostSetup
@@ -210,7 +211,7 @@ function buildNeedsSetupOptions({
               )),
         isAvailable,
         attention: host.health === 'error',
-        canSetLocation: canSetProjectLocation(projectId, isAvailable, pendingSetup),
+        canSetLocation: canSetProjectLocation(projectId, host.id, isAvailable, pendingSetup),
         ...(connectAction ? { connectAction } : {})
       }
     })
@@ -259,11 +260,15 @@ export function getHostSetupUnavailableDetail(
 
 function canSetProjectLocation(
   projectId: string,
+  hostId: ExecutionHostId,
   isAvailable: boolean,
   pendingSetup: ProjectHostSetup | undefined
 ): boolean {
   // Cross-host setup links project identity; host-local repo:<id> has no match, so show status instead of a guaranteed error button.
-  if (!isAvailable || isHostLocalProjectId(projectId)) {
+  if (
+    !isAvailable ||
+    (isHostLocalProjectId(projectId) && !addsHostFolderAsOwnProject(projectId, hostId))
+  ) {
     return false
   }
   if (!pendingSetup) {
