@@ -2,6 +2,7 @@ import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
 import type { ZotzTaskBoardArchivedTask, ZotzTaskBoardSource } from './tasks/zotz-task-board-types'
 import type { ZotzTaskConnectorConfig } from './tasks/zotz-task-connector-types'
 import type { ZotzTaskBoardView } from './tasks/zotz-task-board-views'
+import type { ZotzTaskRelayConfig } from './tasks/zotz-task-relay-types'
 
 /** Settings only Zotz reads; kept out of GlobalSettings' body so upstream syncs merge cleanly. */
 export type ZotzGlobalSettings = {
@@ -27,4 +28,6 @@ export type ZotzGlobalSettings = {
   zotzTaskConnectors?: ZotzTaskConnectorConfig[]
   /** Saved task board views (filter, layout, grouping, sorting). */
   zotzTaskBoardViews?: ZotzTaskBoardView[]
+  /** Optional own webhook relay for instant board updates; absent or disabled means none. */
+  zotzTaskRelay?: ZotzTaskRelayConfig
 }

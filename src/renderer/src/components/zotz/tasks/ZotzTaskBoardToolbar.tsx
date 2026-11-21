@@ -45,6 +45,7 @@ export function ZotzTaskBoardToolbar({
   scopes,
   fields,
   lastUpdatedAt,
+  relayState,
   refreshing,
   onRefresh,
   archivedCount,
@@ -57,6 +58,8 @@ export function ZotzTaskBoardToolbar({
   /** Source fields of the tasks in scope, for the sum and slice pickers. */
   fields: ZotzTaskField[]
   lastUpdatedAt: number | null
+  /** Shown only once the user turned the relay on. */
+  relayState: 'off' | 'live' | 'failing'
   refreshing: boolean
   onRefresh: () => void
   archivedCount: number
@@ -215,6 +218,29 @@ export function ZotzTaskBoardToolbar({
         </SelectContent>
       </Select>
       <div className="ml-auto flex items-center gap-1">
+        {relayState !== 'off' ? (
+          <span
+            className="flex items-center gap-1 text-xs text-muted-foreground"
+            title={
+              relayState === 'live'
+                ? t('zotz.taskRelay.liveHint', 'Changes arrive from your relay as they happen.')
+                : t(
+                    'zotz.taskRelay.failingHint',
+                    "The relay isn't answering, so the board checks GitHub every 5 minutes."
+                  )
+            }
+          >
+            <span
+              className={cn(
+                'size-1.5 rounded-full',
+                relayState === 'live' ? 'bg-status-success' : 'bg-status-warning'
+              )}
+            />
+            {relayState === 'live'
+              ? t('zotz.taskRelay.live', 'Live')
+              : t('zotz.taskRelay.failing', 'Relay down')}
+          </span>
+        ) : null}
         {lastUpdatedAt ? (
           <span className="text-xs text-muted-foreground">
             {t('zotz.taskBoard.updatedAt', 'Updated {{time}}', {

@@ -57,6 +57,8 @@ export type ZotzTaskBoardModel = {
   activeSlice: { value: string | null } | null
   /** Tasks the filter lets through, before the slice: the panel's "All" count. */
   sliceTotal: number
+  /** `repos` plus the ones services declare PRs in: a change there can move their PR links. */
+  watchedRepos: string[]
 }
 
 /** A GitHub row as a board item, for filtering and slicing a Project's own view. */
@@ -204,6 +206,16 @@ export function useZotzTaskBoardModel(input: {
         )
       )
     ]
+    const watchedRepos = [
+      ...new Set([
+        ...repos,
+        ...externalSources.flatMap((source) =>
+          source.document.tasks.flatMap((task) =>
+            task.pullRequests.map((pullRequest) => pullRequest.repo)
+          )
+        )
+      ])
+    ]
     return {
       board,
       tablesByProjectId,
@@ -217,7 +229,8 @@ export function useZotzTaskBoardModel(input: {
       fields,
       slices,
       activeSlice,
-      sliceTotal: slicedByMirror ? mirrorRows.length : filtered.length
+      sliceTotal: slicedByMirror ? mirrorRows.length : filtered.length,
+      watchedRepos
     }
   }, [
     board,

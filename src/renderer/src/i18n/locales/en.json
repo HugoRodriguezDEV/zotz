@@ -26213,6 +26213,21 @@
       "withToken": "with token",
       "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
     },
+    "taskRelay": {
+      "description": "Optional. Your own zotz-relay receives GitHub webhooks and pushes from task services; Zotz picks them up with outgoing calls only. Off by default.",
+      "failing": "Relay down",
+      "failingHint": "The relay isn't answering, so the board checks GitHub every 5 minutes.",
+      "live": "Live",
+      "liveHint": "Changes arrive from your relay as they happen.",
+      "statusFailing": "Not answering: {{error}}. Checking GitHub every 5 min.",
+      "statusLive": "Live · checked {{time}}",
+      "statusOff": "Off",
+      "title": "Relay for instant updates",
+      "toggle": "Use the relay",
+      "tokenPlaceholder": "Device token",
+      "unreachable": "Couldn't reach the relay.",
+      "urlPlaceholder": "https://zotz-relay.vercel.app"
+    },
     "hostFolder": {
       "description": "{{project}} only exists on another machine. Pick or create a folder on {{host}} to work there.",
       "newFolder": "New folder",

@@ -1,6 +1,5 @@
 import { join } from 'node:path'
 import { SerialJsonWriter } from '../zotz-json-file'
-import { getSecretStore, hasSecretStore } from '../../../shared/secure-storage/secret-store'
 import {
   parseZotzTasks,
   type ZotzTasksFormat
@@ -24,6 +23,7 @@ import {
   checkZotzConnectorActions,
   sendZotzConnectorLinks
 } from './zotz-task-connector-sync'
+import { ZotzTaskSecretFile } from './zotz-task-secret-file'
 
 const CACHE_FILE = 'zotz-task-connectors.json'
 const SECRETS_FILE = 'zotz-task-connector-secrets.json'
@@ -31,13 +31,13 @@ const SECRETS_FILE = 'zotz-task-connector-secrets.json'
 /** Reads external task feeds, checks their actions and keeps the last good document on disk. */
 export class ZotzTaskConnectorService {
   private readonly cachePath: string
-  private readonly secretsPath: string
+  private readonly secrets: ZotzTaskSecretFile
   private readonly cache: Promise<Record<string, StoredZotzConnector>>
   private readonly writer = new SerialJsonWriter()
 
   constructor(userDataPath: string) {
     this.cachePath = join(userDataPath, CACHE_FILE)
-    this.secretsPath = join(userDataPath, SECRETS_FILE)
+    this.secrets = new ZotzTaskSecretFile(join(userDataPath, SECRETS_FILE))
     this.cache = readJsonRecord(this.cachePath).then((stored) =>
       Object.fromEntries(
         Object.values(stored).flatMap((value) => {
@@ -214,33 +214,15 @@ export class ZotzTaskConnectorService {
   }
 
   /** Returns false when the OS can't encrypt; the token is then never written in plain text. */
-  async setToken(id: string, token: string | null): Promise<boolean> {
-    const secrets = await readJsonRecord(this.secretsPath)
-    if (token) {
-      if (!hasSecretStore() || !getSecretStore().isEncryptionAvailable()) {
-        return false
-      }
-      secrets[id] = getSecretStore().encryptString(token).toString('base64')
-    } else {
-      delete secrets[id]
-    }
-    await this.write(this.secretsPath, secrets, 0o600)
-    return true
+  setToken(id: string, token: string | null): Promise<boolean> {
+    return this.secrets.set(id, token)
   }
 
-  private async readToken(id: string): Promise<string | null> {
-    const sealed = (await readJsonRecord(this.secretsPath))[id]
-    if (typeof sealed !== 'string' || !hasSecretStore()) {
-      return null
-    }
-    try {
-      return getSecretStore().decryptString(Buffer.from(sealed, 'base64'))
-    } catch {
-      return null
-    }
+  private readToken(id: string): Promise<string | null> {
+    return this.secrets.read(id)
   }
 
-  private write(path: string, value: unknown, mode?: number): Promise<void> {
-    return this.writer.write(path, value, { mode })
+  private write(path: string, value: unknown): Promise<void> {
+    return this.writer.write(path, value)
   }
 }
