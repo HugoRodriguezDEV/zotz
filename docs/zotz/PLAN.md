@@ -778,3 +778,10 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 - **Carpeta visible:** los worktrees nuevos van a `~/zotz/workspaces` y los proyectos nuevos a `~/zotz/projects` (antes `~/orca/...`). `getDefaultWorkspaceDir` y el espejo de WSL usan `ZOTZ_HOME_FOLDER_NAME` (`src/shared/zotz/zotz-home-folders.ts`). `~/.orca` sigue igual (decisión de Fase 1c).
 - **Migración al cargar el perfil** (`src/main/zotz/zotz-workspace-dir-migration.ts`): si el ajuste guardado era el default viejo (o no existía), pasa a `~/zotz/workspaces` y `~/orca/workspaces` entra a `workspaceDirHistory`, así que los worktrees que ya están ahí conservan dueño y visibilidad. Una carpeta elegida a mano no se toca. La clasificación de WSL reconoce ambas raíces.
 - **No se mueven los worktrees existentes:** git los registra por ruta absoluta y pueden tener agentes corriendo. Siguen en `~/orca/workspaces` hasta que se borren; cuando la carpeta quede vacía se puede borrar a mano.
+
+### 2026-11-20 — Crear conversación en un servidor desde la laptop (`zotz/crear-conversacion-remota`)
+
+- **Problema:** en "Create workspace", con un proyecto que solo existe en la Mac (carpeta o repo sin remote, id `repo:<id>`), la fila "MSI Server" decía "Project location not set" y no hacía nada. Upstream oculta "Set project location" para esos proyectos porque no puede ligarlos a otra máquina.
+- **Cambio:** para hosts locales y de runtime (no SSH), la fila ahora ofrece "Set project location". En ese caso la carpeta elegida se agrega como **proyecto propio** del servidor y el composer cambia a ese proyecto: _Browse folder_ (explorador de archivos del servidor) o _Carpeta nueva_ (crea `<home>/zotz/projects/<nombre>` con `repo.create`).
+- Lógica en `zotz-host-folder-project-target.ts`, `components/zotz/project-location/`; ganchos cortos en `project-host-setup-options.ts`, `SetProjectLocationDialog.tsx` y `target-change-actions.ts` (busca el proyecto del setup nuevo).
+- Sin RPC nuevas: el servidor no necesita este release. No se verificó con la MSI real.

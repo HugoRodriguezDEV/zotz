@@ -225,7 +225,7 @@ export function LocationActionButton({
   )
 }
 
-function StepBackButton({
+export function StepBackButton({
   onBack,
   label
 }: {

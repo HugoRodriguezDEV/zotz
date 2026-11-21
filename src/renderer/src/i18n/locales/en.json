@@ -26182,6 +26182,15 @@
       "tokenPlaceholder": "Token (optional)",
       "withToken": "with token",
       "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
+    },
+    "hostFolder": {
+      "description": "{{project}} only exists on another machine. Pick or create a folder on {{host}} to work there.",
+      "newFolder": "New folder",
+      "newFolderHelp": "Create an empty folder in zotz/projects on {{host}}.",
+      "namePlaceholder": "Folder name",
+      "resolvingParent": "Finding the projects folder…",
+      "create": "Create folder",
+      "created": "Folder created"
     }
   }
 }
