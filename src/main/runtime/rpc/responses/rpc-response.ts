@@ -139,6 +139,9 @@ const STRUCTURED_RUNTIME_PASSTHROUGH_CODES: ReadonlySet<string> = new Set([
   // This live agent session never had a terminal; terminal_handle_stale would falsely imply one died.
   'terminal_unsupported_for_agent_session',
   'recipient_ambiguous',
+  // Zotz `wt:<name>` recipients (src/main/zotz/conversation-links/zotz-short-name-recipient.ts).
+  'recipient_unreachable',
+  'recipient_not_found',
   'recipient_run_mismatch',
   'dispatch_inactive',
   // Its start failed before an agent ran, so there is no output to read.

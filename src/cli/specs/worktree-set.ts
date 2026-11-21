@@ -5,7 +5,7 @@ export const WORKTREE_SET_COMMAND_SPEC: CommandSpec = {
   path: ['worktree', 'set'],
   summary: 'Update Orca metadata for a worktree',
   usage:
-    'orca worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--pr <number|null>] [--linear-issue <identifier-or-url|null>] [--gitlab-issue <number-or-url|null>] [--gitlab-mr <number-or-url|null>] [--comment <text>] [--workspace-status <id>] [--unread|--read] [--parent-worktree <selector> [--parent-environment <environment>]|--no-parent] [--json]',
+    'orca worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--pr <number|null>] [--linear-issue <identifier-or-url|null>] [--gitlab-issue <number-or-url|null>] [--gitlab-mr <number-or-url|null>] [--comment <text>] [--workspace-status <id>] [--unread|--read] [--short-name <name>] [--parent-worktree <selector> [--parent-environment <environment>]|--no-parent] [--json]',
   allowedFlags: [
     ...GLOBAL_FLAGS,
     'worktree',
@@ -21,11 +21,13 @@ export const WORKTREE_SET_COMMAND_SPEC: CommandSpec = {
     'read',
     'parent-worktree',
     'parent-environment',
-    'no-parent'
+    'no-parent',
+    'short-name'
   ],
   notes: [
     'Workspace status ids match the board columns (defaults: todo, in-progress, in-review, completed); custom statuses use their configured id.',
     'Pass --comment "" (or --comment=) to clear the comment.',
+    '--short-name sets the name agents use to write to this conversation (--to wt:<name>); lowercase letters, digits and -, unique on its machine. Pass --short-name "" to go back to the folder name.',
     'Pass --linear-issue null to clear the Linear issue link.',
     "--parent-worktree is looked up in the worktree's own environment; add --parent-environment <local|environment-id> for a parent in another environment. No other environment is searched.",
     'Pass --pr null, --gitlab-issue null, or --gitlab-mr null to clear only the matching link.',

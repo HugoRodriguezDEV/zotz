@@ -9,7 +9,8 @@ export function ignoresRemoteSelection(commandPath: readonly string[]): boolean 
     // Removes ids that `host list` printed from this runtime; an ambient selection must not retarget it.
     commandPath.join(' ') === 'host rm' ||
     commandPath[0] === 'serve' ||
-    (commandPath[0] === 'agent' && commandPath[1] !== 'launch') ||
+    // Zotz: `agent list` lists a paired server's conversations too.
+    (commandPath[0] === 'agent' && !['launch', 'list'].includes(commandPath[1] ?? '')) ||
     commandPath[0] === 'vm' ||
     commandPath[0] === 'agent-context' ||
     // Validating or printing the zotz-tasks schema reads only local files.

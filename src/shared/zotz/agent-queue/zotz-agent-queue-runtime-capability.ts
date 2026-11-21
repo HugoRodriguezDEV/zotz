@@ -1,3 +1,8 @@
+import {
+  ZOTZ_CONVERSATIONS_RUNTIME_CAPABILITY,
+  ZOTZ_LINKS_RUNTIME_CAPABILITY
+} from '../conversation-links/zotz-conversation-links-contract'
+
 // Why: a paired client reads another host's memory queue only when that host declares it; older hosts omit it.
 export const ZOTZ_AGENT_QUEUE_RUNTIME_CAPABILITY = 'zotz.agent-queue.v1' as const
 
@@ -14,5 +19,7 @@ export const ZOTZ_RUNTIME_CAPABILITIES = [
   ZOTZ_AGENT_QUEUE_RUNTIME_CAPABILITY,
   ZOTZ_AGENT_QUEUE_CONTROL_RUNTIME_CAPABILITY,
   ZOTZ_SHORT_NAMES_RUNTIME_CAPABILITY,
-  ZOTZ_TASKS_PUSH_RUNTIME_CAPABILITY
+  ZOTZ_TASKS_PUSH_RUNTIME_CAPABILITY,
+  ZOTZ_CONVERSATIONS_RUNTIME_CAPABILITY,
+  ZOTZ_LINKS_RUNTIME_CAPABILITY
 ] as const

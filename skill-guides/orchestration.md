@@ -62,6 +62,8 @@ that the CLI is installed; a missing one fails as an `agent_readiness` timeout.
   Except on a paired server: a finished worker there refuses `send`, so start
   new work there with `worker-start --on <server>` (load
   `references/placement-and-remote.md` first).
+- To talk to another conversation (not a worker), use `send --to wt:<name>`;
+  load `references/messaging-and-gates.md`.
 
 Never:
 

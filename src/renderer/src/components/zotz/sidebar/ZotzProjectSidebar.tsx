@@ -134,6 +134,12 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     return result
   }, [allThreads])
   useZotzGitHubRepoIcons(repos)
+  const links = useAppStore((s) => s.settings?.zotzConversationLinks)
+  const linkedKeys = useMemo(
+    () =>
+      new Set((links ?? []).flatMap((group) => group.members.map((m) => `${m.hostId}\n${m.path}`))),
+    [links]
+  )
   const queueSnapshot = useZotzAgentQueue()
   const hostQueues = useZotzHostAgentQueues()
   // Workspace ids are the same on every machine, so this machine's queue and each server's merge by label.
@@ -262,6 +268,10 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
                   status={statusByWorkspace.get(row.id) ?? null}
                   canceled={canceledWorkspaces.has(row.id)}
                   queuedSince={queuedSince.get(row.id) ?? null}
+                  linked={
+                    row.worktree !== null &&
+                    linkedKeys.has(`${getRepoExecutionHostId(repo)}\n${row.worktree.path}`)
+                  }
                 />
               </ZotzConversationMenu>
             ))}

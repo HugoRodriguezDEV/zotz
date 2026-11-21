@@ -13,6 +13,7 @@ import {
 import type { RpcContext } from '../../../core'
 import { recordReceiptBeforeNudge } from './mutation-replay-nudge'
 import type { SendParams } from './send-params'
+import { withZotzShortNameRecipient } from '../../../../../zotz/conversation-links/zotz-short-name-recipient'
 
 const NOTHING_SENT = { effectsApplied: false } as const
 
@@ -116,7 +117,8 @@ export function withPeerMailSend<R>(
   return async (params, ctx) => {
     const on = params.on
     if (on === undefined || ctx.replayedMutationReceipt !== undefined) {
-      return await send(params, ctx)
+      // Zotz: a local `--to wt:<name>`; with --on the server resolves the name.
+      return await send(await withZotzShortNameRecipient(ctx.runtime, params), ctx)
     }
     const attested = ctx.orchestrationCompatibilityCallerAuthority
     return await sendPeerMail({

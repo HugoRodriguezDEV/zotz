@@ -1,0 +1,132 @@
+import { useAppStore } from '@/store/index'
+import { defineFixture } from '../../../component-fixtures/component-fixture'
+import type { Repo } from '../../../../../shared/repository/repo-types'
+import type { Worktree } from '../../../../../shared/worktree/types'
+import type {
+  ZotzConversationEntry,
+  ZotzLinkMessage
+} from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
+import ZotzLinksPanel from './ZotzLinksPanel'
+
+const api: Repo = {
+  id: 'api',
+  path: '/code/api',
+  displayName: 'api-pagos',
+  badgeColor: '',
+  addedAt: 1
+}
+
+function worktree(branch: string, displayName: string): Worktree {
+  return {
+    id: `api::${branch}`,
+    displayName,
+    repoId: 'api',
+    path: `/code/api/${branch}`,
+    branch: `refs/heads/${branch}`,
+    head: 'abc1234',
+    isBare: false,
+    isMainWorktree: false,
+    comment: '',
+    linkedIssue: null,
+    linkedPR: null,
+    linkedLinearIssue: null,
+    isArchived: false,
+    isUnread: false,
+    isPinned: false,
+    sortOrder: 0,
+    lastActivityAt: 1
+  }
+}
+
+const sprint = worktree('salmon', 'Repartir el sprint')
+const pagination = worktree('albatross', 'Paginar el endpoint de pacientes')
+const csv = worktree('heron', 'Exportar reportes a CSV')
+
+const entry = (
+  w: Worktree,
+  shortName: string,
+  agent: string,
+  state: ZotzConversationEntry['state']
+): ZotzConversationEntry => ({
+  worktreeId: w.id,
+  path: w.path,
+  shortName,
+  title: w.displayName,
+  projectName: 'api-pagos',
+  agent,
+  state,
+  address: `orca_session_id:${shortName}`
+})
+
+const CONVERSATIONS = [
+  entry(sprint, 'salmon', 'claude', 'waiting'),
+  entry(pagination, 'albatross', 'codex', 'working'),
+  entry(csv, 'heron', 'claude', 'done')
+]
+
+const now = Date.now()
+const MESSAGES: ZotzLinkMessage[] = [
+  {
+    id: 'm1',
+    from: 'orca_session_id:salmon',
+    to: 'orca_session_id:albatross',
+    fromLabel: null,
+    subject: 'Paginación',
+    body: 'Usa cursor en lugar de offset; el front ya lo espera así.',
+    type: 'status',
+    createdAt: now - 12 * 60_000
+  },
+  {
+    id: 'm2',
+    from: 'orca_session_id:albatross',
+    to: 'orca_session_id:salmon',
+    fromLabel: null,
+    subject: 'Re: Paginación',
+    body: 'Listo, endpoint con cursor. Falta el test de la última página.',
+    type: 'status',
+    createdAt: now - 3 * 60_000
+  }
+]
+
+export const linkedGroup = defineFixture({
+  width: 340,
+  store: {
+    repos: [api],
+    worktreesByRepo: { api: [sprint, pagination, csv] },
+    activeWorktreeId: sprint.id
+  },
+  setup: () => {
+    Object.assign(window.api.runtime, {
+      call: async ({ method }: { method: string }) => ({
+        ok: true,
+        id: 'fixture',
+        result:
+          method === 'zotz.conversations.list'
+            ? { conversations: CONVERSATIONS }
+            : method === 'zotz.links.messages'
+              ? { messages: MESSAGES }
+              : { ok: true }
+      })
+    })
+    useAppStore.setState((state) => ({
+      settings: state.settings && {
+        ...state.settings,
+        zotzConversationLinks: [
+          {
+            id: 'g1',
+            createdAt: 1,
+            members: [
+              { hostId: 'local', path: sprint.path },
+              { hostId: 'local', path: pagination.path }
+            ]
+          }
+        ]
+      }
+    }))
+  },
+  render: () => (
+    <div className="flex h-[640px] flex-col bg-sidebar">
+      <ZotzLinksPanel />
+    </div>
+  )
+})

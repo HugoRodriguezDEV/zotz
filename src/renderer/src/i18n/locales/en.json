@@ -26236,6 +26236,24 @@
       "resolvingParent": "Finding the projects folder…",
       "create": "Create folder",
       "created": "Folder created"
+    },
+    "links": {
+      "title": "Linked conversations",
+      "link": "Link",
+      "unlink": "Unlink",
+      "leave": "Leave the group",
+      "linkedMark": "Linked",
+      "loading": "Loading…",
+      "messages": "Messages between them",
+      "noActive": "Open a conversation to link it with others and see them work together.",
+      "noMessages": "No messages between them yet. They write to each other when they need to.",
+      "none": "No conversations here.",
+      "notLinked": "{{name}} works alone. Link it with another conversation below; both agents learn how to write to each other.",
+      "notifyFailed": "Linked, but couldn't tell {{names}}. They'll hear about it when their machine answers.",
+      "twoServers": "Two servers can't write to each other. Link each one with a conversation on this machine.",
+      "unreachable": "{{host}} isn't answering.",
+      "updateServer": "Update Zotz on {{host}} to link its conversations.",
+      "workingTogether": "Working together"
     }
   }
 }

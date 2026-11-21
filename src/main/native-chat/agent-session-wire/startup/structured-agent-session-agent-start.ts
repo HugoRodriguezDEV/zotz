@@ -42,6 +42,7 @@ import {
   structuredAgentSessionStartParams
 } from './structured-agent-session-start-eligibility'
 import { holdZotzStructuredAgentStart } from '../../../zotz/memory-governor/zotz-structured-agent-start-hold'
+import { announceZotzLinksOnChatStart } from '../../../zotz/conversation-links/zotz-link-peers'
 
 /** Preserve attach refusal verdicts so callers distinguish recovery in progress from permanent loss. */
 export type StructuredAgentSessionResumeOutcome =
@@ -226,6 +227,9 @@ async function runStart(
   }
   if (!attached.ok) {
     return withDiagnostic(attached.refusal, acquisitionError, { aborted, expired })
+  }
+  if (published) {
+    announceZotzLinksOnChatStart(context.deps.store.getRecord(sessionId))
   }
   return published
     ? { ok: true }

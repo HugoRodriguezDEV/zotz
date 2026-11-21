@@ -12,7 +12,10 @@ export const WORKTREE_HANDLER_GROUPS: readonly HandlerGroup[] = [
       'worktree set',
       'worktree rm'
     ],
-    load: async () => (await import('./worktree.js')).WORKTREE_HANDLERS
+    load: async () =>
+      (await import('../zotz/zotz-worktree-short-name.js')).withZotzWorktreeShortName(
+        (await import('./worktree.js')).WORKTREE_HANDLERS
+      )
   },
   {
     name: 'worktree-activate',

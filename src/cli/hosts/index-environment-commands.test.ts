@@ -89,4 +89,15 @@ describe('orca cli worktree awareness', () => {
     expect(logSpy.mock.calls[0]?.[0]).not.toContain('token')
     expect(logSpy.mock.calls[0]?.[0]).not.toContain('publicKeyB64')
   })
+
+  it('lists the conversations of the server named by --environment', async () => {
+    listEnvironmentsMock.mockReturnValue([addEnvironmentFromPairingCodeMock()])
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    callMock.mockResolvedValue({ id: 'req-1', ok: true, result: { conversations: [] } })
+
+    await main(['agent', 'list', '--environment', 'desk', '--json'], '/tmp/repo')
+
+    expect(runtimeClientConstructorMock).toHaveBeenLastCalledWith(undefined, 'desk')
+    expect(callMock).toHaveBeenCalledWith('zotz.conversations.list', {})
+  })
 })
