@@ -1,3 +1,7 @@
+import {
+  ZotzFeatureWallBody,
+  zotzFeatureWallBodyId
+} from '../../zotz/feature-education/ZotzFeatureWallBody'
 import type { JSX } from 'react'
 import type { FeatureWallWorkflow } from '../../../../../shared/feature-education/explore/feature-wall-workflows'
 import type { FeatureWallOpenSourceTelemetry } from '../../../../../shared/telemetry/schemas/telemetry-property-schemas'
@@ -55,6 +59,10 @@ export function FeatureWallBody(props: {
     browserUseSkill,
     onUsageAccountStateChange
   } = props
+  const zotzBodyId = zotzFeatureWallBodyId(selected.id)
+  if (zotzBodyId) {
+    return <ZotzFeatureWallBody id={zotzBodyId} reducedMotion={prefersReducedMotion} />
+  }
   const isWorkspaces = selected.id === 'workspaces'
   const isTasks = selected.id === 'tasks'
   const isAgents = selected.id === 'agents-orchestration'

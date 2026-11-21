@@ -1,5 +1,9 @@
 import { BROWSER_EXTENSION_DISCOVERY_TOUR } from '../../browser/extensions/browser-extension-discovery-tour'
 import type { FeatureInteractionId } from '../interactions/feature-interaction-catalog'
+import {
+  ZOTZ_CONTEXTUAL_TOURS,
+  type ZotzContextualTourId
+} from '../../zotz/feature-education/zotz-contextual-tours'
 
 export type ContextualTourId =
   | 'workspace-board'
@@ -12,6 +16,7 @@ export type ContextualTourId =
   | 'floating-workspace'
   | 'workspace-creation'
   | 'projects-collapse-all'
+  | ZotzContextualTourId
 
 export type ContextualTourStepControl =
   | { kind: 'auto-rename-branch-from-work' }
@@ -276,7 +281,8 @@ export const CONTEXTUAL_TOURS = [
         targetSelector: '[data-contextual-tour-target="workspace-creation-agent"]'
       }
     ]
-  }
+  },
+  ...ZOTZ_CONTEXTUAL_TOURS
 ] as const satisfies readonly ContextualTour[]
 
 export type ContextualTourStepId = (typeof CONTEXTUAL_TOURS)[number]['steps'][number]['id']

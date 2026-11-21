@@ -1,4 +1,9 @@
 import {
+  withZotzFeatureWallWorkflows,
+  ZOTZ_DEFAULT_FEATURE_WALL_WORKFLOW_ID,
+  type ZotzFeatureWallWorkflowId
+} from '../../zotz/feature-education/zotz-feature-wall-workflows'
+import {
   FEATURE_WALL_TILES,
   isFeatureWallMediaTile,
   type FeatureWallMediaTile,
@@ -11,6 +16,7 @@ export type FeatureWallWorkflowId =
   | 'agents-orchestration'
   | 'workbench'
   | 'review'
+  | ZotzFeatureWallWorkflowId
 
 export type FeatureWallWorkflow = {
   id: FeatureWallWorkflowId
@@ -22,7 +28,7 @@ export type FeatureWallWorkflow = {
   docsUrl: string
 }
 
-export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
+const UPSTREAM_FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
   {
     id: 'workspaces',
     title: 'Workspaces',
@@ -70,6 +76,8 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
   }
 ] as const
 
+export const FEATURE_WALL_WORKFLOWS = withZotzFeatureWallWorkflows(UPSTREAM_FEATURE_WALL_WORKFLOWS)
+
 export const FEATURE_WALL_WORKFLOW_IDS = FEATURE_WALL_WORKFLOWS.map(
   (w) => w.id
 ) as readonly FeatureWallWorkflowId[]
@@ -82,4 +90,5 @@ export function getFeatureWallMediaTile(id: FeatureWallMediaTileId): FeatureWall
   return TILE_BY_ID.get(id) ?? null
 }
 
-export const DEFAULT_FEATURE_WALL_WORKFLOW_ID: FeatureWallWorkflowId = 'workspaces'
+export const DEFAULT_FEATURE_WALL_WORKFLOW_ID: FeatureWallWorkflowId =
+  ZOTZ_DEFAULT_FEATURE_WALL_WORKFLOW_ID

@@ -1,4 +1,8 @@
 import type { ContextualTourId } from './contextual-tours/contextual-tours'
+import {
+  ZOTZ_CONTEXTUAL_TOUR_IDS,
+  ZOTZ_CONTEXTUAL_TOUR_SOURCE_VALUES
+} from '../zotz/feature-education/zotz-contextual-tours'
 
 export const FEATURE_EDUCATION_CONTEXTUAL_TOUR_IDS = [
   'workspace-board',
@@ -10,7 +14,8 @@ export const FEATURE_EDUCATION_CONTEXTUAL_TOUR_IDS = [
   'automations',
   'floating-workspace',
   'workspace-creation',
-  'projects-collapse-all'
+  'projects-collapse-all',
+  ...ZOTZ_CONTEXTUAL_TOUR_IDS
 ] as const satisfies readonly ContextualTourId[]
 
 export const FEATURE_EDUCATION_SOURCES = [
@@ -26,6 +31,7 @@ export const FEATURE_EDUCATION_SOURCES = [
   'project_header_collapsed',
   'workspace_creation_modal',
   'setup_guide_parallel_work',
+  ...ZOTZ_CONTEXTUAL_TOUR_SOURCE_VALUES,
   'unknown'
 ] as const
 

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
 import { FolderPlus, Plus } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
@@ -64,14 +65,23 @@ function AddProjectButton(): React.JSX.Element {
   )
 }
 
-function ProjectHeader({ repo }: { repo: Repo }): React.JSX.Element {
+function ProjectHeader({
+  repo,
+  multiHost
+}: {
+  repo: Repo
+  /** Copies on several machines: rows name their machine and "+" lets the composer pick one. */
+  multiHost: boolean
+}): React.JSX.Element {
   const t = useTranslate()
   const label = t('zotz.sidebar.newConversationIn', 'New conversation in {{project}}', {
     project: repo.displayName
   })
   const hostId = getRepoExecutionHostId(repo)
   const hostLabel = useAppStore((s) =>
-    hostId === LOCAL_EXECUTION_HOST_ID ? null : selectExecutionHostDisplayLabel(s, hostId)
+    multiHost || hostId === LOCAL_EXECUTION_HOST_ID
+      ? null
+      : selectExecutionHostDisplayLabel(s, hostId)
   )
   return (
     <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
@@ -95,7 +105,8 @@ function ProjectHeader({ repo }: { repo: Repo }): React.JSX.Element {
             size="icon-xs"
             type="button"
             aria-label={label}
-            onClick={() => openHeaderCreateComposer(repo, { pinHost: true })}
+            data-contextual-tour-target="zotz-project-new-conversation"
+            onClick={() => openHeaderCreateComposer(repo, { pinHost: !multiHost })}
           >
             <Plus className="size-4" />
           </Button>
@@ -134,6 +145,11 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     return result
   }, [allThreads])
   useZotzGitHubRepoIcons(repos)
+  useContextualTour('zotz-sidebar', repos.length > 0)
+  useContextualTour(
+    'zotz-background',
+    [...statusByWorkspace.values()].some((status) => status.state === 'monitoring')
+  )
   const queueSnapshot = useZotzAgentQueue()
   const hostQueues = useZotzHostAgentQueues()
   // Workspace ids are the same on every machine, so this machine's queue and each server's merge by label.
@@ -246,18 +262,19 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
             {t('zotz.sidebar.empty', 'Add a project from GitHub or a local folder to start.')}
           </p>
         ) : null}
-        {sections.map(({ repo, conversations }) => (
-          <section key={repo.id} className="mb-2">
-            <ProjectHeader repo={repo} />
+        {sections.map(({ key, repo, multiHost, conversations }) => (
+          <section key={key} className="mb-2">
+            <ProjectHeader repo={repo} multiHost={multiHost} />
             {conversations.map((row) => (
               <ZotzConversationMenu
                 key={row.id}
                 worktree={row.worktree}
-                onEditShortName={editShortName(repo, row.worktree)}
+                onEditShortName={editShortName(row.repo ?? repo, row.worktree)}
               >
                 <ZotzConversationRow
                   row={row}
-                  repo={repo}
+                  repo={row.repo ?? repo}
+                  showHost={multiHost}
                   active={row.id === activeWorktreeId}
                   status={statusByWorkspace.get(row.id) ?? null}
                   canceled={canceledWorkspaces.has(row.id)}

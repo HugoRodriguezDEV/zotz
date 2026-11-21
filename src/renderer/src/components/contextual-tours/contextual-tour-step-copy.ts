@@ -1,5 +1,6 @@
 import { translate } from '@/i18n/i18n'
 import { getShortcutPlatform } from '@/lib/keyboard/shortcut-platform'
+import { ZOTZ_CONTEXTUAL_TOUR_STEP_COPY } from '../zotz/feature-education/zotz-contextual-tour-step-copy'
 import type { ContextualTourStepId } from '../../../../shared/feature-education/contextual-tours/contextual-tours'
 
 export type LocalizedContextualTourStepCopy = {
@@ -270,7 +271,8 @@ const LOCALIZED_STEP_COPY: Partial<Record<string, StepCopyThunk>> = {
       'components.contextualTours.projectsCollapseAll.intro.action',
       'Got it'
     )
-  })
+  }),
+  ...ZOTZ_CONTEXTUAL_TOUR_STEP_COPY
 } satisfies Record<ContextualTourStepId, StepCopyThunk>
 
 export function getLocalizedContextualTourStepCopy(

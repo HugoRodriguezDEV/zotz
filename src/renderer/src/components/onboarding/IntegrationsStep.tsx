@@ -221,8 +221,9 @@ const CAPABILITIES = [
       'Start a workspace from any GitHub issue or pull request, prefilled with its title and context'
   },
   {
-    key: 'components.onboarding.integrations.capabilities.browseIssues',
-    fallback: 'Browse GitHub issues and pull requests in the Tasks view without leaving Orca'
+    key: 'zotz.tours.onboarding.browseTaskBoard',
+    fallback:
+      'See your GitHub Projects and repos in the task board (Tasks in the sidebar), each task with its pull requests'
   },
   {
     key: 'components.onboarding.integrations.capabilities.reviewStatus',

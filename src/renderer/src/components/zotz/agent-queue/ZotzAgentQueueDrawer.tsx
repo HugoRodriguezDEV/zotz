@@ -1,3 +1,4 @@
+import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -86,6 +87,7 @@ export function ZotzAgentQueueDrawer({
 }): React.JSX.Element {
   const t = useTranslate()
   const open = useZotzAgentQueueDrawerOpen()
+  useContextualTour('zotz-agent-queue-board', open)
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
   const sidebarWidth = useAppStore((s) => s.sidebarWidth)
   const boardRef = useRef<HTMLDivElement | null>(null)

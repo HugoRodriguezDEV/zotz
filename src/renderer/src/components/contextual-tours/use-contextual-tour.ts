@@ -6,6 +6,10 @@ import {
 } from '../../../../shared/feature-education/interactions/feature-interactions'
 import { useAppStore } from '@/store'
 import {
+  isZotzContextualTourId,
+  ZOTZ_CONTEXTUAL_TOUR_SOURCES
+} from '../../../../shared/zotz/feature-education/zotz-contextual-tours'
+import {
   isContextualTourSessionConsumed,
   isContextualTourStartBlockedByProgress
 } from '@/store/slices/ui/ui-slice-tour-actions'
@@ -20,7 +24,8 @@ const TOUR_SOURCES = {
   automations: 'automations_open',
   'floating-workspace': 'floating_workspace_visible',
   'workspace-creation': 'workspace_creation_visible',
-  'projects-collapse-all': 'project_header_collapsed'
+  'projects-collapse-all': 'project_header_collapsed',
+  ...ZOTZ_CONTEXTUAL_TOUR_SOURCES
 } satisfies Record<ContextualTourId, string>
 
 export type UseContextualTourOptions = {
@@ -165,20 +170,22 @@ export function useContextualTour(
   }, [id, source])
 
   useEffect(() => {
+    const zotzTour = isZotzContextualTourId(id)
     if (
       !enabled ||
       typeof window === 'undefined' ||
       typeof document === 'undefined' ||
       !persistedUIReady ||
-      contextualToursAutoEligible !== true ||
+      (contextualToursAutoEligible !== true && !zotzTour) ||
       contextualToursOnboardingVisible ||
       contextualToursBlockingSurfaceVisible ||
       activeContextualTourId !== null ||
       contextualToursSeenIds.includes(id) ||
-      isContextualTourSessionConsumed(
-        { contextualToursSeenIds, contextualToursStartedThisSession },
-        id
-      ) ||
+      (!zotzTour &&
+        isContextualTourSessionConsumed(
+          { contextualToursSeenIds, contextualToursStartedThisSession },
+          id
+        )) ||
       // Don't watch the page for a tour that can't start.
       isContextualTourStartBlockedByProgress(
         { featureInteractions, contextualToursStartedThisSession },
@@ -222,7 +229,9 @@ export function useContextualTour(
             source,
             latestSnapshot?.id === id && latestSnapshot.source === source
               ? latestSnapshot.wasPreviouslyInteracted
-              : hasFeatureInteraction(useAppStore.getState().featureInteractions, id)
+              : hasFeatureInteraction(useAppStore.getState().featureInteractions, id),
+            // Zotz tours run on every profile; this effect already checked seen and session limits.
+            zotzTour ? { force: true } : undefined
           )
         })
       })

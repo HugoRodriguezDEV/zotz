@@ -4,7 +4,8 @@ import { lazyWithRetry as lazy } from '@/app-shell/startup/lazy-with-retry'
 import { useAppStore } from '@/store/index'
 import {
   isZotzMachineModeHost,
-  onZotzMachineModeWizardOpen
+  onZotzMachineModeWizardOpen,
+  setZotzMachineModeWizardVisible
 } from './zotz-machine-mode-wizard-event'
 
 const ZotzMachineModeWizard = lazy(() => import('./ZotzMachineModeWizard'))
@@ -25,7 +26,12 @@ export function ZotzMachineModeGate({
     mode === 'unset' &&
     !dismissed &&
     !onboardingVisible
-  if (!isZotzMachineModeHost() || (!firstRun && !requested)) {
+  const visible = isZotzMachineModeHost() && (firstRun || requested)
+  useEffect(() => {
+    setZotzMachineModeWizardVisible(visible)
+    return () => setZotzMachineModeWizardVisible(false)
+  }, [visible])
+  if (!visible) {
     return null
   }
   const close = (): void => {

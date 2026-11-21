@@ -118,7 +118,10 @@ export function ZotzConversationMenu({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div className="group/conversation relative">
+        <div
+          className="group/conversation relative"
+          data-contextual-tour-target="zotz-conversation-row"
+        >
           {children}
           <div className="absolute top-1.5 right-1 opacity-0 transition-opacity group-hover/conversation:opacity-100 has-[[data-state=open]]:opacity-100">
             <DropdownMenu modal={false}>

@@ -128,8 +128,12 @@ export function ZotzTaskBoardToolbar({
           'Filter: is:open assignee:@me label:bug'
         )}
         className="h-8 w-72"
+        data-contextual-tour-target="zotz-task-filter"
       />
-      <div className="flex items-center rounded-md border border-border/60">
+      <div
+        className="flex items-center rounded-md border border-border/60"
+        data-contextual-tour-target="zotz-task-layouts"
+      >
         {layouts.map((layout) => (
           <Button
             key={layout.value}
@@ -277,6 +281,7 @@ export function ZotzTaskBoardToolbar({
           type="button"
           aria-label={t('zotz.taskBoard.manageSources', 'Choose sources')}
           title={t('zotz.taskBoard.manageSources', 'Choose sources')}
+          data-contextual-tour-target="zotz-task-sources"
           onClick={onManageSources}
         >
           <Settings2 className="size-3.5" />

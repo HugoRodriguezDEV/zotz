@@ -15,12 +15,14 @@ function NavButton({
   label,
   shortcut,
   active,
+  tourTarget,
   onClick
 }: {
   icon: LucideIcon
   label: string
   shortcut?: 'workspace.create' | 'worktree.palette'
   active?: boolean
+  tourTarget?: string
   onClick: () => void
 }): React.JSX.Element {
   const combos = useShortcutKeyComboDetails(shortcut ?? 'worktree.palette')
@@ -29,6 +31,7 @@ function NavButton({
       type="button"
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
+      data-contextual-tour-target={tourTarget}
       className={cn(
         'group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium transition-colors',
         active
@@ -82,6 +85,7 @@ export default function ZotzSidebarTopNav(): React.JSX.Element {
           icon={Kanban}
           label={t('zotz.taskBoard.title', 'Tasks')}
           active={atBoard}
+          tourTarget="zotz-sidebar-tasks"
           onClick={openZotzBoard}
         />
       )}
@@ -89,6 +93,7 @@ export default function ZotzSidebarTopNav(): React.JSX.Element {
         icon={Plus}
         label={t('zotz.sidebar.create', 'Create')}
         shortcut="workspace.create"
+        tourTarget="workspace-create-control"
         onClick={openWorkspaceCreationComposerWithTourHandoff}
       />
       <NavButton
