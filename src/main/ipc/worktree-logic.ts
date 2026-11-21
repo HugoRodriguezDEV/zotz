@@ -178,8 +178,9 @@ function workspaceRootForMirrorHome(
   wslHome: string | null
 ): string {
   // Desktop absolute roots must mirror into WSL; repo-relative roots already resolve inside the distro.
+  // 'zotz' is ZOTZ_HOME_FOLDER_NAME, inlined because this file is at the 300-line cap.
   return wslHome
-    ? win32.join(wslHome, 'orca', 'workspaces')
+    ? win32.join(wslHome, 'zotz', 'workspaces')
     : resolveWorkspaceDirForRepo(repoPath, workspaceDir)
 }
 

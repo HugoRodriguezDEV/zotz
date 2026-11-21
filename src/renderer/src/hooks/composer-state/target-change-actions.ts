@@ -240,12 +240,16 @@ export function useTargetChangeActions(input: TargetChangeActionsInput) {
       ): boolean =>
         candidate.id === setupId || getProjectHostSetupSelectionKey(candidate) === setupId
       const option = projectHostSetupOptions.find(matchesSelection)
+      // Zotz: a folder added for a host-local project is its own project, so rebuild from that project's rows.
+      const setupProjectId = useAppStore
+        .getState()
+        .projectHostSetups.find(matchesSelection)?.projectId
       // Rebuild new setups through normal eligibility/host/dedupe policy before selecting; raw records can retarget away from the chosen location.
       const target =
         option?.kind === 'ready'
           ? option
           : buildProjectHostSetupOptions({
-              projectId: selectedRepoProjectId,
+              projectId: setupProjectId ?? selectedRepoProjectId,
               projectHostSetups: useAppStore.getState().projectHostSetups,
               eligibleRepos: getNewWorkspaceDialogEligibleRepos(useAppStore.getState().repos),
               hosts: hostOptions

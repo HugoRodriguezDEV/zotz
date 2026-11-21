@@ -26131,7 +26131,8 @@
       },
       "layout": {
         "board": "Board",
-        "table": "Table"
+        "table": "Table",
+        "roadmap": "Roadmap"
       },
       "moveFailed": "Couldn't move the task: {{error}}",
       "pr": {
@@ -26164,7 +26165,36 @@
         "renameHint": "Double-click to rename",
         "save": "Save view"
       },
-      "repoMissing": "GitHub did not return this repo"
+      "repoMissing": "GitHub did not return this repo",
+      "slice": {
+        "assignee": "Assignee",
+        "label": "Label",
+        "status": "Status",
+        "project": "Project",
+        "source": "Source",
+        "repo": "Repository",
+        "panel": "Slice by {{field}}",
+        "all": "All",
+        "none": "No {{field}}",
+        "off": "No slice",
+        "by": "Slice: {{field}}"
+      },
+      "sum": {
+        "off": "Count only",
+        "field": "Sum: {{field}}"
+      },
+      "roadmap": {
+        "noField": "None",
+        "month": "Month",
+        "quarter": "Quarter",
+        "start": "Start",
+        "end": "End",
+        "today": "Today",
+        "zoom": "Timeline zoom",
+        "noFields": "These tasks have no date or iteration field yet. Add one in GitHub or in the service to place them here.",
+        "task": "Task",
+        "undated": "Without dates · {{count}}"
+      }
     },
     "taskConnectors": {
       "badUrl": "Use an http:// or https:// URL.",
@@ -26197,6 +26227,15 @@
       "tokenPlaceholder": "Device token",
       "unreachable": "Couldn't reach the relay.",
       "urlPlaceholder": "https://zotz-relay.vercel.app"
+    },
+    "hostFolder": {
+      "description": "{{project}} only exists on another machine. Pick or create a folder on {{host}} to work there.",
+      "newFolder": "New folder",
+      "newFolderHelp": "Create an empty folder in zotz/projects on {{host}}.",
+      "namePlaceholder": "Folder name",
+      "resolvingParent": "Finding the projects folder…",
+      "create": "Create folder",
+      "created": "Folder created"
     }
   }
 }

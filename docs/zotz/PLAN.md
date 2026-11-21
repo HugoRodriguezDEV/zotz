@@ -26,7 +26,7 @@ Zotz es un fork de [stablyai/orca](https://github.com/stablyai/orca) para correr
 - [x] Agregar el remote upstream: `git remote add upstream https://github.com/stablyai/orca.git`.
 - [x] Documentar en `docs/zotz/SYNC.md` cómo sincronizar: `git fetch upstream && git rebase upstream/main` (o merge) en una rama `zotz/sync-YYYY-MM-DD`, resolver conflictos y correr los gates.
 - [x] `LICENSE`: **dejar intacto** el copyright de StablyAI (MIT lo exige) y agregar debajo `Copyright (c) 2026 Hugo Rodríguez (Zotz modifications)`.
-- [x] README: agregar arriba una sección corta "Zotz es un fork de Orca" con link al original. El resto del README se queda.
+- [x] README: agregar arriba una sección corta "Zotz es un fork de Orca" con link al original. El resto del README se queda. (Reemplazado el 2026-11-20: el README es de Zotz, sin nombres ni enlaces de Orca; el crédito queda en `LICENSE`.)
 - [x] Revisar `.github/workflows`: desactivar los workflows de release/publish que apunten a stablyai o requieran sus secrets (renombrar a `.disabled` o agregar `if: github.repository == 'stablyai/orca'`). Los de CI (lint/test) se quedan.
 
 **Listo cuando:** CI corre verde en el fork y ningún workflow intenta publicar.
@@ -346,8 +346,8 @@ Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 - [x] 9d, parte 2. JSON Schema publicado, `zotz tasks push`/`validate`/`schema` y endpoint `link-pr`.
 - [x] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
 - [x] 9f. Acción `move` para fuentes externas, con comprobación previa.
+- [x] Sumas de campos numéricos, _Slice by_ y vista roadmap (parte 2 de la fase).
 - [x] Relay propio (GitHub App + Vercel) para avisos al instante, opcional y apagado por defecto. Guía: [`RELAY.md`](./RELAY.md).
-- Pospuesto por Hugo (parte 2 de la fase): vista roadmap, _Slice by_ y sumas de campos.
 
 **Listo cuando:** el tablero muestra juntas las tareas de los Projects elegidos y de un feed externo de prueba, cada una con su marca, su proyecto y sus PRs; un PR detectado llega al proveedor por `link-pr`; y ninguna tarea de GitHub se puede modificar desde Zotz.
 
@@ -772,6 +772,30 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
   - **Ajustes sin el conector de `push`:** no se enteraba porque faltaba `notifyListeners`.
 - **Probado** en la app real con el Project TEDYC, un repo suelto, un servicio local con token y `zotz tasks push` desde la CLI compilada. El servicio recibió los `dryRun`, dos `link-pr` reales (un PR detectado por la rama `feature/issue-19-…` y otro declarado) y un `move`.
 - Los 4 tests de `cross-version-wire` fallan en esta máquina: una copia vieja en caché (`tests/e2e/.cross-version-checkouts/v1.4.265`) importa un paquete `cloud/` que no existe aquí. No es por este cambio.
+
+### 2026-11-20 — README de Zotz y carpeta `~/zotz` (`zotz/readme-zotz`)
+
+- **README:** reescrito en español para Zotz, sin nombres, enlaces ni imágenes de Orca. Imágenes de las fixtures en `docs/assets/zotz/` y `social-preview.png` para la vista previa del repo (se sube a mano: GitHub no tiene API). Los README traducidos y los assets viejos de `docs/assets/` se quedan por el costo de sync.
+- **Carpeta visible:** los worktrees nuevos van a `~/zotz/workspaces` y los proyectos nuevos a `~/zotz/projects` (antes `~/orca/...`). `getDefaultWorkspaceDir` y el espejo de WSL usan `ZOTZ_HOME_FOLDER_NAME` (`src/shared/zotz/zotz-home-folders.ts`). `~/.orca` sigue igual (decisión de Fase 1c).
+- **Migración al cargar el perfil** (`src/main/zotz/zotz-workspace-dir-migration.ts`): si el ajuste guardado era el default viejo (o no existía), pasa a `~/zotz/workspaces` y `~/orca/workspaces` entra a `workspaceDirHistory`, así que los worktrees que ya están ahí conservan dueño y visibilidad. Una carpeta elegida a mano no se toca. La clasificación de WSL reconoce ambas raíces.
+- **No se mueven los worktrees existentes:** git los registra por ruta absoluta y pueden tener agentes corriendo. Siguen en `~/orca/workspaces` hasta que se borren; cuando la carpeta quede vacía se puede borrar a mano.
+
+### 2026-11-20 — Crear conversación en un servidor desde la laptop (`zotz/crear-conversacion-remota`)
+
+- **Problema:** en "Create workspace", con un proyecto que solo existe en la Mac (carpeta o repo sin remote, id `repo:<id>`), la fila "MSI Server" decía "Project location not set" y no hacía nada. Upstream oculta "Set project location" para esos proyectos porque no puede ligarlos a otra máquina.
+- **Cambio:** para hosts locales y de runtime (no SSH), la fila ahora ofrece "Set project location". En ese caso la carpeta elegida se agrega como **proyecto propio** del servidor y el composer cambia a ese proyecto: _Browse folder_ (explorador de archivos del servidor) o _Carpeta nueva_ (crea `<home>/zotz/projects/<nombre>` con `repo.create`).
+- Lógica en `zotz-host-folder-project-target.ts`, `components/zotz/project-location/`; ganchos cortos en `project-host-setup-options.ts`, `SetProjectLocationDialog.tsx` y `target-change-actions.ts` (busca el proyecto del setup nuevo).
+- Sin RPC nuevas: el servidor no necesita este release. No se verificó con la MSI real.
+
+### 2026-11-20 — Fase 9, parte 2: sumas, _Slice by_ y roadmap (`zotz-tablero-sumas-slice-roadmap`)
+
+- **Campos de la fuente:** cada tarea expone sus campos numéricos, de fecha, single select e iteración, de GitHub (`fieldValuesByFieldId`) o de un servicio (`source.fields`), por nombre. Así el "Estimate" de dos Projects y de un servicio cuentan como el mismo campo. Para leer el nombre de los números y los single select de GitHub se agregó `fieldName` a esos valores en la normalización de Orca (igual que ya traían fechas e iteraciones).
+- **Sumas:** la vista elige un campo numérico ("Sumar: Estimate"). Cada columna (combinado, Project y servicio), cada carril de Group by y cada grupo de la tabla muestran conteo y suma; la tabla agrega una columna con el valor. Las tareas sin valor no suman, como en GitHub.
+- **_Slice by_:** la vista elige asignado, label, estado, proyecto, fuente, repo o un single select / iteración. El panel de la izquierda lista "Todos" y cada valor con su conteo (después del filtro escrito); un clic filtra. En la vista de un Project se cuentan sus propias filas. El valor elegido no se guarda, solo el campo; cambiar de vista o de campo vuelve a "Todos".
+- **Roadmap:** tercer layout. Reusa la línea de tiempo del roadmap de Orca (`project-roadmap-timeline`: meses, posiciones, fechas). La vista guarda inicio, fin y zoom (mes/trimestre); si no se eligen, se toman por nombre (_Start_/_Target_) o la primera iteración. Línea de hoy, botón "Hoy", grupos con su suma, tareas sin fecha en una lista aparte, clic en barra o título abre el detalle. Solo lectura.
+- **Vistas:** `zotzTaskBoardViews` guarda `sumField`, `sliceBy`, `roadmapStart`, `roadmapEnd` y `roadmapZoom`; las vistas viejas los leen con valores por defecto. `ProjectBoard` de Orca recibe un `columnSummary` opcional para la suma en la vista de un Project.
+- Tests: `zotz-task-view-fields.test.ts` (suma por nombre, catálogo de campos, slices por asignado y por campo, barras de fechas invertidas, iteraciones y campos por defecto).
+- Verificado con fixtures (`ZotzTaskBoard:sums`, `:tableSums`, `:roadmap`, `:projectSlice`, ambos temas) y `pnpm check:changed`. Sin probar en la app real con el Project TEDYC.
 
 ### 2026-11-20 — Fase 9, parte 2: relay de webhooks (`zotz-relay-webhooks`)
 

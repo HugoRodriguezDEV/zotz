@@ -8,6 +8,7 @@ import type { Repo } from '../../../shared/repository/repo-types'
 import type { RepositoryMetadataOwner } from '../../workspaces/catalog/imported-folder-project-link'
 import { DEFAULT_REPO_BADGE_COLOR, getDefaultWorkspaceDir } from '../../../shared/constants'
 import { normalizeRuntimePathForComparison } from '../../../shared/cross-platform-path'
+import { ZOTZ_HOME_FOLDER_NAME } from '../../../shared/zotz/zotz-home-folders'
 import { getRepoExecutionHostId, LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
 import { getEffectiveHostSetting } from '../../../shared/execution-host/host-setting-overrides'
 import { probeGitAvailability } from '../../git/command-runner/host-routing/git-availability'
@@ -54,7 +55,7 @@ function getDefaultCreateProjectParent(store: Store): string {
   if (configured && !isUntouchedDefault) {
     return configured
   }
-  return join(home, 'orca', 'projects')
+  return join(home, ZOTZ_HOME_FOLDER_NAME, 'projects')
 }
 
 export function registerRepoCreationHandlers(

@@ -24497,7 +24497,8 @@
       },
       "layout": {
         "board": "Tablero",
-        "table": "Tabla"
+        "table": "Tabla",
+        "roadmap": "Roadmap"
       },
       "moveFailed": "No se pudo mover la tarea: {{error}}",
       "pr": {
@@ -24530,7 +24531,36 @@
         "renameHint": "Doble clic para renombrar",
         "save": "Guardar vista"
       },
-      "repoMissing": "GitHub no devolvió este repo"
+      "repoMissing": "GitHub no devolvió este repo",
+      "slice": {
+        "assignee": "Asignado",
+        "label": "Etiqueta",
+        "status": "Estado",
+        "project": "Proyecto",
+        "source": "Fuente",
+        "repo": "Repositorio",
+        "panel": "Filtrar por {{field}}",
+        "all": "Todos",
+        "none": "Sin {{field}}",
+        "off": "Sin slice",
+        "by": "Slice: {{field}}"
+      },
+      "sum": {
+        "off": "Solo conteo",
+        "field": "Sumar: {{field}}"
+      },
+      "roadmap": {
+        "noField": "Ninguno",
+        "month": "Mes",
+        "quarter": "Trimestre",
+        "start": "Inicio",
+        "end": "Fin",
+        "today": "Hoy",
+        "zoom": "Zoom de la línea de tiempo",
+        "noFields": "Estas tareas aún no tienen un campo de fecha o iteración. Agrega uno en GitHub o en el servicio para ubicarlas aquí.",
+        "task": "Tarea",
+        "undated": "Sin fechas · {{count}}"
+      }
     },
     "taskConnectors": {
       "badUrl": "Usa una URL http:// o https://.",
@@ -24563,6 +24593,15 @@
       "tokenPlaceholder": "Token del dispositivo",
       "unreachable": "No se pudo llegar al relay.",
       "urlPlaceholder": "https://zotz-relay.vercel.app"
+    },
+    "hostFolder": {
+      "description": "{{project}} solo existe en otra máquina. Elige o crea una carpeta en {{host}} para trabajar ahí.",
+      "newFolder": "Carpeta nueva",
+      "newFolderHelp": "Crea una carpeta vacía en zotz/projects de {{host}}.",
+      "namePlaceholder": "Nombre de la carpeta",
+      "resolvingParent": "Buscando la carpeta de proyectos…",
+      "create": "Crear carpeta",
+      "created": "Carpeta creada"
     }
   }
 }

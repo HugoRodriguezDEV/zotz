@@ -15,7 +15,8 @@ const facts: ZotzTaskFacts = {
   project: 'producto 2026',
   source: ['github', 'acme'],
   updatedAt: Date.parse('2026-11-18T09:00:00'),
-  iterations: [{ startDate: '2026-11-16', duration: 14 }]
+  iterations: [{ startDate: '2026-11-16', duration: 14 }],
+  fields: {}
 }
 
 function passes(filter: string, viewer: string | null = 'hugo'): boolean {

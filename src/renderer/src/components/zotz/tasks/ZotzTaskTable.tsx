@@ -3,23 +3,28 @@ import type { ZotzTaskBoardItem } from '../../../../../shared/zotz/tasks/zotz-ta
 import { zotzLeadPullRequest } from '../../../../../shared/zotz/tasks/zotz-task-development-types'
 import type { ZotzTaskFacts } from '../../../../../shared/zotz/tasks/zotz-task-filter'
 import type { ZotzTaskGroup } from '../../../../../shared/zotz/tasks/zotz-task-board-views'
+import { zotzTaskFieldKey } from '../../../../../shared/zotz/tasks/zotz-task-fields'
 import { pullRequestSummary, ZotzTaskAvatars, ZotzTaskBrand } from './ZotzTaskCard'
 import { zotzTaskCardView } from './zotz-task-card-view'
 import { useZotzTaskDevelopmentFor } from './use-zotz-task-development'
+import type { ZotzTaskSummarize } from './use-zotz-task-sum'
 
 function Row({
   item,
   facts,
+  sumField,
   onOpen
 }: {
   item: ZotzTaskBoardItem
   facts: ZotzTaskFacts | undefined
+  sumField: string | null
   onOpen: () => void
 }): React.JSX.Element {
   const t = useTranslate()
   const locale = useIntlLocale()
   const view = zotzTaskCardView(item)
   const lead = zotzLeadPullRequest(useZotzTaskDevelopmentFor(item)?.linked ?? [])
+  const sumValue = sumField ? facts?.fields[zotzTaskFieldKey(sumField)]?.value : undefined
   return (
     <tr className="border-b border-border/50 hover:bg-accent/40">
       <td className="max-w-80 py-1.5 pr-3">
@@ -50,6 +55,11 @@ function Row({
       <td className="max-w-56 truncate py-1.5 pr-3 text-muted-foreground">
         {lead ? pullRequestSummary(lead, t) : ''}
       </td>
+      {sumField ? (
+        <td className="py-1.5 pr-3 text-right tabular-nums">
+          {sumValue?.type === 'number' ? sumValue.number.toLocaleString(locale) : ''}
+        </td>
+      ) : null}
       <td className="whitespace-nowrap py-1.5 text-muted-foreground">
         {facts?.updatedAt ? new Date(facts.updatedAt).toLocaleDateString(locale) : ''}
       </td>
@@ -61,13 +71,19 @@ function Row({
 export function ZotzTaskTable({
   groups,
   facts,
+  sumField,
+  summarize,
   onOpen
 }: {
   groups: ZotzTaskGroup[]
   facts: ReadonlyMap<string, ZotzTaskFacts>
+  /** The view's summed field: its own column, and its sum in the group rows. */
+  sumField: string | null
+  summarize?: ZotzTaskSummarize
   onOpen: (item: ZotzTaskBoardItem) => void
 }): React.JSX.Element {
   const t = useTranslate()
+  const columnCount = sumField ? 8 : 7
   return (
     <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border/50 scrollbar-sleek">
       <table className="w-full text-xs">
@@ -85,15 +101,29 @@ export function ZotzTaskTable({
             <th className="py-2 pr-3 font-medium">
               {t('zotz.taskBoard.table.pullRequest', 'Pull request')}
             </th>
+            {sumField ? (
+              <th className="py-2 pr-3 text-right font-medium" title={sumField}>
+                {sumField}
+              </th>
+            ) : null}
             <th className="py-2 font-medium">{t('zotz.taskBoard.table.updated', 'Updated')}</th>
           </tr>
         </thead>
         <tbody>
           {groups.map((group) => [
-            group.key === '' ? null : (
+            // Ungrouped tables only get a header row to carry the view's sum.
+            group.key === '' && !summarize ? null : (
               <tr key={`group:${group.key}`} className="bg-muted/30">
-                <td colSpan={7} className="py-1.5 font-medium">
-                  {group.label ?? t('zotz.taskBoard.group.empty', 'None')} · {group.items.length}
+                <td colSpan={columnCount} className="py-1.5 font-medium">
+                  {[
+                    group.key === ''
+                      ? t('zotz.taskBoard.slice.all', 'All')
+                      : (group.label ?? t('zotz.taskBoard.group.empty', 'None')),
+                    group.items.length,
+                    summarize?.(group.items)
+                  ]
+                    .filter((part) => part !== null && part !== undefined)
+                    .join(' · ')}
                 </td>
               </tr>
             ),
@@ -102,6 +132,7 @@ export function ZotzTaskTable({
                 key={`${group.key}:${item.key}`}
                 item={item}
                 facts={facts.get(item.key)}
+                sumField={sumField}
                 onOpen={() => onOpen(item)}
               />
             ))
