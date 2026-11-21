@@ -15472,8 +15472,6 @@
                       "71bd9a8c95": "Entérate al instante cuando un agente termina, necesita atención o se bloquea.",
                       "46db810da8": "Elige tu agente predeterminado",
                       "b8e5bae17f": "Empieza a trabajar más rápido con tu agente preferido ya seleccionado.",
-                      "ad342dd4c6": "Conectar integraciones",
-                      "06fe30fdb0": "Inicia un agente desde una tarea con un clic y mantén el estado del PR a la vista.",
                       "eddc532e58": "Automatiza la configuración del espacio de trabajo",
                       "56049b74c2": "Ejecuta comandos de instalación y configuración automáticamente para que cada nuevo árbol de trabajo esté listo para los agentes.",
                       "2cf795433b": "Inicia trabajo en varios repositorios",
@@ -15613,7 +15611,6 @@
             "4795ac2d4a": "Prueba a pedir:",
             "53905bd076": "Vista previa de desarrollo: abriendo la terminal de configuración de skills.",
             "1da82af45b": "Orca CLI necesita atención",
-            "ce13a742d0": "`orca` registrado en PATH.",
             "d1a86c7eb5": "Abre Configuración para finalizar la configuración de la CLI.",
             "cliInstallFailed": "No se pudo instalar la CLI de Orca.",
             "splitPrPrompt": "«Divide este PR en dos <term>worktrees</term> y crea un PR para cada uno»."
@@ -20653,7 +20650,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "Inicia un espacio de trabajo desde cualquier incidencia o pull request de GitHub, rellenado con su título y contexto",
-          "browseIssues": "Explora incidencias y pull requests de GitHub en la vista Tareas sin salir de Orca",
           "reviewStatus": "Consulta el estado de la incidencia, la revisión y las verificaciones de CI en cada árbol de trabajo",
           "managePullRequests": "Lee, comenta y fusiona pull requests sin salir de Orca"
         }
@@ -23795,10 +23791,6 @@
         "title": "Espacios de trabajo",
         "lede": "Orca asigna a cada tarea un espacio de trabajo aislado para que los agentes puedan trabajar en paralelo."
       },
-      "tasks": {
-        "title": "Tareas",
-        "lede": "Empieza a trabajar directamente desde GitHub o Linear."
-      },
       "agents": {
         "title": "Agentes",
         "lede": "Ejecuta varios agentes a la vez, sigue su progreso y deja que la automatización controle Orca cuando sea útil."
@@ -24706,7 +24698,8 @@
           "phone": "Tu celular",
           "privateLink": "Solo tu tailnet puede entrar",
           "server": "Servidor · encendido 24/7",
-          "taskArrived": "Conversación nueva desde tu laptop: fix-ci"
+          "taskArrived": "Conversación nueva desde tu laptop: fix-ci",
+          "tailscale": "Tailscale"
         },
         "queue": {
           "needsMemory": "Necesita 3 GB · espera memoria",
@@ -24717,7 +24710,10 @@
           "createWorkspace": "Crear workspace con esta tarea",
           "inProgress": "In Progress",
           "inReview": "In Review",
-          "todo": "Todo"
+          "todo": "Todo",
+          "demoPayments": "Pagos con tarjeta",
+          "demoFilter": "Filtro de fechas",
+          "demoDocs": "Guía de instalación"
         }
       },
       "helpMenu": {

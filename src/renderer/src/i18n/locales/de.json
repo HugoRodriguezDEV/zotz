@@ -15783,8 +15783,6 @@
                       "71bd9a8c95": "Sofort erfahren, wenn ein Agent fertig ist, Aufmerksamkeit benötigt oder blockiert wird.",
                       "46db810da8": "Standardagenten auswählen",
                       "b8e5bae17f": "Neue Aufgaben schneller starten, da der bevorzugte Agent bereits ausgewählt ist.",
-                      "ad342dd4c6": "Integrationen verbinden",
-                      "06fe30fdb0": "Mit einem Klick einen Agenten aus einer Aufgabe starten und den PR-Status im Blick behalten.",
                       "eddc532e58": "Einrichtung von Arbeitsbereichen automatisieren",
                       "56049b74c2": "Installations- und Einrichtungsbefehle automatisch ausführen, damit jeder neue Worktree für Agenten bereit ist.",
                       "2cf795433b": "Arbeit in mehreren Repos starten",
@@ -15933,7 +15931,6 @@
             "4795ac2d4a": "Beispielanfragen:",
             "53905bd076": "Entwicklungsvorschau: Das Terminal zur Skill-Einrichtung wird geöffnet.",
             "1da82af45b": "Bei der Orca CLI besteht Handlungsbedarf",
-            "ce13a742d0": "`orca` wurde in PATH registriert.",
             "d1a86c7eb5": "Einstellungen öffnen, um die CLI-Einrichtung abzuschließen.",
             "cliInstallFailed": "Orca CLI konnte nicht installiert werden.",
             "splitPrPrompt": "„Teile diesen PR auf zwei <term>Worktrees</term> auf und erstelle für jeden einen PR.“"
@@ -19188,7 +19185,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "Aus einem beliebigen GitHub-Issue oder Pull Request einen Arbeitsbereich starten, dessen Titel und Kontext bereits ausgefüllt sind",
-          "browseIssues": "GitHub-Issues und Pull Requests in der Ansicht „Aufgaben“ durchsuchen, ohne Orca zu verlassen",
           "reviewStatus": "Issue-Status, Review-Status und CI-Checks für jeden Worktree anzeigen",
           "managePullRequests": "Pull Requests lesen, kommentieren und mergen, ohne Orca zu verlassen"
         }
@@ -23335,10 +23331,6 @@
       "workspaces": {
         "title": "Arbeitsbereiche",
         "lede": "Orca weist jeder Aufgabe einen isolierten Arbeitsbereich zu, damit Agenten parallel arbeiten können."
-      },
-      "tasks": {
-        "title": "Aufgaben",
-        "lede": "Arbeit direkt aus GitHub oder Linear starten."
       },
       "agents": {
         "title": "Agenten",

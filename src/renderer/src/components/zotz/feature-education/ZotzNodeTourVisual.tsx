@@ -66,7 +66,7 @@ export function ZotzNodeTourVisual({
               : 'border-dashed border-border text-muted-foreground'
           )}
         >
-          Tailscale
+          {t('zotz.tours.visual.node.tailscale', 'Tailscale')}
         </span>
         <div className="relative h-px w-full bg-border">
           <span

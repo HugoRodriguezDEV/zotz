@@ -1,3 +1,4 @@
+import { translate } from '@/i18n/i18n'
 import { ZotzWorkingBars } from '../sidebar/ZotzWorkingBars'
 import type React from 'react'
 import { GitPullRequest, Plus } from 'lucide-react'
@@ -8,14 +9,31 @@ import { useZotzTourPhase } from './use-zotz-tour-phase'
 
 type Task = { number: number; repo: string; title: string; project: string }
 
+// Getters so demo titles follow the UI language.
 const PAYMENTS: Task = {
   number: 212,
   repo: 'acme/api',
-  title: 'Card payments',
-  project: 'Q4 launch'
+  project: 'Q4 launch',
+  get title() {
+    return translate('zotz.tours.visual.tasks.demoPayments', 'Card payments')
+  }
 }
-const FILTER: Task = { number: 198, repo: 'acme/web', title: 'Date filter', project: 'Q4 launch' }
-const DOCS: Task = { number: 87, repo: 'acme/docs', title: 'Setup guide', project: 'Docs' }
+const FILTER: Task = {
+  number: 198,
+  repo: 'acme/web',
+  project: 'Q4 launch',
+  get title() {
+    return translate('zotz.tours.visual.tasks.demoFilter', 'Date filter')
+  }
+}
+const DOCS: Task = {
+  number: 87,
+  repo: 'acme/docs',
+  project: 'Docs',
+  get title() {
+    return translate('zotz.tours.visual.tasks.demoDocs', 'Setup guide')
+  }
+}
 
 function TaskCard({
   task,

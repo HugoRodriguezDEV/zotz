@@ -15371,8 +15371,6 @@
                       "71bd9a8c95": "代理完成、需要关注或受阻时立即收到提醒",
                       "46db810da8": "选择默认代理",
                       "b8e5bae17f": "预先选好常用代理，开始新工作时更快",
-                      "ad342dd4c6": "连接集成",
-                      "06fe30fdb0": "从任务一键启动代理，并持续查看 PR 状态",
                       "eddc532e58": "自动完成工作区准备",
                       "56049b74c2": "自动运行安装与配置命令，让每个新工作树都能直接给代理使用",
                       "2cf795433b": "在多个仓库中开始工作",
@@ -15515,7 +15513,6 @@
             "4795ac2d4a": "尝试询问：",
             "53905bd076": "开发预览：打开技能设置终端",
             "1da82af45b": "Orca CLI 需要注意",
-            "ce13a742d0": "在 PATH 中注册了 `orca`",
             "d1a86c7eb5": "打开\"设置\"以完成 CLI 设置",
             "cliInstallFailed": "无法安装 Orca CLI",
             "splitPrPrompt": "“将此 PR 拆分到两个<term>工作树</term>，并分别创建 PR。”"
@@ -20182,7 +20179,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "从任意 GitHub 议题或拉取请求创建工作区，并自动填充标题和上下文",
-          "browseIssues": "无需离开 Orca，即可在任务视图中浏览 GitHub 议题和拉取请求",
           "reviewStatus": "在每个工作树中查看议题状态、评审状态和 CI 检查",
           "managePullRequests": "无需离开 Orca，即可阅读、评论和合并拉取请求"
         }
@@ -23475,10 +23471,6 @@
       "workspaces": {
         "title": "工作区",
         "lede": "Orca 为每项任务分配独立的工作区，让智能体能够并行工作"
-      },
-      "tasks": {
-        "title": "任务",
-        "lede": "直接从 GitHub 或 Linear 开始工作"
       },
       "agents": {
         "title": "智能体",

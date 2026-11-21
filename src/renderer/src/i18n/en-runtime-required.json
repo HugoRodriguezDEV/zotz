@@ -2105,7 +2105,6 @@
     "onboarding": {
       "integrations": {
         "capabilities": {
-          "browseIssues": "Browse GitHub issues and pull requests in the Tasks view without leaving Orca",
           "managePullRequests": "Read, comment on, and merge pull requests without leaving Orca",
           "reviewStatus": "See issue state, review status, and CI checks on every worktree",
           "startWorkspaceFromIssue": "Start a workspace from any GitHub issue or pull request, prefilled with its title and context"
@@ -2818,6 +2817,67 @@
       "changesKept_other": "{{count}} uncommitted changes",
       "uncommitted_one": "{{count}} conversation has uncommitted changes",
       "uncommitted_other": "{{count}} conversations have uncommitted changes"
+    },
+    "tours": {
+      "agentQueueBoardBacklog": {
+        "body": "Manual launches go first, then the ones sent from another machine, then automations. Launch one anyway or cancel it from its card.",
+        "title": "Waiting agents"
+      },
+      "agentQueueBoardMemory": {
+        "body": "Each paired server shows its own free memory and its own line, next to this one.",
+        "title": "Memory of every machine"
+      },
+      "agentQueueSegment": {
+        "body": "Before launching an agent Zotz checks free memory. If there is not enough, the agent waits in line and starts on its own when memory frees up. Click to see the queue.",
+        "title": "Agents wait for memory"
+      },
+      "backgroundSonar": {
+        "body": "This echo means the agent finished its turn but left tests, scripts or subagents running.",
+        "title": "Still working in the background"
+      },
+      "backgroundTab": {
+        "body": "The Background tab shows each task with its output and a Stop button.",
+        "title": "See and stop that work"
+      },
+      "onboarding": {
+        "browseTaskBoard": "See your GitHub Projects and repos in the task board (Tasks in the sidebar), each task with its pull requests"
+      },
+      "sidebarConversationActions": {
+        "body": "Right-click a conversation to give it a short name agents can use, archive it or delete it after reviewing its changes.",
+        "title": "Keep the list short"
+      },
+      "sidebarNewConversation": {
+        "body": "Click + next to a project to start a conversation on its own branch, on this machine or a server.",
+        "title": "One conversation, one worktree"
+      },
+      "sidebarTasks": {
+        "body": "Tasks opens the board with every GitHub Project, repo and service you connect.",
+        "title": "Your tasks, in one board"
+      },
+      "taskBoardCard": {
+        "body": "Open a task to see its linked PRs and branches, then create a workspace with it to hand it to an agent.",
+        "title": "From task to agent"
+      },
+      "taskBoardFilter": {
+        "body": "Type the same syntax: is:open, assignee:@me, label:bug.",
+        "title": "Filter like on GitHub"
+      },
+      "taskBoardLayouts": {
+        "body": "Switch layouts without losing the filter. Roadmap uses the start and target dates of your Projects.",
+        "title": "Board, table or roadmap"
+      },
+      "taskBoardSources": {
+        "body": "Add Projects, repos or services here at any time.",
+        "title": "Add more sources"
+      },
+      "taskBoardSourcesIntro": {
+        "body": "Pick GitHub Projects, repos without a Project, or an external service. Zotz only reads them.",
+        "title": "Choose where tasks come from"
+      },
+      "taskBoardViews": {
+        "body": "Each tab keeps its own filter, grouping and layout, like a GitHub Projects view.",
+        "title": "Save the views you use"
+      }
     }
   }
 }
