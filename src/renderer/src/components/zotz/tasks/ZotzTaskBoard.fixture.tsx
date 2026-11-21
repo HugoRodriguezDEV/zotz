@@ -207,13 +207,21 @@ function seedBoard(view?: Partial<ZotzTaskBoardView>): void {
 export const combined = defineFixture({
   width: 1150,
   setup: () => seedBoard(),
-  render: () => <ZotzTaskBoard active />
+  render: () => (
+    <div className="flex h-[700px] flex-col">
+      <ZotzTaskBoard active />
+    </div>
+  )
 })
 
 export const detail = defineFixture({
   width: 1150,
   setup: () => seedBoard(),
-  render: () => <ZotzTaskBoard active />,
+  render: () => (
+    <div className="flex h-[700px] flex-col">
+      <ZotzTaskBoard active />
+    </div>
+  ),
   interact: async (frame) => {
     for (let attempt = 0; attempt < 50; attempt++) {
       const title = [...frame.querySelectorAll('button')].find(
@@ -231,19 +239,31 @@ export const detail = defineFixture({
 export const sums = defineFixture({
   width: 1150,
   setup: () => seedBoard({ sumField: 'Estimate', sliceBy: 'assignee' }),
-  render: () => <ZotzTaskBoard active />
+  render: () => (
+    <div className="flex h-[700px] flex-col">
+      <ZotzTaskBoard active />
+    </div>
+  )
 })
 
 export const tableSums = defineFixture({
   width: 1150,
   setup: () => seedBoard({ layout: 'table', groupBy: 'project', sumField: 'Estimate' }),
-  render: () => <ZotzTaskBoard active />
+  render: () => (
+    <div className="flex h-[700px] flex-col">
+      <ZotzTaskBoard active />
+    </div>
+  )
 })
 
 export const roadmap = defineFixture({
   width: 1150,
   setup: () => seedBoard({ layout: 'roadmap', sumField: 'Estimate', groupBy: 'project' }),
-  render: () => <ZotzTaskBoard active />
+  render: () => (
+    <div className="flex h-[700px] flex-col">
+      <ZotzTaskBoard active />
+    </div>
+  )
 })
 
 export const projectSlice = defineFixture({
@@ -254,7 +274,11 @@ export const projectSlice = defineFixture({
       sumField: 'Estimate',
       sliceBy: 'assignee'
     }),
-  render: () => <ZotzTaskBoard active />,
+  render: () => (
+    <div className="flex h-[700px] flex-col">
+      <ZotzTaskBoard active />
+    </div>
+  ),
   interact: async (frame) => {
     for (let attempt = 0; attempt < 50; attempt++) {
       const slice = [...frame.querySelectorAll('nav button')].find((button) =>
