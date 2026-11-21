@@ -1,6 +1,11 @@
 import { resolveBoardColumnField } from '../../github/projects/project-board-columns'
 import type { GitHubProjectTable } from '../../github/projects/project-types'
 import { ZOTZ_TASK_BOARD_COLUMNS, type ZotzTaskBoardItem } from './zotz-task-board-columns'
+import {
+  externalTaskFieldValues,
+  githubRowFieldValues,
+  type ZotzTaskFieldValues
+} from './zotz-task-fields'
 
 /** What a filter can ask about a task, the same for GitHub and external sources. */
 export type ZotzTaskFacts = {
@@ -16,6 +21,8 @@ export type ZotzTaskFacts = {
   source: string[]
   updatedAt: number | null
   iterations: { startDate: string; duration: number }[]
+  /** Source fields (numbers, dates, single selects, iterations) for sums, slices and roadmap. */
+  fields: ZotzTaskFieldValues
 }
 
 export function zotzTaskFacts(
@@ -49,7 +56,8 @@ export function zotzTaskFacts(
       updatedAt: Date.parse(row.updatedAt) || null,
       iterations: Object.values(row.fieldValuesByFieldId).flatMap((value) =>
         value.kind === 'iteration' ? [{ startDate: value.startDate, duration: value.duration }] : []
-      )
+      ),
+      fields: githubRowFieldValues(row, table)
     }
   }
   const { task, source } = item.origin
@@ -77,7 +85,8 @@ export function zotzTaskFacts(
       const value = task.fieldValues[field.name]
       const iteration = field.iterations.find((entry) => entry.id === value)
       return iteration ? [{ startDate: iteration.startDate, duration: iteration.duration }] : []
-    })
+    }),
+    fields: externalTaskFieldValues(task, service)
   }
 }
 

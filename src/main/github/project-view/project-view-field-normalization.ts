@@ -136,7 +136,8 @@ export function normalizeFieldValue(
         fieldId,
         optionId: raw.optionId,
         name: raw.name ?? '',
-        color: raw.color ?? ''
+        color: raw.color ?? '',
+        ...(typeof raw.field.name === 'string' ? { fieldName: raw.field.name } : {})
       }
     case 'ProjectV2ItemFieldIterationValue':
       if (typeof raw.iterationId !== 'string') {
@@ -157,7 +158,12 @@ export function normalizeFieldValue(
       if (typeof raw.number !== 'number') {
         return null
       }
-      return { kind: 'number', fieldId, number: raw.number }
+      return {
+        kind: 'number',
+        fieldId,
+        number: raw.number,
+        ...(typeof raw.field.name === 'string' ? { fieldName: raw.field.name } : {})
+      }
     case 'ProjectV2ItemFieldDateValue':
       return {
         kind: 'date',

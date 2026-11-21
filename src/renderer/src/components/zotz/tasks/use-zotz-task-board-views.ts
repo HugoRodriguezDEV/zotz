@@ -21,15 +21,22 @@ export type ZotzTaskBoardViewsState = {
   remove: (id: string) => void
 }
 
+const VIEW_SETTINGS: readonly Exclude<keyof ZotzTaskBoardView, 'id'>[] = [
+  'name',
+  'scope',
+  'layout',
+  'filter',
+  'groupBy',
+  'sortBy',
+  'sumField',
+  'sliceBy',
+  'roadmapStart',
+  'roadmapEnd',
+  'roadmapZoom'
+]
+
 function sameView(a: ZotzTaskBoardView, b: ZotzTaskBoardView): boolean {
-  return (
-    a.name === b.name &&
-    a.scope === b.scope &&
-    a.layout === b.layout &&
-    a.filter === b.filter &&
-    a.groupBy === b.groupBy &&
-    a.sortBy === b.sortBy
-  )
+  return VIEW_SETTINGS.every((key) => a[key] === b[key])
 }
 
 /** Saved board views plus unsaved edits to the active one. */

@@ -125,6 +125,7 @@ export type GitHubProjectFieldValue =
       optionId: string
       name: string
       color: string
+      fieldName?: string
     }
   | {
       kind: 'iteration'
@@ -137,7 +138,7 @@ export type GitHubProjectFieldValue =
       fieldName?: string
     }
   | { kind: 'text'; fieldId: string; text: string }
-  | { kind: 'number'; fieldId: string; number: number }
+  | { kind: 'number'; fieldId: string; number: number; fieldName?: string }
   | { kind: 'date'; fieldId: string; date: string; fieldName?: string }
   | { kind: 'labels'; fieldId: string; labels: GitHubProjectLabel[] }
   | { kind: 'users'; fieldId: string; users: GitHubProjectUser[] }

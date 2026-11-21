@@ -28,6 +28,9 @@ import { ZotzTaskBoardColumns, ZotzTaskColumns } from './ZotzTaskBoardColumns'
 import { ZotzTaskDetailSheet, type ZotzTaskDetail } from './ZotzTaskDetailSheet'
 import { ZotzTaskArchivedList } from './ZotzTaskArchivedList'
 import { ZotzTaskTable } from './ZotzTaskTable'
+import { ZotzTaskRoadmap } from './ZotzTaskRoadmap'
+import { ZotzTaskSlicePanel } from './ZotzTaskSlicePanel'
+import { useZotzTaskSummary } from './use-zotz-task-sum'
 import { ZotzTaskViewTabs } from './ZotzTaskViewTabs'
 import { ZotzTaskBoardToolbar, ZOTZ_TASK_SCOPE_EXTERNAL } from './ZotzTaskBoardToolbar'
 import { ZOTZ_TASK_BOARD_SOURCES_SECTION_ID } from './ZotzTaskBoardSourcesSetting'
@@ -64,8 +67,22 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
   const [detail, setDetail] = useState<ZotzTaskDetail | null>(null)
   const [viewer, setViewer] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
+  // The picked slice belongs to one view and one "Slice by"; switching either shows all again.
+  const [slicePick, setSlicePick] = useState<{
+    viewId: string
+    sliceBy: string
+    value: string | null
+  } | null>(null)
   const now = useNow(AUTO_REFRESH_MS, active)
 
+  const { id: viewId, sliceBy: viewSliceBy } = views.view
+  const slice = useMemo(
+    () =>
+      slicePick && slicePick.viewId === viewId && slicePick.sliceBy === viewSliceBy
+        ? { value: slicePick.value }
+        : null,
+    [slicePick, viewId, viewSliceBy]
+  )
   const archived = useMemo(() => readZotzTaskBoardArchived(rawArchived), [rawArchived])
   const archivedKeys = useMemo(() => new Set(archived.map((entry) => entry.key)), [archived])
   const model = useZotzTaskBoardModel({
@@ -73,9 +90,11 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
     connectorStates: external.states,
     archivedKeys,
     view: views.view,
+    slice,
     viewer,
     now
   })
+  const summary = useZotzTaskSummary(views.view.sumField, model.facts)
   const development = useZotzIssueDevelopment(model.items, active, revision)
   const { refresh: refreshGithub } = github
   const { refresh: refreshExternal, syncPullRequests } = external
@@ -198,7 +217,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
       label: snapshot?.document?.source.name ?? connector.name
     }))
   ]
-  const { layout, groupBy } = views.view
+  const { layout, groupBy, sliceBy } = views.view
 
   const renderBoard = (): React.ReactNode => {
     if (model.githubMirror && layout === 'board') {
@@ -207,6 +226,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/50">
           <ProjectBoard
             table={table}
+            columnSummary={summary.rows ? (rows) => summary.rows?.(rows, table) : undefined}
             onOpenDialog={(row) =>
               setDetail({
                 item: {
@@ -232,7 +252,29 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
       )
     }
     if (layout === 'table') {
-      return <ZotzTaskTable groups={model.groups} facts={model.facts} onOpen={openItem} />
+      return (
+        <ZotzTaskTable
+          groups={model.groups}
+          facts={model.facts}
+          sumField={views.view.sumField}
+          summarize={summary.items}
+          onOpen={openItem}
+        />
+      )
+    }
+    if (layout === 'roadmap') {
+      return (
+        <ZotzTaskRoadmap
+          view={views.view}
+          groups={model.groups}
+          facts={model.facts}
+          fields={model.fields}
+          now={now}
+          summarize={summary.items}
+          onUpdate={views.update}
+          onOpen={openItem}
+        />
+      )
     }
     const mirror = model.externalMirror
     const canMove = mirror?.verifiedActions?.includes('move') === true
@@ -254,12 +296,14 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
           onOpen={openItem}
           canDrag={() => canMove}
           onMove={canMove ? moveExternal : undefined}
+          summarize={summary.items}
         />
       ) : (
         <ZotzTaskBoardColumns
           board={distributeZotzTaskItems(group.items)}
           onOpen={openItem}
           onArchiveDone={() => archiveDone(group.items)}
+          summarize={summary.items}
         />
       )
       return groupBy === 'none' ? (
@@ -269,7 +313,13 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
       ) : (
         <section key={group.key} className="flex h-80 shrink-0 flex-col gap-1.5">
           <p className="text-xs font-medium text-muted-foreground">
-            {group.label ?? t('zotz.taskBoard.group.empty', 'None')} · {group.items.length}
+            {[
+              group.label ?? t('zotz.taskBoard.group.empty', 'None'),
+              group.items.length,
+              summary.items?.(group.items)
+            ]
+              .filter((part) => part !== null && part !== undefined)
+              .join(' · ')}
           </p>
           {columns}
         </section>
@@ -292,6 +342,7 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
           <ZotzTaskBoardToolbar
             state={views}
             scopes={scopes}
+            fields={model.fields}
             lastUpdatedAt={github.lastUpdatedAt}
             refreshing={refreshing}
             onRefresh={() => {
@@ -329,6 +380,19 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
             <p className="px-2 py-6 text-xs text-muted-foreground">
               {t('zotz.taskBoard.loading', 'Loading tasks…')}
             </p>
+          ) : sliceBy ? (
+            <div className="flex min-h-0 flex-1 gap-2">
+              <ZotzTaskSlicePanel
+                sliceBy={sliceBy}
+                slices={model.slices}
+                total={model.sliceTotal}
+                active={model.activeSlice}
+                onSelect={(pick) =>
+                  setSlicePick(pick ? { viewId: views.view.id, sliceBy, value: pick.value } : null)
+                }
+              />
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">{renderBoard()}</div>
+            </div>
           ) : (
             renderBoard()
           )}

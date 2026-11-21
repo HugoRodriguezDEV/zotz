@@ -11,6 +11,7 @@ import {
   type ZotzTaskBoardItem
 } from '../../../../../shared/zotz/tasks/zotz-task-board-columns'
 import { ZOTZ_TASK_DRAG_MIME, ZotzTaskCard } from './ZotzTaskCard'
+import type { ZotzTaskSummarize } from './use-zotz-task-sum'
 
 const COLUMN_WIDTH_PX = 260
 
@@ -30,16 +31,24 @@ type DragProps = {
   onMove?: (itemKey: string, columnKey: string) => void
 }
 
+type SummaryProps = {
+  /** The view's field sum for a column's tasks, shown next to the count. */
+  summarize?: ZotzTaskSummarize
+}
+
 function TaskColumn({
   column,
   onOpen,
   canDrag,
-  onMove
+  onMove,
+  summarize
 }: {
   column: ZotzTaskColumnModel
   onOpen: (item: ZotzTaskBoardItem) => void
-} & DragProps): React.JSX.Element {
+} & DragProps &
+  SummaryProps): React.JSX.Element {
   const colors = column.color ? singleSelectChipColors(column.color) : null
+  const summary = summarize?.(column.items)
   return (
     <div
       role="list"
@@ -73,7 +82,12 @@ function TaskColumn({
         <span className="rounded-full border border-border/50 bg-background px-1.5 text-[11px] text-muted-foreground">
           {column.items.length}
         </span>
-        <div className="ml-auto">{column.action}</div>
+        {summary ? (
+          <span className="min-w-0 truncate text-[11px] text-muted-foreground" title={summary}>
+            {summary}
+          </span>
+        ) : null}
+        <div className="ml-auto shrink-0">{column.action}</div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-2 pb-2 scrollbar-sleek">
         {column.items.map((item) => (
@@ -94,11 +108,13 @@ export function ZotzTaskColumns({
   columns,
   onOpen,
   canDrag,
-  onMove
+  onMove,
+  summarize
 }: {
   columns: ZotzTaskColumnModel[]
   onOpen: (item: ZotzTaskBoardItem) => void
-} & DragProps): React.JSX.Element {
+} & DragProps &
+  SummaryProps): React.JSX.Element {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden pb-1 scrollbar-sleek">
       {columns.map((column) => (
@@ -108,6 +124,7 @@ export function ZotzTaskColumns({
           onOpen={onOpen}
           canDrag={canDrag}
           onMove={onMove}
+          summarize={summarize}
         />
       ))}
     </div>
@@ -133,12 +150,13 @@ function translatedColumnLabel(id: string, label: string, t: ReturnType<typeof u
 export function ZotzTaskBoardColumns({
   board,
   onOpen,
-  onArchiveDone
+  onArchiveDone,
+  summarize
 }: {
   board: Pick<ZotzTaskBoard, 'columns' | 'unmapped'>
   onOpen: (item: ZotzTaskBoardItem) => void
   onArchiveDone?: () => void
-}): React.JSX.Element {
+} & SummaryProps): React.JSX.Element {
   const t = useTranslate()
   const columns: ZotzTaskColumnModel[] = ZOTZ_TASK_BOARD_COLUMNS.map((column) => ({
     key: column.id,
@@ -167,5 +185,5 @@ export function ZotzTaskBoardColumns({
       items: board.unmapped
     })
   }
-  return <ZotzTaskColumns columns={columns} onOpen={onOpen} />
+  return <ZotzTaskColumns columns={columns} onOpen={onOpen} summarize={summarize} />
 }
