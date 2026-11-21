@@ -73,11 +73,13 @@ export default function ZotzLinksPanel(): React.JSX.Element {
   const addresses = useMemo(
     () =>
       (group?.members ?? []).flatMap((member) => {
-        const address = entryFor(member)?.address
+        const list = conversations.get(member.hostId)
+        const address =
+          list?.status === 'ready'
+            ? list.conversations.find((entry) => entry.path === member.path)?.address
+            : null
         return address ? [address] : []
       }),
-    // entryFor reads `conversations`; recompute when the lists or the group change.
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [group, conversations]
   )
   const messages = useZotzLinkMessages(hosts, addresses, group !== null)

@@ -23,7 +23,10 @@ function failure(recipient: string): { code: string; message: string } {
   try {
     resolveZotzShortNameAddress(recipient, conversations)
   } catch (error) {
-    return error as { code: string; message: string }
+    if (error instanceof Error && 'code' in error && typeof error.code === 'string') {
+      return { code: error.code, message: error.message }
+    }
+    throw error
   }
   throw new Error('expected a refusal')
 }

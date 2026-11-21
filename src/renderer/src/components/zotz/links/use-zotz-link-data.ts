@@ -92,7 +92,6 @@ export function useZotzLinkConversations(
   const [byHost, setByHost] = useState<ReadonlyMap<ExecutionHostId, ZotzHostConversations>>(
     new Map()
   )
-  const key = hosts.map((h) => `${h.hostId}:${h.supported}`).join('|')
   useEffect(() => {
     if (!enabled) {
       return
@@ -141,9 +140,7 @@ export function useZotzLinkConversations(
       cancelled = true
       stop()
     }
-    // `key` stands for `hosts`: same machines and support, same requests.
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, key])
+  }, [enabled, hosts])
   return byHost
 }
 
@@ -154,8 +151,6 @@ export function useZotzLinkMessages(
   enabled: boolean
 ): ZotzLinkMessage[] {
   const [messages, setMessages] = useState<ZotzLinkMessage[]>([])
-  const hostKey = hosts.map((h) => `${h.hostId}:${h.supported}`).join('|')
-  const addressKey = addresses.join('|')
   useEffect(() => {
     if (!enabled || addresses.length < 2) {
       setMessages([])
@@ -173,7 +168,7 @@ export function useZotzLinkMessages(
             { timeoutMs: 10_000 }
           )
             .then((result) => result.messages)
-            .catch(() => [] as ZotzLinkMessage[])
+            .catch((): ZotzLinkMessage[] => [])
         )
       void Promise.all(reads).then((lists) => {
         if (cancelled) {
@@ -192,7 +187,6 @@ export function useZotzLinkMessages(
       cancelled = true
       stop()
     }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, hostKey, addressKey])
+  }, [enabled, hosts, addresses])
   return messages
 }

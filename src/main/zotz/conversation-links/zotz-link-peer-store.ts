@@ -6,7 +6,11 @@ import { getCanonicalUserDataPath } from '../../persistence/loading-store/user-d
 import { runtimePathsEqual } from '../../runtime/workspaces/catalog/runtime-worktree-path-identity'
 
 const LINK_PEERS_FILE = 'zotz-link-peers.json'
-const REACHES = new Set<ZotzLinkPeer['reach']>(['direct', 'on-server', 'reply-only'])
+const REACHES: readonly ZotzLinkPeer['reach'][] = ['direct', 'on-server', 'reply-only']
+
+function readReach(value: unknown): ZotzLinkPeer['reach'] | null {
+  return REACHES.find((reach) => reach === value) ?? null
+}
 
 /** One worktree's partners; `changedAt` moves only when they change, so each change is told once. */
 export type ZotzLinkPeerEntry = { peers: ZotzLinkPeer[]; changedAt: number }
@@ -18,12 +22,13 @@ export type ZotzLinkPeerChange = {
 }
 
 function readPeer(value: unknown): ZotzLinkPeer | null {
+  const reach = isJsonRecord(value) ? readReach(value.reach) : null
   if (
     !isJsonRecord(value) ||
     typeof value.shortName !== 'string' ||
     typeof value.title !== 'string' ||
     !(typeof value.machine === 'string' || value.machine === null) ||
-    !REACHES.has(value.reach as ZotzLinkPeer['reach'])
+    reach === null
   ) {
     return null
   }
@@ -31,7 +36,7 @@ function readPeer(value: unknown): ZotzLinkPeer | null {
     shortName: value.shortName,
     title: value.title,
     machine: value.machine,
-    reach: value.reach as ZotzLinkPeer['reach']
+    reach
   }
 }
 
@@ -61,6 +66,8 @@ function samePeers(a: readonly ZotzLinkPeer[], b: readonly ZotzLinkPeer[]): bool
 export class ZotzLinkPeerStore {
   private readonly writer = new SerialJsonWriter()
   private links: Promise<Record<string, ZotzLinkPeerEntry>> | null = null
+  // The UI pushes every member at once; each change must start from the one before it.
+  private changes: Promise<unknown> = Promise.resolve()
 
   constructor(private readonly filePath: string) {}
 
@@ -76,7 +83,13 @@ export class ZotzLinkPeerStore {
     return key ? links[key] : null
   }
 
-  async set(path: string, peers: ZotzLinkPeer[]): Promise<ZotzLinkPeerChange> {
+  set(path: string, peers: ZotzLinkPeer[]): Promise<ZotzLinkPeerChange> {
+    const change = this.changes.then(() => this.apply(path, peers))
+    this.changes = change.catch(() => undefined)
+    return change
+  }
+
+  private async apply(path: string, peers: ZotzLinkPeer[]): Promise<ZotzLinkPeerChange> {
     const current = await this.list()
     const previous = current[path] ?? null
     if (samePeers(previous?.peers ?? [], peers)) {
