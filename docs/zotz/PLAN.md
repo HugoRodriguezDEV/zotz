@@ -26,7 +26,7 @@ Zotz es un fork de [stablyai/orca](https://github.com/stablyai/orca) para correr
 - [x] Agregar el remote upstream: `git remote add upstream https://github.com/stablyai/orca.git`.
 - [x] Documentar en `docs/zotz/SYNC.md` cómo sincronizar: `git fetch upstream && git rebase upstream/main` (o merge) en una rama `zotz/sync-YYYY-MM-DD`, resolver conflictos y correr los gates.
 - [x] `LICENSE`: **dejar intacto** el copyright de StablyAI (MIT lo exige) y agregar debajo `Copyright (c) 2026 Hugo Rodríguez (Zotz modifications)`.
-- [x] README: agregar arriba una sección corta "Zotz es un fork de Orca" con link al original. El resto del README se queda.
+- [x] README: agregar arriba una sección corta "Zotz es un fork de Orca" con link al original. El resto del README se queda. (Reemplazado el 2026-11-20: el README es de Zotz, sin nombres ni enlaces de Orca; el crédito queda en `LICENSE`.)
 - [x] Revisar `.github/workflows`: desactivar los workflows de release/publish que apunten a stablyai o requieran sus secrets (renombrar a `.disabled` o agregar `if: github.repository == 'stablyai/orca'`). Los de CI (lint/test) se quedan.
 
 **Listo cuando:** CI corre verde en el fork y ningún workflow intenta publicar.
@@ -334,6 +334,24 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 
 ---
 
+## Fase 9 — Tablero de tareas (GitHub Projects + conectores externos)
+
+Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
+
+- [x] 9a. Modal unificado con pestañas Tareas y Agentes; el botón de kanban de la barra lateral lo abre y el Workspace board queda oculto (no borrado).
+- [x] 9b, parte 1. GitHub Projects de solo lectura: elegir organizaciones/cuenta → Projects; tablero combinado (Backlog / In Progress / In Review / Done) y vista espejo de cada Project; tarjetas con marca de GitHub, logo y nombre de la org y el proyecto; búsqueda; detalle con "Abrir en GitHub"; "Archivar terminadas" (solo con botón) y vista Archivadas.
+- [x] 9b, parte 2. Issues de repos sueltos; vistas guardadas (board/tabla, filtro con la sintaxis de GitHub, Group by, Sort); actualizar cada 5 min con el modal abierto.
+- [x] 9c. PRs ligados estilo Avena: línea de PR en la tarjeta; en el detalle, PRs y ramas ligadas, los que la mencionan, commit y archivos.
+- [x] 9d, parte 1. Contrato `zotz-tasks/v1` con campos tipo Project (JSON, YAML, TOML), feed por URL con token cifrado, importar archivo, tareas externas en el tablero y vista propia de cada servicio.
+- [x] 9d, parte 2. JSON Schema publicado, `zotz tasks push`/`validate`/`schema` y endpoint `link-pr`.
+- [x] 9e. Tarea ↔ agente: chip de estado en la tarjeta y "Crear workspace con esta tarea".
+- [x] 9f. Acción `move` para fuentes externas, con comprobación previa.
+- Pospuesto por Hugo (parte 2 de la fase): relay propio en Vercel (GitHub App) para avisos al instante, vista roadmap, _Slice by_ y sumas de campos.
+
+**Listo cuando:** el tablero muestra juntas las tareas de los Projects elegidos y de un feed externo de prueba, cada una con su marca, su proyecto y sus PRs; un PR detectado llega al proveedor por `link-pr`; y ninguna tarea de GitHub se puede modificar desde Zotz.
+
+---
+
 ## Decisiones abiertas (las resuelve Hugo)
 
 1. **Notificaciones push al celular** (`push.onorca.dev`): las manda la infraestructura de StablyAI. Opciones: (a) dejarlas, que es cómodo pero los avisos pasan por sus servidores; (b) apagarlas y usar un bot propio de Telegram para los avisos (sería una Fase 8).
@@ -357,6 +375,7 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 | 6 Tailscale             | 5          | S                                      |
 | 7 Seguridad             | 5          | S (en su mayoría docs y configuración) |
 | 8 Gobernador de memoria | 4, 5       | L                                      |
+| 9 Tablero de tareas     | 8          | L                                      |
 
 Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
@@ -653,6 +672,112 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 - **Interfaz:** el aviso de cola del chat de un servidor sale con "En {servidor}" y sin botones (cancelar y _Launch anyway_ son la PR 3); la barra lateral une la cola local con la de los servidores para el reloj de arena y "En cola · N min".
 - **Compatibilidad:** un servidor sin la capability no muestra cola y no da errores. Para ver la cola de la MSI, la MSI debe tener este release.
 - **Sin cubrir todavía:** tarjetas sobre terminales de un servidor y tablero por máquina. No se verificó con la MSI real.
+
+### 2026-11-20 — Cola de memoria de los servidores, acciones (`zotz/cola-servidores-acciones`)
+
+- Spec: [`SPEC-servidores-cola-y-archivar.md`](./SPEC-servidores-cola-y-archivar.md), Parte B, fase 3. Desde la laptop se puede cancelar un arranque en cola de un servidor o pulsar _Launch anyway_.
+- **Servidor:** llamadas RPC nuevas `zotz.agentQueue.cancel`, `forceStart` y `dismissCanceled` (permiso `workspace`, id de 1 a 1024 caracteres, igual que el IPC de la ventana) y la capability `zotz.agent-queue-control.v1`, aparte de la de lectura porque un servidor que publica su cola puede no tener todavía estas llamadas. En un servidor sin limitador no hacen nada ni fallan.
+- **Cliente:** `zotz-host-agent-queue-actions.ts` llama al servidor y, si falla, avisa con el nombre del servidor; no actualiza nada a mano porque el flujo de la cola del servidor reporta el resultado. Los botones del aviso del chat de un servidor salen solo si declara la capability de control.
+- **Sin cubrir todavía:** tarjetas sobre terminales de un servidor (falta comprobar que la clave de panel coincide) y el tablero por máquina. No se verificó con la MSI real.
+
+### 2026-11-20 — Cola de memoria de los servidores, terminales (`zotz/cola-servidores-terminales`)
+
+- Un agente de terminal lanzado en un servidor y retenido por su limitador no mostraba nada en la laptop: la tarjeta "En cola" del pane solo leía la cola local. Ahora lee la cola del servidor dueño del worktree, con "En {servidor}" y Cancelar / _Launch anyway_ si el servidor declara la capability de control; la franja de cancelado también.
+- **Clave de panel:** el servidor recibe el `tabId`/`leafId` de la laptop en `terminal.create` y `terminal.createAgentSession` y los conserva, así que la cola lo guarda con la misma clave que calcula la ventana.
+- `use-zotz-queue-on-host.ts` reúne cola, nombre y acciones de la máquina (local o servidor) para el chat y la terminal.
+- **Tablero de todas las máquinas:** una sola tabla (Backlog / In Progress / Review / Done) con las tarjetas de todas las máquinas; arriba, una línea de memoria por máquina (esta primero, con "Este equipo"). Cada tarjeta lleva la marca de su máquina (ícono de equipo o servidor y nombre) cuando hay más de una. En el backlog, cada máquina conserva su turno y las siguientes de cada una quedan juntas arriba. Un servidor sin la capability de control no muestra botones y una línea arriba dice que hay que actualizarlo. El contador "en cola" de la barra de estado suma todas las máquinas; la RAM libre sigue siendo la de esta.
+- **Panel lateral, no diálogo:** el tablero se abre junto a la barra lateral, sin bloquear la app, como el Workspace board y el de Agents (`ZotzAgentQueueDrawer`, montado en `sidebar/index.tsx`). Abrir uno cierra los otros dos; Escape, la X o el botón de la barra de estado lo cierran.
+- **Memoria libre en macOS:** el limitador usaba el "free percentage" de `memory_pressure` (heredado de Orca), que cuenta como libre lo que el kernel recuperaría comprimiendo o paginando: con 10 GB en swap marcaba 15 GB libres de 24 cuando Monitor de Actividad dejaba ~8. Ahora toma el menor entre ese número y lo que queda fuera de "Memoria usada" (apps + wired + comprimida, de `vm_stat`), tanto para mostrar como para admitir agentes (`collectZotzHostMemory`). El monitor de recursos de Orca no cambia.
+- **Pendiente:** un agente lanzado desde la laptop en un servidor entra con prioridad `automation` (la más baja), porque el servidor solo reconoce `mobile`/`cli` como remotos.
+- **Riesgo abierto:** la laptop espera la respuesta de crear la terminal remota ~3 min (`REMOTE_RUNTIME_AUTO_RECOVERY_TIMEOUT_MS`); si el agente sigue en cola más tiempo, el pane se da por desconectado. Falta que una espera en cola no cuente como caída.
+
+### 2026-11-20 — Marca de segundo plano y sin archivar al hacer merge (`zotz/sonar-segundo-plano`)
+
+- **Marca propia para el segundo plano:** cuando el agente terminó y solo sigue un proceso en segundo plano (estado `monitoring`), la barra lateral mostraba la misma onda que con el agente trabajando. Ahora muestra `ZotzBackgroundSonar` (un punto con dos arcos de eco que pulsan). La onda queda solo para `working`, que siempre gana: si en la conversación el agente trabaja y además hay un proceso en segundo plano, se ve la onda.
+- **Se quita `useArchiveOnMerge`:** una conversación ya no se archiva sola al mergear su PR; solo Hugo la archiva desde el menú. También salió la cadena `zotz.sidebar.archivedMerged`. La limpieza automática de upstream (`workspaceCleanup`) sigue apagada por defecto y no se tocó.
+- Verificado con la fixture `ZotzWorkingRipple:backgroundOnly`; no se probó con un proceso real en segundo plano.
+
+### 2026-11-19 — Fase 9a: modal de tareas y agentes (`zotz/fase-9-tareas`)
+
+- Spec: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
+- Un solo modal (`ZotzBoardModal`) con pestañas **Tareas** y **Agentes**, montado una vez desde `ZotzRootOverlays` en la raíz de la app. El botón de kanban de la barra lateral abre Tareas; el indicador de la cola en la barra de estado abre Agentes. Tareas todavía muestra un estado vacío hasta la 9b.
+- El Workspace board de Orca queda oculto, no borrado: `useZotzWorkspaceBoardPanel` reemplaza a `useWorkspaceBoardPanel` en la barra lateral, deja el drawer siempre cerrado, apaga la vista previa al arrastrar y manda el atajo y el comando del board a la pestaña Tareas.
+- Se borraron de los 11 idiomas los 3 textos del botón viejo (`auto.components.sidebar.SidebarToolbar.*`): el gate de localización no deja textos sin uso.
+- Sorpresa: el store de la cola tronaba si `snapshot()` devolvía `undefined` (cliente web sin runtime). Ahora lo trata como vacío.
+- Verificado con la fixture `zotz/tasks/ZotzBoardModal` (ambas pestañas, ambos temas) y `pnpm check:changed`. Sin verificar en la app real.
+
+### 2026-11-20 — Fase 9b, parte 1: tablero con GitHub Projects (`zotz/fase-9-tareas`)
+
+- **Ajustes → Tareas → Tablero de tareas de Zotz:** lista los Projects de tu cuenta y de tus orgs (`listAccessibleProjects` de Orca), agrupados por dueño con su avatar. Hay casilla por org (marca todos sus Projects) y por Project. Se guarda en `zotzTaskBoardSources`.
+- **Pestaña Tareas:**
+  - "Todos los proyectos" junta los Projects en Backlog / In Progress / In Review / Done. Cada opción de Status cae en su columna por nombre o sinónimo (`Todo`, `Ready` → Backlog; `QA`, `Review` → In Review); lo que no casa va a "Sin estado".
+  - Al elegir un Project se ve tal cual en GitHub con el `ProjectBoard` de Orca, sin arrastre.
+  - Un issue que está en dos Projects sale una vez, y un PR ligado a un issue del tablero no sale como tarjeta aparte.
+- **Datos:** usa `fetchProjectViewTable` (y su caché) con la vista por defecto del Project; si es roadmap, toma la primera vista board o tabla. Se cargan al abrir la pestaña y con "Actualizar"; la actualización cada 5 min queda para la parte 2.
+- **Detalle de solo lectura:** campos del Project, asignados, labels, issue padre, sub-issues, PRs ligados y "Abrir en GitHub". El cuerpo del issue no viene en las filas del Project; leerlo queda pendiente.
+- **Archivar terminadas** guarda en `zotzTaskBoardArchived` (setting, no archivo aparte). Una tarea archivada vuelve sola si sale de Done.
+- Avatares de dueños: `https://github.com/<login>.png`, sin llamada extra a la API; si no cargan, se ocultan.
+- Test de la lógica pura en `zotz-task-board-columns.test.ts` (mapeo, duplicados, PR ligado, archivado). Verificado con fixtures (`ZotzTaskBoard:combined`, `:detail`, `ZotzTaskBoardSourcesSetting:picker`) y `pnpm check:changed`. Sin verificar con GitHub real ni en la app.
+
+### 2026-11-20 — Fase 9d, parte 1: servicios de tareas externos (`zotz/fase-9-tareas`)
+
+- **Contrato** en `shared/zotz/tasks/zotz-tasks-contract.ts`. Un esquema `zod` lee JSON, YAML o TOML.
+  - Una tarea inválida se omite y se reporta con su motivo; un documento inválido no reemplaza al último bueno.
+  - Límites: 2 MB y 2,000 tareas.
+- **Main** (`main/zotz/tasks/`):
+  - `ZotzTaskConnectorService` descarga cada feed con `Authorization: Bearer`, 15 s de límite, y guarda el último documento en `zotz-task-connectors.json`.
+  - El token se cifra con el `SecretStore` del sistema en `zotz-task-connector-secrets.json` (modo 600). Si el sistema no puede cifrar, no se guarda.
+  - IPC `zotzTasks:*` y puente `window.api.zotzTaskConnectors`.
+- **Ajustes → Tareas → "External task services":** URL + token opcional, o "Import file". Muestra el número de tareas, la hora, la primera tarea omitida y el error.
+- **Tablero:**
+  - El modelo de tarjeta ahora acepta tareas de GitHub y externas (`origin`).
+  - El Status externo cae en la columna por nombre y, si no, por `category`.
+  - Cada servicio tiene su vista con sus columnas.
+  - El detalle muestra sus campos.
+- Probado en la app real con un feed local protegido por token: sin token da 401 y no se agrega; con token, 5 tareas y 1 omitida. Capturas en la evidencia de la sesión.
+- Tests: `zotz-tasks-contract.test.ts` (tareas omitidas, JSON/YAML/TOML iguales, versión, columna por nombre y por categoría).
+
+### 2026-11-20 — Fase 9 completa: 9b parte 2, 9c, 9d parte 2, 9e y 9f (`zotz/fase-9-tareas`)
+
+- **9b, parte 2:**
+  - **Repos sin Project:** en Ajustes cada cuenta u organización (también las que no tienen Projects) tiene "Mostrar repos". Los issues se leen de GitHub, no de clones locales: los 100 más recientes, abiertos y cerrados. El Status se deriva así: abierto → Todo, abierto con PR abierto que lo cierra → In Progress, cerrado → Done.
+  - **Vistas guardadas** (`zotzTaskBoardViews`):
+    - Tienen alcance (todo, un Project, un repo o un servicio), board o tabla, filtro con la sintaxis de GitHub, Group by (fuente, proyecto, asignado, estado) y orden (fuente, actualizadas, título).
+    - Los cambios quedan con un punto hasta "Guardar vista"; doble clic renombra la vista.
+    - _Column by_ no se elige: el combinado usa el Status de Zotz y la vista de un Project usa la columna de esa vista en GitHub.
+  - **Filtro:** acepta `is:`, `status:`, `assignee:@me`, `label:`, `repo:`, `project:`, `source:`, `no:`, `has:`, `updated:@today-7d` e `iteration:@current`, negación con `-` y comas como OR.
+  - **Actualización:** cada 5 min mientras el tablero está abierto (`useNow`).
+- **9c — PRs de GitHub:**
+  - La tarjeta tiene línea de PR ("→ main · PR open", "PR merged into main", "PR closed without merging", +N).
+  - El detalle tiene la sección Development: PRs ligados (`closedByPullRequestsReferences`) con autor, +/−, archivos y commit de merge; ramas ligadas (`linkedBranches`); y PRs que solo lo mencionan (timeline), con "Ligar en GitHub".
+  - Se lee por lotes de 20 issues con caché de 5 min.
+  - Los despliegues (GitHub Deployments) no entraron.
+- **9d, parte 2:**
+  - **CLI:** `zotz tasks push` (RPC `zotz.tasks.push`, capability `zotz.tasks-push.v1`, también hacia un servidor emparejado), `tasks validate` (local) y `tasks schema` (local).
+  - **JSON Schema:** `docs/zotz/schemas/zotz-tasks-v1.schema.json`, generado con `tasks schema`.
+  - **Detección de PRs:** Zotz lee los 50 PRs más recientes de los repos del tablero y los que el servicio declara. Si `taskIdPattern` aparece en la rama o el título, el PR se liga; si solo aparece en el cuerpo, queda como mención.
+  - **`link-pr`:** se envía solo cuando algo cambia, se reintenta si falla, y manda `unlinked` cuando un enlace desaparece.
+  - **Acciones:** se comprueban con `dryRun` al conectar.
+  - **Patrones peligrosos:** los cuantificadores anidados se rechazan.
+- **9e:**
+  - **Chip en la tarjeta:** muestra el workspace ligado (por `linkedIssue` o por el id de la tarea en la rama) y el estado de su agente; un clic lo abre.
+  - **Crear workspace:** "Crear workspace con esta tarea" usa el composer de Orca. Para GitHub liga el issue; para servicios pone el id en el nombre.
+  - **Pendiente:** el cuerpo de la tarea como primer prompt no se puede, porque el composer no lo acepta. "En cola" tampoco, porque la cola no guarda el workspace de cada espera.
+- **9f:** arrastrar en la vista de un servicio que verificó `move` manda la acción y mueve la tarjeta; si falla, avisa.
+- **Rebase sobre #33:** la cola de memoria pasó a un panel lateral propio con todas las máquinas. El modal de tareas ya no tiene pestaña "Agentes" para no duplicarla, y el indicador de la barra de estado abre ese panel, como en `main`.
+- **Arreglos que salieron al probar con datos reales:**
+  - **Grupos duplicados en Ajustes:** una organización salía dos veces (sin host y con `github.com`).
+  - **PRs perdidos:** la sincronización de PRs podía escribir sobre un conector que un refresh acababa de reemplazar.
+  - **Ajustes sin el conector de `push`:** no se enteraba porque faltaba `notifyListeners`.
+- **Probado** en la app real con el Project TEDYC, un repo suelto, un servicio local con token y `zotz tasks push` desde la CLI compilada. El servicio recibió los `dryRun`, dos `link-pr` reales (un PR detectado por la rama `feature/issue-19-…` y otro declarado) y un `move`.
+- Los 4 tests de `cross-version-wire` fallan en esta máquina: una copia vieja en caché (`tests/e2e/.cross-version-checkouts/v1.4.265`) importa un paquete `cloud/` que no existe aquí. No es por este cambio.
+
+### 2026-11-20 — README de Zotz y carpeta `~/zotz` (`zotz/readme-zotz`)
+
+- **README:** reescrito en español para Zotz, sin nombres, enlaces ni imágenes de Orca. Imágenes de las fixtures en `docs/assets/zotz/` y `social-preview.png` para la vista previa del repo (se sube a mano: GitHub no tiene API). Los README traducidos y los assets viejos de `docs/assets/` se quedan por el costo de sync.
+- **Carpeta visible:** los worktrees nuevos van a `~/zotz/workspaces` y los proyectos nuevos a `~/zotz/projects` (antes `~/orca/...`). `getDefaultWorkspaceDir` y el espejo de WSL usan `ZOTZ_HOME_FOLDER_NAME` (`src/shared/zotz/zotz-home-folders.ts`). `~/.orca` sigue igual (decisión de Fase 1c).
+- **Migración al cargar el perfil** (`src/main/zotz/zotz-workspace-dir-migration.ts`): si el ajuste guardado era el default viejo (o no existía), pasa a `~/zotz/workspaces` y `~/orca/workspaces` entra a `workspaceDirHistory`, así que los worktrees que ya están ahí conservan dueño y visibilidad. Una carpeta elegida a mano no se toca. La clasificación de WSL reconoce ambas raíces.
+- **No se mueven los worktrees existentes:** git los registra por ruta absoluta y pueden tener agentes corriendo. Siguen en `~/orca/workspaces` hasta que se borren; cuando la carpeta quede vacía se puede borrar a mano.
 
 ### 2026-11-20 — Crear conversación en un servidor desde la laptop (`zotz/crear-conversacion-remota`)
 

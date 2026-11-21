@@ -240,6 +240,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('../diagnostics/diagnostics.js')).DIAGNOSTICS_HANDLERS
   },
   {
+    name: 'zotz-tasks',
+    keys: ['tasks push', 'tasks validate', 'tasks schema'],
+    load: async () => (await import('../zotz/zotz-tasks.js')).ZOTZ_TASKS_HANDLERS
+  },
+  {
     name: 'speech',
     keys: ['speech openai-key status', 'speech openai-key set', 'speech openai-key clear'],
     load: async () => (await import('../speech/speech.js')).SPEECH_HANDLERS

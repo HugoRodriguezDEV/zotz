@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Ban, GitPullRequest, Hourglass } from 'lucide-react'
 import { useNow } from '@/hooks/use-now'
 import { useAppStore } from '@/store/index'
@@ -13,17 +13,12 @@ import type {
   ZotzConversationStatus
 } from './zotz-project-conversations'
 import { ZotzWorkingRipple } from './ZotzWorkingRipple'
+import { ZotzBackgroundSonar } from './ZotzBackgroundSonar'
 import { useZotzWorktreePr } from '../pr-status/use-zotz-worktree-pr'
-import {
-  ZOTZ_PR_TONE_TEXT,
-  zotzPrStatusLabel,
-  zotzPrTone,
-  type ZotzPrStatusKind
-} from '../pr-status/zotz-pr-status'
-import { archiveZotzConversation } from './zotz-archive'
+import { ZOTZ_PR_TONE_TEXT, zotzPrStatusLabel, zotzPrTone } from '../pr-status/zotz-pr-status'
 import { ZotzPrStatusIcon } from '../pr-status/ZotzPrStatusIcon'
 import { minutesSince } from '../agent-queue/zotz-memory-format'
-import type { Worktree } from '../../../../../shared/worktree/types'
+import { normalizeZotzShortName } from '../../../../../shared/zotz/zotz-short-name'
 
 function StatusMark({
   status,
@@ -44,8 +39,11 @@ function StatusMark({
       />
     )
   }
-  if (status && (status.state === 'working' || status.state === 'monitoring')) {
+  if (status?.state === 'working') {
     return <ZotzWorkingRipple />
+  }
+  if (status?.state === 'monitoring') {
+    return <ZotzBackgroundSonar />
   }
   if (status) {
     return (
@@ -64,30 +62,6 @@ function StatusMark({
   return <span aria-hidden className="size-1.5 rounded-full bg-worktree-sidebar-foreground/25" />
 }
 
-// Last PR state seen per worktree this session, so only a merge that happens now archives.
-const seenPrStatus = new Map<string, ZotzPrStatusKind>()
-
-/** Conductor archives a conversation once its PR merges; an already-merged PR at startup is left alone. */
-function useArchiveOnMerge(worktree: Worktree | null, status: ZotzPrStatusKind | null): void {
-  useEffect(() => {
-    if (!worktree || !status) {
-      return
-    }
-    const previous = seenPrStatus.get(worktree.id)
-    seenPrStatus.set(worktree.id, status)
-    if (
-      status === 'merged' &&
-      previous !== undefined &&
-      previous !== 'merged' &&
-      previous !== 'closed' &&
-      !worktree.isMainWorktree &&
-      !worktree.isArchived
-    ) {
-      void archiveZotzConversation(worktree, 'merged')
-    }
-  }, [worktree, status])
-}
-
 /** `+371 −28` against the branch base, once Source Control has measured it. */
 function LineTotalBadge({ worktreeId }: { worktreeId: string }): React.JSX.Element | null {
   const total = useAppStore((s) => s.gitBranchLineTotalByWorktree?.[worktreeId] ?? null)
@@ -104,7 +78,13 @@ function LineTotalBadge({ worktreeId }: { worktreeId: string }): React.JSX.Eleme
   )
 }
 
-/** Conductor-style row: title and line totals, then branch · PR #N · its state (or how long ago). */
+/** A worktree whose folder is named after its branch (`fix/login` in `login`) shows it once. */
+function branchRepeatsShortName(row: Row): boolean {
+  const lastSegment = row.branch?.split('/').at(-1) ?? ''
+  return row.shortName !== null && normalizeZotzShortName(lastSegment) === row.shortName
+}
+
+/** Conductor-style row: title and line totals, then short name · branch · PR #N · its state (or how long ago). */
 export function ZotzConversationRow({
   row,
   repo,
@@ -126,8 +106,9 @@ export function ZotzConversationRow({
   const now = useNow(30_000, queuedSince !== null)
   const pr = useZotzWorktreePr(row.worktree, repo)
   const prTone = pr ? zotzPrTone(pr.status) : null
-  useArchiveOnMerge(row.worktree, pr?.status ?? null)
   const lastActivity = row.worktree?.lastActivityAt ?? 0
+  const showBranch = row.branch !== null && row.branch !== row.title && !branchRepeatsShortName(row)
+  const hasLeading = showBranch || row.shortName !== null
   return (
     <button
       type="button"
@@ -150,12 +131,20 @@ export function ZotzConversationRow({
           {row.worktree ? <LineTotalBadge worktreeId={row.worktree.id} /> : null}
         </span>
         <span className="flex min-w-0 items-center gap-1 text-2xs text-worktree-sidebar-foreground/50">
-          {row.branch && row.branch !== row.title ? (
-            <span className="min-w-0 truncate font-mono">{row.branch}</span>
+          {row.shortName ? (
+            <span className="max-w-[45%] shrink-0 truncate font-medium text-worktree-sidebar-foreground/70">
+              {row.shortName}
+            </span>
+          ) : null}
+          {showBranch ? (
+            <>
+              {row.shortName ? <span aria-hidden>·</span> : null}
+              <span className="min-w-8 truncate font-mono">{row.branch}</span>
+            </>
           ) : null}
           {queuedSince !== null ? (
             <>
-              {row.branch && row.branch !== row.title ? <span aria-hidden>·</span> : null}
+              {hasLeading ? <span aria-hidden>·</span> : null}
               <span className="shrink-0 font-medium text-zotz-gh-pending">
                 {t('zotz.agentQueue.queuedFor', 'Queued · {{minutes}} min', {
                   minutes: minutesSince(queuedSince, now)
@@ -164,7 +153,7 @@ export function ZotzConversationRow({
             </>
           ) : pr && prTone ? (
             <>
-              {row.branch && row.branch !== row.title ? <span aria-hidden>·</span> : null}
+              {hasLeading ? <span aria-hidden>·</span> : null}
               <GitPullRequest className="size-3 shrink-0" />
               <span className="shrink-0">#{pr.pr.number}</span>
               <span aria-hidden>·</span>
@@ -175,7 +164,7 @@ export function ZotzConversationRow({
             </>
           ) : lastActivity > 0 ? (
             <>
-              {row.branch && row.branch !== row.title ? <span aria-hidden>·</span> : null}
+              {hasLeading ? <span aria-hidden>·</span> : null}
               <span className="shrink-0">{formatRelativeTime(lastActivity)}</span>
             </>
           ) : null}

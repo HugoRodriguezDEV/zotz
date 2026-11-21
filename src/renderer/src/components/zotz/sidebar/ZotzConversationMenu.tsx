@@ -1,5 +1,5 @@
 import React from 'react'
-import { Archive, Copy, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Archive, AtSign, Copy, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
@@ -31,7 +31,11 @@ type MenuAction = {
   run: () => void
 }
 
-function conversationActions(worktree: Worktree, t: Translate): MenuAction[] {
+function conversationActions(
+  worktree: Worktree,
+  t: Translate,
+  onEditShortName: (() => void) | undefined
+): MenuAction[] {
   const { openModal } = useAppStore.getState()
   const branch = worktree.branch.replace(/^refs\/heads\//, '')
   const actions: MenuAction[] = [
@@ -50,6 +54,14 @@ function conversationActions(worktree: Worktree, t: Translate): MenuAction[] {
         })
     }
   ]
+  if (onEditShortName) {
+    actions.push({
+      key: 'short-name',
+      label: t('zotz.sidebar.shortName', 'Short name…'),
+      icon: AtSign,
+      run: onEditShortName
+    })
+  }
   if (branch) {
     actions.push({
       key: 'duplicate',
@@ -68,7 +80,7 @@ function conversationActions(worktree: Worktree, t: Translate): MenuAction[] {
     label: t('zotz.sidebar.archive', 'Archive'),
     icon: Archive,
     separatorBefore: true,
-    run: () => void archiveZotzConversation(worktree, 'user')
+    run: () => void archiveZotzConversation(worktree)
   })
   // The project's own checkout can be archived but never deleted; only its worktrees can.
   if (!worktree.isMainWorktree) {
@@ -87,19 +99,22 @@ function conversationActions(worktree: Worktree, t: Translate): MenuAction[] {
   return actions
 }
 
-/** Right-click and "…" menu for a conversation row: rename, duplicate, archive, delete. */
+/** Right-click and "…" menu for a conversation row: rename, short name, duplicate, archive, delete. */
 export function ZotzConversationMenu({
   worktree,
+  onEditShortName,
   children
 }: {
   worktree: Worktree | null
+  /** Absent when the machine that owns it cannot keep short names. */
+  onEditShortName?: () => void
   children: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
   if (!worktree) {
     return <>{children}</>
   }
-  const actions = conversationActions(worktree, t)
+  const actions = conversationActions(worktree, t, onEditShortName)
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>

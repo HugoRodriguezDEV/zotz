@@ -16,7 +16,7 @@ import { cn } from '@/lib/class-names'
 import { FolderPlus, Loader2 } from 'lucide-react'
 import { ActivityThreadCollapseContext } from '@/components/activity/activity-thread-collapse-context'
 import { useSidebarProjectDrop } from './project-admission/drop/useSidebarProjectDrop'
-import { useWorkspaceBoardPanel } from './workspace-board/surface/useWorkspaceBoardPanel'
+import { useZotzWorkspaceBoardPanel } from '../zotz/tasks/use-zotz-workspace-board-panel'
 import { useWorkspaceRevealBodyRedirect } from './worktree-list/navigation/use-workspace-reveal-body-redirect'
 import { resolveLeftSidebarStyleVariables } from '@/app-shell/appearance/left-sidebar-appearance'
 import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
@@ -27,6 +27,7 @@ import { StartupWorktreeRefreshStatus } from './StartupWorktreeRefreshStatus'
 import { WorktreeCardsUpdateNotice } from './WorktreeCardsUpdateNotice'
 import { isZotzConductorSidebar } from '../../../../shared/zotz/zotz-sidebar-layout'
 import { isZotzAutomatedLaunch } from '../zotz/zotz-machine-mode-wizard-event'
+import { useZotzAgentQueueDrawerOpen } from '../zotz/agent-queue/zotz-agent-queue-drawer-open'
 
 // Load the shared Activity badge/list pipeline after the sidebar shell.
 const SidebarAgentsList = lazyWithRetry(() => import('./SidebarAgentsList'))
@@ -48,6 +49,9 @@ const ForgetSshWorkspaceDialog = lazyWithRetry(
   () => import('./workspace-actions/deletion/ForgetSshWorkspaceDialog')
 )
 const AgentDashboardSidebarHost = lazyWithRetry(() => import('./AgentDashboardSidebarHost'))
+const ZotzAgentQueueSidebarHost = lazyWithRetry(
+  () => import('../zotz/agent-queue/ZotzAgentQueueSidebarHost')
+)
 
 const MIN_WIDTH = 220
 const MAX_WIDTH = 500
@@ -119,14 +123,13 @@ function Sidebar({
     workspaceBoardRenderedOpen,
     workspaceBoardDragPreviewOpen,
     workspaceBoardMenuOpen,
-    toggleWorkspaceBoard,
     handleWorkspaceBoardOpenChange,
     setWorkspaceBoardMenuOpen,
     closeWorkspaceBoard,
     previewWorkspaceBoardFromDrag,
     solidifyWorkspaceBoardFromDrag,
     cancelWorkspaceBoardDragPreview
-  } = useWorkspaceBoardPanel()
+  } = useZotzWorkspaceBoardPanel()
 
   const repoCount = repos.length
   const previousRepoCountRef = React.useRef(repoCount)
@@ -161,8 +164,11 @@ function Sidebar({
     onDraftWidthChange: setSidebarLiveWidth
   })
 
+  const zotzAgentQueueOpen = useZotzAgentQueueDrawerOpen()
   const drawerCoversSeam =
-    workspaceBoardRenderedOpen || (showAgentDashboard && agentDashboardDrawerOpen)
+    workspaceBoardRenderedOpen ||
+    (showAgentDashboard && agentDashboardDrawerOpen) ||
+    zotzAgentQueueOpen
 
   useWorkspaceRevealBodyRedirect(sidebarOpen && sidebarBody === 'agents')
   // A collapsed sidebar takes no drops.
@@ -192,11 +198,7 @@ function Sidebar({
               <ZotzProjectSidebar />
               <div className="relative shrink-0">
                 <SetupScriptPromptCard />
-                <SidebarToolbar
-                  workspaceBoardOpen={workspaceBoardOpen}
-                  workspaceBoardDragPreviewOpen={workspaceBoardDragPreviewOpen}
-                  onWorkspaceBoardToggle={toggleWorkspaceBoard}
-                />
+                <SidebarToolbar />
               </div>
             </React.Suspense>
           ) : null}
@@ -252,11 +254,7 @@ function Sidebar({
               <div className="relative shrink-0">
                 <SetupScriptPromptCard />
 
-                <SidebarToolbar
-                  workspaceBoardOpen={workspaceBoardOpen}
-                  workspaceBoardDragPreviewOpen={workspaceBoardDragPreviewOpen}
-                  onWorkspaceBoardToggle={toggleWorkspaceBoard}
-                />
+                <SidebarToolbar />
               </div>
             </>
           )}
@@ -333,6 +331,14 @@ function Sidebar({
           />
         </React.Suspense>
       ) : null}
+      <React.Suspense fallback={null}>
+        <ZotzAgentQueueSidebarHost
+          workspaceBoardOpen={workspaceBoardOpen}
+          closeWorkspaceBoard={closeWorkspaceBoard}
+          leftSidebarStyle={leftSidebarStyle}
+          statusBarVisible={statusBarVisible}
+        />
+      </React.Suspense>
     </TooltipProvider>
   )
 }

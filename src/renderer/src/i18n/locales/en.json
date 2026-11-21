@@ -7040,11 +7040,6 @@
           "f8a2c91d4e": "Milestones",
           "b7e4d2a19c": "Onboarding"
         },
-        "SidebarToolbar": {
-          "87d0064026": "Workspace board moved to the bottom bar",
-          "a30e34eb5c": "Close workspace board",
-          "49f62c5665": "Workspace board"
-        },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "Hide default branch",
           "ed1611b65b": "Hide sleeping",
@@ -25893,6 +25888,7 @@
       "waitStarting": "Checking memory…",
       "autoStart": "The agent starts on its own when there is room. Nothing is lost if you wait.",
       "onHost": "On {{host}}",
+      "remoteActionFailed": "Could not reach {{host}}: {{error}}",
       "cancel": "Cancel",
       "forceStart": "Launch anyway",
       "board": {
@@ -25901,7 +25897,6 @@
         "priorityAutomation": "Automation",
         "free": "{{free}} GB free of {{total}} GB",
         "keepsFree": "Always keeps {{min}} GB free",
-        "minFreeMarker": "Always free",
         "legendSystem": "System and other apps",
         "legendAgents": "Agents",
         "legendMinFree": "Always free",
@@ -25924,9 +25919,10 @@
         "doneEmpty": "No finished runs yet",
         "doneRun": "{{minutes}} min · peak {{peak}} GB",
         "title": "Agent queue",
-        "description": "Agents start when they fit in memory; the rest wait their turn here.",
+        "description": "Each machine has its own memory: its agents start when they fit there, the rest wait their turn.",
         "gbAmount": "{{gb}} GB",
-        "gbEstimate": "~{{gb}} GB"
+        "gbEstimate": "~{{gb}} GB",
+        "close": "Close"
       },
       "segment": {
         "withQueue": "{{free}} GB free · {{queued}} queued",
@@ -25940,7 +25936,11 @@
       "dismissCanceled": "Dismiss",
       "canceledMark": "Canceled",
       "queuedMark": "Queued",
-      "queuedFor": "Queued · {{minutes}} min"
+      "queuedFor": "Queued · {{minutes}} min",
+      "machines": {
+        "thisDevice": "This device",
+        "readOnly": "Update Zotz on {{host}} to cancel or launch its waits from here."
+      }
     },
     "sidebar": {
       "home": "Home",
@@ -25957,11 +25957,11 @@
       "archive": "Archive",
       "delete": "Delete",
       "conversationActions": "Conversation actions",
-      "archivedMerged": "Merged and archived: {{name}}",
       "viewArchived": "View archived",
       "archiveFailed": "Could not archive: {{error}}",
       "archivedTitle": "Archived",
-      "restore": "Restore {{name}}"
+      "restore": "Restore {{name}}",
+      "shortName": "Short name…"
     },
     "composer": {
       "worktreeLabel": "Worktree",
@@ -26028,6 +26028,160 @@
       "uncommittedDetail": "They stay on disk, but this project and its conversations leave Zotz. Open a list to review each change.",
       "changesKept_one": "{{count}} uncommitted change",
       "changesKept_other": "{{count}} uncommitted changes"
+    },
+    "shortName": {
+      "taken": "Another conversation on this machine uses that name.",
+      "invalid": "Use letters, numbers or dashes.",
+      "title": "Short name",
+      "description": "Agents use it to message this conversation. Unique on this machine; letters, numbers and dashes.",
+      "preview": "Saved as {{name}}",
+      "useFolder": "Use folder name",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "taskBoard": {
+      "settings": {
+        "title": "Zotz task board",
+        "description": "Choose the organizations and GitHub Projects whose tasks appear on the task board. Tasks are read-only in Zotz; edit them on GitHub.",
+        "selectedCount": "{{total}} selected",
+        "reload": "Reload from GitHub",
+        "partialFailures": "Couldn't list projects for: {{owners}}",
+        "loading": "Loading your GitHub Projects…",
+        "none": "GitHub returned no Projects for your account.",
+        "personal": "Personal account",
+        "organization": "Organization",
+        "repos": "Repos (issues without a Project)",
+        "reposLoading": "Loading…",
+        "reposShow": "Show repos"
+      },
+      "column": {
+        "backlog": "Backlog",
+        "inProgress": "In Progress",
+        "inReview": "In Review",
+        "done": "Done",
+        "noStatus": "No Status"
+      },
+      "archiveDone": "Archive finished",
+      "detail": {
+        "openInGitHub": "Open in GitHub",
+        "assignees": "Assignees",
+        "labels": "Labels",
+        "parent": "Parent issue",
+        "subIssues": "Sub-issues"
+      },
+      "toolbar": "Task board",
+      "empty": {
+        "title": "No task sources yet",
+        "description": "Pick the GitHub organizations and projects, or connect a task service, whose tasks show up here.",
+        "action": "Choose sources"
+      },
+      "view": {
+        "all": "All projects"
+      },
+      "updatedAt": "Updated {{time}}",
+      "refresh": "Refresh",
+      "archived": "Archived ({{total}})",
+      "manageSources": "Choose sources",
+      "sourceError": "Couldn't load {{project}}: {{error}}",
+      "backToBoard": "Back to the board",
+      "archivedEmpty": "Nothing archived yet.",
+      "restore": "Restore",
+      "loading": "Loading tasks…",
+      "mirrorNoColumns": "This project view has no Status or iteration field to make columns from.",
+      "card": {
+        "openInGitHub": "Open in GitHub",
+        "restricted": "Restricted item",
+        "draft": "Draft",
+        "openInSource": "Open in {{source}}"
+      },
+      "title": "Tasks",
+      "description": "Tasks from all your projects in one board.",
+      "state": {
+        "open": "Open",
+        "closed": "Closed",
+        "merged": "Merged"
+      },
+      "agent": {
+        "createWorkspace": "Create workspace with this task",
+        "done": "Agent finished",
+        "openWorkspace": "Open workspace",
+        "waiting": "Agent waiting on you",
+        "working": "Agent working",
+        "workspace": "Workspace"
+      },
+      "dev": {
+        "empty": "No pull requests or branches yet.",
+        "files": "{{total}} files",
+        "link": "Link",
+        "linkOnGitHub": "Link on GitHub",
+        "mentioned": "Mentioned (not linked)",
+        "moreFiles": "and {{total}} more",
+        "title": "Development",
+        "unverified": "Not verified on GitHub yet",
+        "verifiedAt": "Checked on GitHub at {{time}}"
+      },
+      "filterPlaceholder": "Filter: is:open assignee:@me label:bug",
+      "group": {
+        "assignee": "Group by assignee",
+        "empty": "None",
+        "none": "No grouping",
+        "project": "Group by project",
+        "source": "Group by source",
+        "status": "Group by status"
+      },
+      "layout": {
+        "board": "Board",
+        "table": "Table"
+      },
+      "moveFailed": "Couldn't move the task: {{error}}",
+      "pr": {
+        "closed": "PR closed without merging · {{ref}}",
+        "draft": "→ {{base}} · draft PR · {{ref}}",
+        "merged": "PR merged into {{base}} · {{ref}}",
+        "more": "+{{total}}",
+        "open": "→ {{base}} · PR open · {{ref}}"
+      },
+      "sort": {
+        "manual": "Source order",
+        "title": "Title",
+        "updated": "Recently updated"
+      },
+      "table": {
+        "assignees": "Assignees",
+        "labels": "Labels",
+        "pullRequest": "Pull request",
+        "source": "Source",
+        "status": "Status",
+        "title": "Title",
+        "updated": "Updated"
+      },
+      "views": {
+        "all": "All",
+        "defaultName": "View {{number}}",
+        "delete": "Delete view",
+        "discard": "Discard",
+        "new": "New view",
+        "renameHint": "Double-click to rename",
+        "save": "Save view"
+      },
+      "repoMissing": "GitHub did not return this repo"
+    },
+    "taskConnectors": {
+      "badUrl": "Use an http:// or https:// URL.",
+      "connect": "Connect",
+      "connected": "Connected {{name}}: {{total}} tasks.",
+      "description": "Connect a service that publishes tasks in the zotz-tasks/v1 format (JSON, YAML or TOML), by URL or from a file.",
+      "failed": "Couldn't read that service.",
+      "fromFile": "Imported from a file",
+      "importFile": "Import file",
+      "noEncryption": "This system can't encrypt the token, so it wasn't saved.",
+      "rejected": "Skipped tasks: {{total}}. First problem: {{reason}}",
+      "remove": "Remove",
+      "status": "{{total}} tasks · updated {{time}}",
+      "title": "External task services",
+      "tokenPlaceholder": "Token (optional)",
+      "withToken": "with token",
+      "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
     },
     "hostFolder": {
       "description": "{{project}} only exists on another machine. Pick or create a folder on {{host}} to work there.",

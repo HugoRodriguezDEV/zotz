@@ -5915,11 +5915,6 @@
           "f8a2c91d4e": "Milestones",
           "b7e4d2a19c": "Onboarding"
         },
-        "SidebarToolbar": {
-          "87d0064026": "El tablero de espacios de trabajo se movió a la barra inferior",
-          "a30e34eb5c": "Cerrar tablero de espacios de trabajo",
-          "49f62c5665": "Tablero de espacios de trabajo"
-        },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "Ocultar rama predeterminada",
           "ed1611b65b": "Ocultar en reposo",
@@ -24267,6 +24262,7 @@
       "waitStarting": "Revisando la memoria…",
       "autoStart": "El agente arranca solo cuando haya lugar. No se pierde nada si esperas.",
       "onHost": "En {{host}}",
+      "remoteActionFailed": "No se pudo contactar a {{host}}: {{error}}",
       "cancel": "Cancelar",
       "forceStart": "Lanzar de todos modos",
       "board": {
@@ -24275,7 +24271,6 @@
         "priorityAutomation": "Automatización",
         "free": "{{free}} GB libres de {{total}} GB",
         "keepsFree": "Siempre deja {{min}} GB libres",
-        "minFreeMarker": "Siempre libre",
         "legendSystem": "Sistema y otras apps",
         "legendAgents": "Agentes",
         "legendMinFree": "Siempre libre",
@@ -24298,9 +24293,10 @@
         "doneEmpty": "Todavía no hay corridas terminadas",
         "doneRun": "{{minutes}} min · pico {{peak}} GB",
         "title": "Cola de agentes",
-        "description": "Los agentes arrancan cuando caben en memoria; los demás esperan su turno aquí.",
+        "description": "Cada máquina tiene su propia memoria: sus agentes arrancan cuando caben ahí y los demás esperan su turno.",
         "gbAmount": "{{gb}} GB",
-        "gbEstimate": "~{{gb}} GB"
+        "gbEstimate": "~{{gb}} GB",
+        "close": "Cerrar"
       },
       "segment": {
         "withQueue": "{{free}} GB libres · {{queued}} en cola",
@@ -24314,7 +24310,11 @@
       "dismissCanceled": "Quitar aviso",
       "canceledMark": "Cancelado",
       "queuedMark": "En cola",
-      "queuedFor": "En cola · {{minutes}} min"
+      "queuedFor": "En cola · {{minutes}} min",
+      "machines": {
+        "thisDevice": "Este equipo",
+        "readOnly": "Actualiza Zotz en {{host}} para cancelar o lanzar sus esperas desde aquí."
+      }
     },
     "sidebar": {
       "home": "Inicio",
@@ -24331,7 +24331,6 @@
       "archive": "Archivar",
       "delete": "Eliminar",
       "conversationActions": "Acciones de la conversación",
-      "archivedMerged": "Mergeada y archivada: {{name}}",
       "viewArchived": "Ver archivadas",
       "archiveFailed": "No se pudo archivar: {{error}}",
       "archivedTitle": "Archivadas",
@@ -24405,6 +24404,150 @@
       "changesKept_one": "{{count}} cambio sin commitear",
       "changesKept_other": "{{count}} cambios sin commitear",
       "changesKept_many": "{{count}} cambios sin commitear"
+    },
+    "taskBoard": {
+      "archiveDone": "Archivar terminadas",
+      "archived": "Archivadas ({{total}})",
+      "archivedEmpty": "Todavía no hay nada archivado.",
+      "backToBoard": "Volver al tablero",
+      "card": {
+        "draft": "Borrador",
+        "openInGitHub": "Abrir en GitHub",
+        "restricted": "Elemento restringido",
+        "openInSource": "Abrir en {{source}}"
+      },
+      "column": {
+        "backlog": "Backlog",
+        "done": "Done",
+        "inProgress": "In Progress",
+        "inReview": "In Review",
+        "noStatus": "Sin estado"
+      },
+      "description": "Las tareas de todos tus proyectos en un solo tablero.",
+      "detail": {
+        "assignees": "Asignados",
+        "labels": "Etiquetas",
+        "openInGitHub": "Abrir en GitHub",
+        "parent": "Issue padre",
+        "subIssues": "Sub-issues"
+      },
+      "empty": {
+        "action": "Elegir fuentes",
+        "description": "Elige las organizaciones y los proyectos de GitHub, o conecta un servicio de tareas, cuyas tareas aparecen aquí.",
+        "title": "Aún no hay fuentes de tareas"
+      },
+      "loading": "Cargando tareas…",
+      "manageSources": "Elegir fuentes",
+      "mirrorNoColumns": "Esta vista del proyecto no tiene un campo Status ni de iteración para armar columnas.",
+      "refresh": "Actualizar",
+      "restore": "Restaurar",
+      "settings": {
+        "description": "Elige las organizaciones y los Projects de GitHub cuyas tareas aparecen en el tablero. En Zotz las tareas son de solo lectura; se editan en GitHub.",
+        "loading": "Cargando tus Projects de GitHub…",
+        "none": "GitHub no devolvió Projects para tu cuenta.",
+        "organization": "Organización",
+        "partialFailures": "No se pudieron listar los proyectos de: {{owners}}",
+        "personal": "Cuenta personal",
+        "reload": "Recargar desde GitHub",
+        "selectedCount": "{{total}} elegidos",
+        "title": "Tablero de tareas de Zotz",
+        "repos": "Repos (issues sin Project)",
+        "reposLoading": "Cargando…",
+        "reposShow": "Mostrar repos"
+      },
+      "sourceError": "No se pudo cargar {{project}}: {{error}}",
+      "title": "Tareas",
+      "toolbar": "Tablero de tareas",
+      "updatedAt": "Actualizado {{time}}",
+      "view": {
+        "all": "Todos los proyectos"
+      },
+      "state": {
+        "open": "Abierto",
+        "closed": "Cerrado",
+        "merged": "Integrado"
+      },
+      "agent": {
+        "createWorkspace": "Crear workspace con esta tarea",
+        "done": "El agente terminó",
+        "openWorkspace": "Abrir workspace",
+        "waiting": "El agente espera tu respuesta",
+        "working": "Agente trabajando",
+        "workspace": "Workspace"
+      },
+      "dev": {
+        "empty": "Todavía no hay pull requests ni ramas.",
+        "files": "{{total}} archivos",
+        "link": "Ligar",
+        "linkOnGitHub": "Ligar en GitHub",
+        "mentioned": "Lo mencionan (sin ligar)",
+        "moreFiles": "y {{total}} más",
+        "title": "Development",
+        "unverified": "Todavía sin verificar en GitHub",
+        "verifiedAt": "Verificado en GitHub a las {{time}}"
+      },
+      "filterPlaceholder": "Filtro: is:open assignee:@me label:bug",
+      "group": {
+        "assignee": "Agrupar por asignado",
+        "empty": "Ninguno",
+        "none": "Sin agrupar",
+        "project": "Agrupar por proyecto",
+        "source": "Agrupar por fuente",
+        "status": "Agrupar por estado"
+      },
+      "layout": {
+        "board": "Tablero",
+        "table": "Tabla"
+      },
+      "moveFailed": "No se pudo mover la tarea: {{error}}",
+      "pr": {
+        "closed": "PR cerrado sin integrar · {{ref}}",
+        "draft": "→ {{base}} · PR en borrador · {{ref}}",
+        "merged": "PR integrado en {{base}} · {{ref}}",
+        "more": "+{{total}}",
+        "open": "→ {{base}} · PR abierto · {{ref}}"
+      },
+      "sort": {
+        "manual": "Orden de la fuente",
+        "title": "Título",
+        "updated": "Actualizadas recientemente"
+      },
+      "table": {
+        "assignees": "Asignados",
+        "labels": "Etiquetas",
+        "pullRequest": "Pull request",
+        "source": "Fuente",
+        "status": "Estado",
+        "title": "Título",
+        "updated": "Actualizada"
+      },
+      "views": {
+        "all": "Todas",
+        "defaultName": "Vista {{number}}",
+        "delete": "Borrar vista",
+        "discard": "Descartar",
+        "new": "Nueva vista",
+        "renameHint": "Doble clic para renombrar",
+        "save": "Guardar vista"
+      },
+      "repoMissing": "GitHub no devolvió este repo"
+    },
+    "taskConnectors": {
+      "badUrl": "Usa una URL http:// o https://.",
+      "connect": "Conectar",
+      "connected": "{{name}} conectado: {{total}} tareas.",
+      "description": "Conecta un servicio que publique tareas en el formato zotz-tasks/v1 (JSON, YAML o TOML), por URL o desde un archivo.",
+      "failed": "No se pudo leer ese servicio.",
+      "fromFile": "Importado desde un archivo",
+      "importFile": "Importar archivo",
+      "noEncryption": "Este sistema no puede cifrar el token, así que no se guardó.",
+      "rejected": "Tareas omitidas: {{total}}. Primer problema: {{reason}}",
+      "remove": "Quitar",
+      "status": "{{total}} tareas · actualizado {{time}}",
+      "title": "Servicios de tareas externos",
+      "tokenPlaceholder": "Token (opcional)",
+      "withToken": "con token",
+      "urlPlaceholder": "https://tickets.example.com/zotz-tasks.json"
     },
     "hostFolder": {
       "description": "{{project}} solo existe en otra máquina. Elige o crea una carpeta en {{host}} para trabajar ahí.",

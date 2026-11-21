@@ -23,6 +23,7 @@ import {
 } from '../../applying-settings/terminal-settings-migrations'
 import { readLegacySidekickFlag } from '../../applying-settings/onboarding-normalization'
 import { applyZotzVisibleAgents } from '../../../../shared/zotz/zotz-visible-agents'
+import { migrateSavedLegacyOrcaWorkspaceDir } from '../../../zotz/zotz-workspace-dir-migration'
 import { normalizeMachineName } from '../../../../shared/machine-name'
 import { normalizeWorkspaceCleanupRules } from '../../../../shared/workspace-cleanup/workspace-cleanup-policy'
 import { replaceRetiredSpeechModelId } from '../../../speech/model-catalog'
@@ -91,8 +92,12 @@ export function normalizeLoadedGlobalSettings(
   return {
     ...defaults.settings,
     // Legacy stored booleans cannot distinguish opt-in from the old default; retain explicit true.
-    ...normalizeLoadedWorkspaceDirSetting(
-      stripRetiredGlobalSettings(parsed.settings),
+    ...migrateSavedLegacyOrcaWorkspaceDir(
+      normalizeLoadedWorkspaceDirSetting(
+        stripRetiredGlobalSettings(parsed.settings),
+        defaults.settings
+      ),
+      parsed.settings !== undefined,
       defaults.settings
     ),
     agentDefaultSurface: normalizeAgentDefaultSurface(parsed.settings?.agentDefaultSurface),

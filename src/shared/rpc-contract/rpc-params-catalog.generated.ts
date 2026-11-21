@@ -792,8 +792,11 @@ import {
 import { WorktreeAdoptProvisionedRoot } from './workspaces/worktree-provisioned-root-params'
 import {
   ZotzAgentQueueSnapshotParams,
-  ZotzAgentQueueSubscribeParams
+  ZotzAgentQueueSubscribeParams,
+  ZotzAgentQueueTaskParams
 } from './zotz/zotz-agent-queue-params'
+import { ZotzShortNameSetParams, ZotzShortNamesListParams } from './zotz/zotz-short-name-params'
+import { ZotzTasksPushParams } from './zotz/zotz-tasks-params'
 import { RepoIconDataUrlsParams } from '../sidebar-list/catalog/repo-icon-data-urls-contract'
 import { SidebarInputsReadParams } from '../sidebar-list/feed/sidebar-inputs-feed-contract'
 import {
@@ -1705,8 +1708,14 @@ export const RPC_PARAMS_BY_METHOD = {
   'worktree.show': WorktreeShow,
   'worktree.sleep': WorktreeSleepParams,
   'worktree.teardownMissingTerminals': WorktreeTeardownMissingTerminalsParams,
+  'zotz.agentQueue.cancel': ZotzAgentQueueTaskParams,
+  'zotz.agentQueue.dismissCanceled': ZotzAgentQueueTaskParams,
+  'zotz.agentQueue.forceStart': ZotzAgentQueueTaskParams,
   'zotz.agentQueue.snapshot': ZotzAgentQueueSnapshotParams,
-  'zotz.agentQueue.subscribe': ZotzAgentQueueSubscribeParams
+  'zotz.agentQueue.subscribe': ZotzAgentQueueSubscribeParams,
+  'zotz.shortNames.list': ZotzShortNamesListParams,
+  'zotz.shortNames.set': ZotzShortNameSetParams,
+  'zotz.tasks.push': ZotzTasksPushParams
 } as const
 
 // Why: these methods bind a schema the shared contract cannot hold because its value
