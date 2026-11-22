@@ -1,3 +1,4 @@
+import { ZotzExploreMenuItem } from '../zotz/feature-education/ZotzExploreMenuItem'
 import React, { useState } from 'react'
 import {
   CircleHelp,
@@ -232,6 +233,7 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
             <School className="size-3.5" />
             {t('auto.components.sidebar.SidebarSettingsHelpMenu.b7e4d2a19c', 'Onboarding')}
           </DropdownMenuItem>
+          <ZotzExploreMenuItem />
           <ExternalMenuItem
             label={t('auto.components.sidebar.SidebarSettingsHelpMenu.5f83d86d92', 'Changelog')}
             url={CHANGELOG_URL}

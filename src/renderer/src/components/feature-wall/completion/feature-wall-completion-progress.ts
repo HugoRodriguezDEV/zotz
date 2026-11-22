@@ -92,6 +92,12 @@ export function getFeatureWallCompletionProgress(
 
   return {
     workflowDone: {
+      'zotz-node':
+        input.visitedWorkflows.has('zotz-node') ||
+        input.completedWorkflows?.has('zotz-node') === true,
+      'zotz-queue':
+        input.visitedWorkflows.has('zotz-queue') ||
+        input.completedWorkflows?.has('zotz-queue') === true,
       workspaces: workspacesDone,
       tasks: tasksDone,
       'agents-orchestration': agentsWorkflowDone,

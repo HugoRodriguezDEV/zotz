@@ -203,6 +203,7 @@ export function ZotzTaskCard({
   return (
     <div
       role="listitem"
+      data-contextual-tour-target="zotz-task-card"
       draggable={draggable}
       onDragStart={(event) => {
         event.dataTransfer.setData(ZOTZ_TASK_DRAG_MIME, item.key)

@@ -66,6 +66,7 @@ export function ZotzBackgroundSonar(): React.JSX.Element {
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       width={WIDTH}
       height={HEIGHT}
+      data-contextual-tour-target="zotz-background-sonar"
       className="shrink-0 text-zotz-working-wave"
     >
       <circle cx={SOURCE_X} cy={MID_Y} r={1.6} fill="currentColor" />

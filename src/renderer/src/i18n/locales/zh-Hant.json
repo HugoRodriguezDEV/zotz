@@ -15571,8 +15571,6 @@
                       "71bd9a8c95": "即時得知代理程式何時完成、需要關注或受阻。",
                       "46db810da8": "選擇您的預設代理程式",
                       "b8e5bae17f": "透過已選擇的首選代理程式，更快地開始新工作。",
-                      "ad342dd4c6": "連線整合",
-                      "06fe30fdb0": "一鍵從任務啟動代理程式並檢視 PR 狀態。",
                       "eddc532e58": "自動化工作區設定",
                       "56049b74c2": "自動執行安裝和設定命令，以便每個新工作樹都為代理程式做好準備。",
                       "2cf795433b": "在多個存放庫中開始工作",
@@ -15721,7 +15719,6 @@
             "4795ac2d4a": "嘗試詢問：",
             "53905bd076": "開發預覽：開啟技能設定終端機。",
             "1da82af45b": "Orca CLI 需要注意",
-            "ce13a742d0": "在 PATH 中註冊了 `orca`。",
             "d1a86c7eb5": "開啟「設定」以完成 CLI 設定。",
             "cliInstallFailed": "Orca CLI 安裝失敗。",
             "splitPrPrompt": "「將這個 PR 拆分到兩個<term>工作樹</term>，並各自建立 PR。」"
@@ -18929,7 +18926,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "從任何 GitHub 議題或 PR 建立工作區，並預先填入標題與上下文",
-          "browseIssues": "在「任務」檢視中瀏覽 GitHub 議題與 PR，無須離開 Orca",
           "reviewStatus": "查看每個工作樹的議題狀態、審查狀態與 CI 檢查",
           "managePullRequests": "不離開 Orca，即可閱讀、留言與合併 PR"
         }
@@ -23002,10 +22998,6 @@
       "workspaces": {
         "title": "工作區",
         "lede": "Orca 為每項任務分配獨立的工作區，讓代理程式能夠平行執行。"
-      },
-      "tasks": {
-        "title": "任務",
-        "lede": "直接從 GitHub 或 Linear 開始工作。"
       },
       "agents": {
         "title": "代理程式",

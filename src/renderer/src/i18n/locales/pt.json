@@ -15562,8 +15562,6 @@
                       "71bd9a8c95": "Saiba no momento em que um agente terminar, precisar de atenção, ou ficar bloqueado.",
                       "46db810da8": "Escolha seu agente padrão",
                       "b8e5bae17f": "Comece novos trabalhos mais rápido com seu agente preferido já selecionado.",
-                      "ad342dd4c6": "Conecte integrações",
-                      "06fe30fdb0": "Inicie um agente a partir de uma tarefa com um clique e mantenha o status do PR visível.",
                       "eddc532e58": "Automatize a configuração do espaço de trabalho",
                       "56049b74c2": "Execute comandos de instalação e configuração automaticamente para que toda nova worktree esteja pronta para os agentes.",
                       "2cf795433b": "Comece a trabalhar em vários repositórios",
@@ -15813,7 +15811,6 @@
             "4795ac2d4a": "Tente perguntar:",
             "53905bd076": "Pré-visualização de desenvolvimento: abrindo o terminal de configuração de skills.",
             "1da82af45b": "A CLI do Orca precisa de atenção",
-            "ce13a742d0": "`orca` registrado no PATH.",
             "d1a86c7eb5": "Abra as Configurações para concluir a configuração da CLI.",
             "cliInstallFailed": "Não foi possível instalar a CLI do Orca.",
             "splitPrPrompt": "“Divida este PR em duas <term>worktrees</term> e crie um PR para cada uma.”"
@@ -20530,7 +20527,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "Inicie um espaço de trabalho a partir de qualquer issue ou pull request do GitHub, já preenchido com título e contexto",
-          "browseIssues": "Navegue por issues e pull requests do GitHub na visualização Tarefas sem sair do Orca",
           "reviewStatus": "Veja o estado da issue, o status de revisão e as verificações de CI em cada worktree",
           "managePullRequests": "Leia, comente e faça merge de pull requests sem sair do Orca"
         }
@@ -24365,10 +24361,6 @@
       "workspaces": {
         "title": "Espaços de Trabalho",
         "lede": "O Orca coloca cada tarefa em um espaço de trabalho isolado para que os agentes possam trabalhar em paralelo."
-      },
-      "tasks": {
-        "title": "Tarefas",
-        "lede": "Comece a trabalhar diretamente pelo GitHub ou Linear."
       },
       "agents": {
         "title": "Agentes",

@@ -1,3 +1,4 @@
+import { countZotzTaskBoardSources } from '../../../../shared/zotz/tasks/zotz-task-board-source-count'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useAppStore } from '@/store/index'
 import { isGitRepoKind } from '../../../../shared/repository/repo-kind'
@@ -241,7 +242,8 @@ export function useSetupGuideProgress(
     jiraStatusContextKey,
     providerRuntimeContextKey
   })
-  const hasConnectedTaskSource = taskSourceStatus.trackerConnected
+  const hasConnectedTaskSource =
+    taskSourceStatus.trackerConnected || countZotzTaskBoardSources(settings) > 0
   const gitRepoCount = orderedGitRepos.length
   const currentSetupScriptProbe = getCurrentSetupScriptProbeState(
     setupScriptProbe,

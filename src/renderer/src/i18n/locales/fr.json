@@ -15740,8 +15740,6 @@
                       "71bd9a8c95": "Sachez à quel moment un agent termine son travail, a besoin d'attention ou est bloqué.",
                       "46db810da8": "Choisissez votre agent par défaut",
                       "b8e5bae17f": "Démarrez un nouveau travail plus rapidement avec votre agent préféré déjà sélectionné.",
-                      "ad342dd4c6": "Connecter les intégrations",
-                      "06fe30fdb0": "Démarrez un agent à partir d'une tâche en un clic et gardez l'état des relations publiques en vue.",
                       "eddc532e58": "Automatisez la configuration de l'espace de travail",
                       "56049b74c2": "Exécutez automatiquement les commandes d'installation et de configuration afin que chaque nouvelle arborescence de travail soit prête pour les agents.",
                       "2cf795433b": "Commencez à travailler dans plusieurs dépôts",
@@ -15884,7 +15882,6 @@
             "4795ac2d4a": "Essayez de demander :",
             "53905bd076": "Aperçu de développement : ouverture du terminal de configuration des skills.",
             "1da82af45b": "L'Orca CLI requiert votre attention",
-            "ce13a742d0": "`orca` enregistré dans le PATH.",
             "d1a86c7eb5": "Ouvrez les paramètres pour terminer la configuration du CLI.",
             "cliInstallFailed": "Impossible d'installer le CLI Orca.",
             "splitPrPrompt": "« Divise cette PR en deux <term>worktrees</term> et crée une PR pour chacun. »"
@@ -20716,7 +20713,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "Démarrez un espace de travail à partir de n'importe quel ticket ou pull request GitHub, pré-rempli avec son titre et son contexte",
-          "browseIssues": "Parcourez les problèmes GitHub et les demandes d'extraction dans la vue Tâches sans quitter Orca",
           "reviewStatus": "Consultez l'état du problème, l'état de la révision et les vérifications CI sur chaque arbre de travail",
           "managePullRequests": "Lisez, commentez et fusionnez les demandes d'extraction sans quitter Orca"
         }
@@ -23817,10 +23813,6 @@
       "workspaces": {
         "title": "Espaces de travail",
         "lede": "Orca attribue à chaque tâche un espace de travail isolé pour que les agents puissent travailler en parallèle."
-      },
-      "tasks": {
-        "title": "Tâches",
-        "lede": "Commencez à travailler directement depuis GitHub ou Linear."
       },
       "agents": {
         "title": "Agents",

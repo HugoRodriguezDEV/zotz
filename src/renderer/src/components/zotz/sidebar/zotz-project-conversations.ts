@@ -2,7 +2,12 @@ import type { AgentDotState } from '../../AgentStateDot'
 import type { FolderWorkspace } from '../../../../../shared/folder-workspaces/folder-workspace-types'
 import { isRepoHidden } from '../../../../../shared/hidden-projects'
 import type { Repo } from '../../../../../shared/repository/repo-types'
-import { getRepoExecutionHostId, type ExecutionHostId } from '../../../../../shared/execution-host'
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from '../../../../../shared/execution-host'
+import { getProjectIdentityKey } from '../../../../../shared/project/host-setup/project-host-setup-projection'
 import { resolveZotzShortNames } from '../../../../../shared/zotz/zotz-short-name'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
@@ -17,10 +22,20 @@ export type ZotzConversationRow = {
   lastActivityAt: number
   /** Null for loose folders, which have no worktree actions. */
   worktree: Worktree | null
+  /** The repo copy it lives in; null for loose folders. */
+  repo: Repo | null
+  /** The machine it runs on. */
+  hostId: ExecutionHostId
 }
 
+/** One project across machines: the same Git remote on this Mac and each server is one section. */
 export type ZotzProjectSection = {
+  key: string
+  /** Header and actions: this machine's copy when there is one, else the first listed. */
   repo: Repo
+  repos: Repo[]
+  /** More than one machine holds it, so each conversation names its own. */
+  multiHost: boolean
   conversations: ZotzConversationRow[]
 }
 
@@ -63,29 +78,45 @@ export function buildZotzProjectSections(input: {
   shortNames?: ReadonlyMap<string, string>
 }): ZotzProjectSection[] {
   const seen = new Set<string>()
-  const sections: ZotzProjectSection[] = []
+  const byKey = new Map<string, Repo[]>()
   for (const repo of input.repos) {
     if (isRepoHidden(repo) || seen.has(repo.id)) {
       continue
     }
     seen.add(repo.id)
-    const conversations = (input.worktreesByRepoId[repo.id] ?? [])
-      .filter((worktree) => isZotzUserConversation(worktree, input.workspacesWithAgents))
-      .map((worktree) => {
-        const branch = branchLabel(worktree)
-        return {
-          id: worktree.id,
-          title: worktree.displayName || branch || worktree.path,
-          branch,
-          shortName: input.shortNames?.get(worktree.id) ?? null,
-          lastActivityAt: worktree.lastActivityAt,
-          worktree
-        }
-      })
-      .sort(byRecentActivity)
-    sections.push({ repo, conversations })
+    const key = getProjectIdentityKey(repo)
+    byKey.set(key, [...(byKey.get(key) ?? []), repo])
   }
-  return sections
+  return [...byKey].map(([key, repos]) => {
+    const conversations = repos
+      .flatMap((repo) =>
+        (input.worktreesByRepoId[repo.id] ?? [])
+          .filter((worktree) => isZotzUserConversation(worktree, input.workspacesWithAgents))
+          .map((worktree) => {
+            const branch = branchLabel(worktree)
+            return {
+              id: worktree.id,
+              title: worktree.displayName || branch || worktree.path,
+              branch,
+              shortName: input.shortNames?.get(worktree.id) ?? null,
+              lastActivityAt: worktree.lastActivityAt,
+              worktree,
+              repo,
+              hostId: getRepoExecutionHostId(repo)
+            }
+          })
+      )
+      .sort(byRecentActivity)
+    const hosts = new Set(repos.map(getRepoExecutionHostId))
+    return {
+      key,
+      repo:
+        repos.find((repo) => getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID) ?? repos[0],
+      repos,
+      multiHost: hosts.size > 1,
+      conversations
+    }
+  })
 }
 
 /**
@@ -136,7 +167,9 @@ export function buildZotzFolderConversations(input: {
       branch: null,
       shortName: null,
       lastActivityAt: 0,
-      worktree: null
+      worktree: null,
+      repo: null,
+      hostId: folder.executionHostId ?? LOCAL_EXECUTION_HOST_ID
     }))
 }
 

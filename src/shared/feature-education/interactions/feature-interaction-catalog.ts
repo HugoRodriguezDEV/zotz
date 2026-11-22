@@ -1,3 +1,7 @@
+import {
+  ZOTZ_FEATURE_INTERACTIONS,
+  type ZotzContextualTourId
+} from '../../zotz/feature-education/zotz-contextual-tours'
 export type FeatureInteractionId =
   | 'workspace-board'
   | 'workspace-agent-sessions'
@@ -55,6 +59,7 @@ export type FeatureInteractionId =
   | 'usage-tracking'
   | 'voice-dictation'
   | 'workspace-cleanup'
+  | ZotzContextualTourId
 
 export type FeatureInteractionDefinition = {
   id: FeatureInteractionId
@@ -170,7 +175,8 @@ export const FEATURE_INTERACTIONS = [
   {
     id: 'workspace-cleanup',
     interaction: 'workspace disk space scan, review, or cleanup action used'
-  }
+  },
+  ...ZOTZ_FEATURE_INTERACTIONS
 ] as const satisfies readonly FeatureInteractionDefinition[]
 
 export const FEATURE_INTERACTION_IDS = FEATURE_INTERACTIONS.map((feature) => feature.id) as [

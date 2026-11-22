@@ -160,7 +160,9 @@ export const queuedConversation = defineFixture({
           title: 'Indicador de la cola',
           branch: 'memory-limiter',
           shortName: 'memory-limiter',
-          lastActivityAt: 1
+          lastActivityAt: 1,
+          repo: zotz,
+          hostId: 'local'
         }}
         repo={zotz}
         active={false}
@@ -189,7 +191,9 @@ export const shortName = defineFixture({
           title: 'Chat workspace board options',
           branch: 'zotz/fase-9-tareas',
           shortName: 'salmon',
-          lastActivityAt: 1
+          lastActivityAt: 1,
+          repo: zotz,
+          hostId: 'local'
         }}
         repo={zotz}
         active={false}
@@ -197,6 +201,47 @@ export const shortName = defineFixture({
         canceled={false}
         queuedSince={null}
       />
+    </div>
+  )
+})
+
+// The same GitHub repo on this Mac and on the MSI: one project, each conversation names its machine.
+const apiUpstream = { owner: 'acme', repo: 'api-pagos' }
+const apiLocal: Repo = { ...repo('api-local', 'api-pagos'), upstream: apiUpstream }
+const apiMsi: Repo = {
+  ...repo('api-msi', 'api-pagos'),
+  upstream: apiUpstream,
+  executionHostId: 'runtime:msi'
+}
+
+export const projectAcrossMachines = defineFixture({
+  width: 300,
+  setup: () => {
+    Object.assign(window.api, {
+      zotzAgentQueue: {
+        onChanged: () => () => {},
+        snapshot: async () => EMPTY_ZOTZ_AGENT_QUEUE_SNAPSHOT
+      }
+    })
+  },
+  store: {
+    repos: [apiLocal, apiMsi],
+    runtimeEnvironments: [{ ...msiRuntime, name: 'MSI Server' }],
+    worktreesByRepo: {
+      'api-local': [
+        worktree('api-local', 'repartir-sprint', 'Repartir el sprint', { lastActivityAt: 4 })
+      ],
+      'api-msi': [
+        worktree('api-msi', 'paginar-pacientes', 'Paginar el endpoint de pacientes', {
+          lastActivityAt: 3
+        }),
+        worktree('api-msi', 'exportar-csv', 'Exportar reportes a CSV', { lastActivityAt: 2 })
+      ]
+    }
+  },
+  render: () => (
+    <div className="flex h-[260px] flex-col bg-worktree-sidebar">
+      <ZotzProjectSidebar />
     </div>
   )
 })

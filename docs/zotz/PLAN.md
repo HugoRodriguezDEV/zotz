@@ -828,3 +828,20 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 - `zotz-board-page-store` abre y cierra la página sobre `activeView` y recuerda la vista anterior; el atajo y el comando del Workspace board la alternan. Abrir un workspace o crear uno desde una tarea ya cambia a `terminal`, así que no cierran nada a mano.
 - Enganches en upstream (una línea cada uno): `TopLevelView`, su lookup y su esquema de RPC, `UiViewHistory`, las vistas sin barra derecha y `AppWorkspaceShell`.
 - Verificado con fixtures (`ZotzBoardPage:empty`, `ZotzTaskBoard:combined` y el nav) y `pnpm tc`. Sin verificar en la app real.
+
+### 2026-11-21 — Tours al día con Zotz (`zotz-tours-al-dia`)
+
+- **Galería "Conoce Zotz"** (Ayuda → Explorar): dos recorridos nuevos al inicio, _Nodo 24/7_ (modo servidor + Tailscale) y _Memoria y cola_, y _Tareas_ ahora muestra el tablero de Zotz en vez de la lista de Linear/GitHub. Cada uno trae un storyboard animado (`components/zotz/feature-education/`) y un botón para probarlo: abrir el asistente de la máquina, la cola o el tablero. El de workspaces ya no muestra `orca.yaml` ni OpenCode; "mantener despierta" se ve fija en modo servidor.
+- **Tours contextuales nuevos** (`shared/zotz/feature-education/zotz-contextual-tours.ts`): barra lateral (Tareas, `+` del proyecto, menú de la conversación), tablero vacío y con tareas (vistas, filtro, layouts, tarjeta, fuentes), cola en la barra de estado al lanzar el primer agente, tablero de la cola (memoria de cada máquina, backlog) y Segundo plano (eco de la fila + pestaña). Corren una vez en todo perfil, no solo en los de primer arranque, y no gastan el límite de un tour por sesión.
+- **Arreglos**: el último paso del tour de agentes ("otra tarea en paralelo") ahora ancla en _Crear_ de la barra lateral de Zotz, así que vuelve a pasar al tour de crear workspace. El asistente personal/servidor bloquea los tours mientras está abierto.
+- **Getting Started**: el paso de tareas se llama "Llena tu tablero de tareas", abre el tablero y cuenta como hecho con fuentes de Zotz; las skills se instalan desde el repo de Zotz (antes apuntaban a `stablyai/orca` con un commit que ahí no existe).
+- **Tips y onboarding**: el tip de la CLI muestra `zotz …` y avisa "`zotz` quedó registrado"; el onboarding solo ofrece los agentes visibles, habla del tablero de tareas y esconde "pedir un idioma" (iba al feedback de orca.dev, apagado).
+- **Agente trabajando = barritas**: la onda azul de la barra lateral (`ZotzWorkingRipple`) se cambió por tres barras que suben y bajan (`ZotzWorkingBars`), la misma marca que usa la landing; también en los visuales de la galería.
+- Enganches en upstream de una o pocas líneas: uniones de ids (tours, interacciones, workflows y su telemetría), `useContextualTour`, el cuerpo de la galería, copias del checklist y la URL de skills.
+- Verificado con `pnpm tc`, oxlint/oxfmt, tests de las zonas tocadas y fixtures (`ZotzFeatureWallBody:node|queue|tasks`, claro y oscuro).
+
+### 2026-11-21 — La app como la landing: proyectos entre máquinas y servidores en la barra de estado (`zotz-tours-al-dia`)
+
+- **Un proyecto, varias máquinas**: la barra lateral agrupa por `getProjectIdentityKey` (GitHub owner/repo o el remoto git), así la misma repo en esta Mac y en cada servidor es una sola sección. Si el proyecto está en más de una máquina, cada conversación muestra su chip de máquina (`Local Mac`, `MSI Server`) y el `+` abre el compositor sin fijar host para elegir dónde. Con una sola máquina remota se queda el chip en el encabezado, como antes.
+- **Barra de estado**: con uno o dos hosts conectados nombra las máquinas ("MSI Server · Mac mini") en vez de contar "N hosts"; con más sigue el conteo.
+- Verificado: `pnpm tc`, oxlint/oxfmt, 46 archivos de tests, fixture `ZotzProjectSidebar:projectAcrossMachines` y la barra lateral cargada en la app real. La agrupación entre máquinas no se probó con datos reales: hoy ninguna repo está a la vez en la Mac y en la MSI.

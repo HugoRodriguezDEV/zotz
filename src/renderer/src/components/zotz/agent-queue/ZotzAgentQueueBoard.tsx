@@ -47,15 +47,20 @@ function Column({
   title,
   hint,
   count,
+  tourTarget,
   children
 }: {
   title: string
   hint: string
   count: number
+  tourTarget?: string
   children: React.ReactNode
 }): React.JSX.Element {
   return (
-    <section className="flex min-w-0 flex-col gap-2 rounded-lg bg-muted/60 p-2">
+    <section
+      className="flex min-w-0 flex-col gap-2 rounded-lg bg-muted/60 p-2"
+      data-contextual-tour-target={tourTarget}
+    >
       <header className="px-1">
         <div className="flex items-baseline gap-1.5 text-xs font-semibold text-foreground">
           {title}
@@ -210,9 +215,12 @@ export function ZotzAgentQueueBoard(props: ZotzAgentQueueBoardProps): React.JSX.
   )
   return (
     <div className="space-y-3">
-      <MemoryRows queues={machines} />
+      <div data-contextual-tour-target="zotz-agent-queue-memory">
+        <MemoryRows queues={machines} />
+      </div>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
         <Column
+          tourTarget="zotz-agent-queue-backlog"
           title={t('zotz.agentQueue.board.backlog', 'Backlog')}
           hint={t('zotz.agentQueue.board.backlogHint', 'Turn order: manual › remote › automation')}
           count={queued.length}

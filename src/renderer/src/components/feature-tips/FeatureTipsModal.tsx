@@ -1,3 +1,4 @@
+import { ZOTZ_CLI_COMMAND } from '../../../../shared/zotz/zotz-app-identity'
 import { useEffect, useRef, useState, type JSX } from 'react'
 import { toast } from 'sonner'
 import { getDefaultVoiceSettings } from '../../../../shared/constants'
@@ -217,10 +218,9 @@ export default function FeatureTipsModal(): JSX.Element | null {
             }
             enableOrchestrationSkillSetup()
             toast.success(
-              t(
-                'auto.components.feature.tips.FeatureTipsModal.ce13a742d0',
-                'Registered `orca` in PATH.'
-              )
+              t('zotz.tours.tips.cliRegistered', 'Registered `{{command}}` in PATH.', {
+                command: ZOTZ_CLI_COMMAND
+              })
             )
             setSkillTerminalOpen(true)
             return

@@ -176,7 +176,9 @@ export const featureWallWorkflowIdSchema = z.enum([
   'workspaces',
   'agents-orchestration',
   'workbench',
-  'review'
+  'review',
+  'zotz-node',
+  'zotz-queue'
 ])
 
 export const featureWallTourDepthStepSchema = z.enum(FEATURE_WALL_TOUR_DEPTH_STEPS)

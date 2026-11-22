@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react'
+
 const ZOTZ_MACHINE_MODE_WIZARD_OPEN_EVENT = 'zotz:machine-mode-wizard-open'
 
 export function openZotzMachineModeWizard(): void {
@@ -17,4 +19,26 @@ export function isZotzMachineModeHost(): boolean {
 /** E2E drivers run upstream suites; web clients have no zotzNode bridge. */
 export function isZotzAutomatedLaunch(): boolean {
   return window.api?.zotzNode?.automatedLaunch === true
+}
+
+// Whether the full-screen wizard shows; tours and startup tips wait for it like for onboarding.
+let wizardVisible = false
+const visibilityListeners = new Set<() => void>()
+
+export function setZotzMachineModeWizardVisible(visible: boolean): void {
+  if (wizardVisible === visible) {
+    return
+  }
+  wizardVisible = visible
+  visibilityListeners.forEach((listener) => listener())
+}
+
+export function useZotzMachineModeWizardVisible(): boolean {
+  return useSyncExternalStore(
+    (listener) => {
+      visibilityListeners.add(listener)
+      return () => visibilityListeners.delete(listener)
+    },
+    () => wizardVisible
+  )
 }

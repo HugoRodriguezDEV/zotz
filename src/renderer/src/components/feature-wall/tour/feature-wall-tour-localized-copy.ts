@@ -1,3 +1,7 @@
+import {
+  getZotzFeatureWallWorkflowCopy,
+  getZotzTasksWorkflowCopy
+} from '../../zotz/feature-education/zotz-feature-wall-copy'
 import type { AgentsStepId } from '../../../../../shared/feature-education/explore/agents-orchestration-steps'
 import type { FeatureWallMediaTileId } from '../../../../../shared/feature-education/explore/feature-wall-tiles'
 import type { FeatureWallWorkflowId } from '../../../../../shared/feature-education/explore/feature-wall-workflows'
@@ -21,13 +25,8 @@ const getWorkflowCopyById = createLocalizedCatalog(
         'Orca splits each task into an isolated workspace so agents can run in parallel.'
       )
     },
-    tasks: {
-      title: translate('featureWall.workflows.tasks.title', 'Tasks'),
-      lede: translate(
-        'featureWall.workflows.tasks.lede',
-        'Start work directly from GitHub or Linear.'
-      )
-    },
+    // Zotz: the task board replaces Orca's GitHub/Linear list.
+    tasks: getZotzTasksWorkflowCopy(),
     'agents-orchestration': {
       title: translate('featureWall.workflows.agents.title', 'Agents'),
       lede: translate(
@@ -48,7 +47,8 @@ const getWorkflowCopyById = createLocalizedCatalog(
         'featureWall.workflows.review.lede',
         'Review what changed, leave focused feedback, and send it back to the agent.'
       )
-    }
+    },
+    ...getZotzFeatureWallWorkflowCopy()
   })
 )
 

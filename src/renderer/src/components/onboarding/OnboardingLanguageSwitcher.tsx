@@ -1,3 +1,4 @@
+import { isZotzCloudFeatureAllowed } from '../../../../shared/zotz/zotz-network-policy'
 import { useRef, useState } from 'react'
 import { ArrowLeft, ChevronDown, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -47,7 +48,8 @@ export function OnboardingLanguageSwitcher({
   const successfulRequests = useRef(new Set<string>())
   const contentRef = useRef<HTMLDivElement>(null)
   const busy = selectionPhase !== null || catalogLoading
-  const canRequestLanguage = !isWebClientLocation()
+  // Requests went to orca.dev feedback, which Zotz turns off.
+  const canRequestLanguage = !isWebClientLocation() && isZotzCloudFeatureAllowed('feedback')
   const metadata = {
     system_language: detection.detectedTag,
     system_language_supported: detection.status === 'supported',

@@ -1,3 +1,4 @@
+import { zotzConnectedHostsLabel } from '../../zotz/status-bar/zotz-connected-hosts-label'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
 import { toast } from 'sonner'
@@ -177,6 +178,12 @@ export function SshStatusSegment({
     ...runtimeHostRows.map((host) => runtimeHostStatusForOverall(host.state, host.blockedReason))
   ]
   const connectedHostCount = statuses.filter((status) => status === 'connected').length
+  const zotzHostsLabel = zotzConnectedHostsLabel([
+    ...targets
+      .filter((target) => sshStatusForOverall(target.status) === 'connected')
+      .map((target) => target.label),
+    ...connectedRuntimeHosts.map((host) => host.label)
+  ])
   const openRecovery = (host: {
     id: string
     label: string
@@ -219,7 +226,9 @@ export function SshStatusSegment({
           ) : (
             <>
               <Server className="size-3" />
-              {!compact && (
+              {!compact && zotzHostsLabel ? (
+                <span className="max-w-48 truncate text-2xs">{zotzHostsLabel}</span>
+              ) : !compact ? (
                 <span className="inline-grid text-2xs tabular-nums">
                   {/* Reserve both localized forms so count changes don't resize the bar. */}
                   <span aria-hidden className="invisible col-start-1 row-start-1">
@@ -232,7 +241,7 @@ export function SshStatusSegment({
                     {connectedHostCountLabel(connectedHostCount, t)}
                   </span>
                 </span>
-              )}
+              ) : null}
             </>
           )}
         </button>
