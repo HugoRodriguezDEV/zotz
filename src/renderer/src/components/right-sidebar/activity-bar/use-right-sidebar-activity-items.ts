@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Activity, Plug, Files, GitBranch, ListChecks, Workflow } from 'lucide-react'
+import { Activity, Link2, Plug, Files, GitBranch, ListChecks, Workflow } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useRepoById } from '@/store/repos/use-repository-catalog'
 import { isFolderRepo } from '../../../../../shared/repository/repo-kind'
@@ -118,6 +118,12 @@ export function useRightSidebarActivityItems({
         id: 'zotz-background',
         icon: Activity,
         title: t('zotz.background.title', 'Background'),
+        shortcut: ''
+      },
+      {
+        id: 'zotz-links',
+        icon: Link2,
+        title: t('zotz.links.title', 'Linked conversations'),
         shortcut: ''
       },
       {

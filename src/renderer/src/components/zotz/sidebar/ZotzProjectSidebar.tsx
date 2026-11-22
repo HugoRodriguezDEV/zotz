@@ -145,6 +145,12 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     return result
   }, [allThreads])
   useZotzGitHubRepoIcons(repos)
+  const links = useAppStore((s) => s.settings?.zotzConversationLinks)
+  const linkedKeys = useMemo(
+    () =>
+      new Set((links ?? []).flatMap((group) => group.members.map((m) => `${m.hostId}\n${m.path}`))),
+    [links]
+  )
   useContextualTour('zotz-sidebar', repos.length > 0)
   useContextualTour(
     'zotz-background',
@@ -279,6 +285,9 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
                   status={statusByWorkspace.get(row.id) ?? null}
                   canceled={canceledWorkspaces.has(row.id)}
                   queuedSince={queuedSince.get(row.id) ?? null}
+                  linked={
+                    row.worktree !== null && linkedKeys.has(`${row.hostId}\n${row.worktree.path}`)
+                  }
                 />
               </ZotzConversationMenu>
             ))}

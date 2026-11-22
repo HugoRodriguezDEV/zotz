@@ -42,7 +42,8 @@ export function normalizeRightSidebarRoute(
     tab === 'source-control' ||
     tab === 'checks' ||
     tab === 'ports' ||
-    tab === 'zotz-background'
+    tab === 'zotz-background' ||
+    tab === 'zotz-links'
   ) {
     return {
       rightSidebarTab: tab,

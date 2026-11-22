@@ -26,6 +26,7 @@ import { registerWorktreeChangeInvalidator } from '../ipc/worktrees/listing/work
 import type { AgentSessionRecordStore } from './agent-session/records/agent-session-record-store'
 import { peekOpenedAgentSessionRecordStore } from './agent-session/records/agent-session-record-store-slot'
 import { createAgentLaunchRecordWarmupGate } from './construction/agent-launch-record-warmup-gate'
+import { registerZotzLinkNoticeRuntime } from '../zotz/conversation-links/zotz-link-notice'
 import * as WorkspaceLayouts from './terminal/surface/workspace-layout-stream'
 import type { RemoteLayoutSnapshot } from '../../shared/remote-runtime/session-graph/remote-layout-snapshot'
 import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
@@ -208,6 +209,7 @@ class OrcaRuntimeService extends OrcaRuntimeSidebarBase {
     publishNativeChatPreferenceChanges(this.store, (event) => this.emitClientEvent(event))
     publishSettingsChanges(this.store, (event) => this.emitClientEvent(event))
     syncPRAutoRefreshCadence(this.store)
+    registerZotzLinkNoticeRuntime(this)
   }
 
   /** What mobileRelay.hosts.list answers changed. */

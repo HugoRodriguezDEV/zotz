@@ -24719,6 +24719,24 @@
       "helpMenu": {
         "explore": "Explorar Zotz"
       }
+    },
+    "links": {
+      "title": "Conversaciones enlazadas",
+      "link": "Enlazar",
+      "unlink": "Desenlazar",
+      "leave": "Salir del grupo",
+      "linkedMark": "Enlazada",
+      "loading": "Cargando…",
+      "messages": "Mensajes entre ellas",
+      "noActive": "Abre una conversación para enlazarla con otras y verlas trabajar juntas.",
+      "noMessages": "Todavía no se han escrito. Se escriben cuando lo necesitan.",
+      "none": "No hay conversaciones aquí.",
+      "notLinked": "{{name}} trabaja sola. Enlázala con otra conversación de abajo; los dos agentes aprenden cómo escribirse.",
+      "notifyFailed": "Quedaron enlazadas, pero no se le pudo avisar a {{names}}. Se enterarán cuando su máquina responda.",
+      "twoServers": "Dos servidores no se pueden escribir entre sí. Enlaza cada uno con una conversación de esta máquina.",
+      "unreachable": "{{host}} no responde.",
+      "updateServer": "Actualiza Zotz en {{host}} para enlazar sus conversaciones.",
+      "workingTogether": "Trabajando juntas"
     }
   }
 }

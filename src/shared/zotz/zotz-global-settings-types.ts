@@ -3,6 +3,7 @@ import type { ZotzTaskBoardArchivedTask, ZotzTaskBoardSource } from './tasks/zot
 import type { ZotzTaskConnectorConfig } from './tasks/zotz-task-connector-types'
 import type { ZotzTaskBoardView } from './tasks/zotz-task-board-views'
 import type { ZotzTaskRelayConfig } from './tasks/zotz-task-relay-types'
+import type { ZotzLinkGroup } from './conversation-links/zotz-conversation-links-contract'
 
 /** Settings only Zotz reads; kept out of GlobalSettings' body so upstream syncs merge cleanly. */
 export type ZotzGlobalSettings = {
@@ -30,4 +31,6 @@ export type ZotzGlobalSettings = {
   zotzTaskBoardViews?: ZotzTaskBoardView[]
   /** Optional own webhook relay for instant board updates; absent or disabled means none. */
   zotzTaskRelay?: ZotzTaskRelayConfig
+  /** Conversations linked to work together; this machine is the source of truth for its groups. */
+  zotzConversationLinks?: ZotzLinkGroup[]
 }

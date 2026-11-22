@@ -58,20 +58,26 @@ Que dos o más conversaciones (de cualquier proyecto, en la Mac o en un servidor
 - Capability `zotz.conversations.v1` para que la laptop sepa si el servidor la soporta.
 - CLI `zotz agent list [--environment <server>] [--json]`. Sin `--environment` lista la máquina local; con él, ese servidor.
 
-### 4.5 Enlaces
+### 4.5 Enlaces (diseño final, 2026-11-21)
 
-- **Grupo de enlace:** `{ id, members: [{ hostId, worktreeInstanceId }], createdAt }`. Se guarda en `src/main/zotz/conversation-links/zotz-link-store.ts` (JSON en userData, como la cola de #24).
-- **Mac ↔ MSI (enlace cruzado, opt-in):** solo se crea desde la UI con la persona eligiendo el otro entorno. Cada host guarda los grupos donde tiene al menos un miembro. Al enlazar con un miembro remoto, la laptop llama `zotz.links.upsert` en ese servidor (RPC nueva, permiso `workspace`, capability `zotz.links.v1`). `zotz.links.remove` para desenlazar.
-- **Aviso a los agentes:** al crear o cambiar un grupo, cada miembro con conversación viva recibe un mensaje `status` por el canal existente:
+- **Dónde viven los grupos:** en la máquina con la UI donde se enlazan, en `GlobalSettings.zotzConversationLinks` (`{ id, members: [{ hostId, path }], createdAt }`). `hostId` es desde esa máquina (`local` o `runtime:<servidor>`).
+- **Qué sabe cada host:** por cada worktree suyo, la lista de compañeras (`zotz.links.setPeers { path, peers }`, store `src/main/zotz/conversation-links/zotz-link-peer-store.ts`). La UI la empuja a cada máquina con miembros cuando un grupo cambia.
+- **Cómo llega cada agente a sus compañeras** (`reach`), visto desde su propia máquina:
+  - misma máquina → `direct`: `zotz orchestration send --to wt:<nombre>`.
+  - la Mac hacia un servidor → `on-server`: `--to wt:<nombre> --on "<servidor>"`.
+  - un servidor hacia la Mac → `reply-only`: el servidor no puede iniciar correo a la Mac (§5 confirmado), así que contesta con `orchestration reply` cuando le escriben.
+  - Dos servidores distintos no van en el mismo grupo (no se pueden escribir); la UI lo bloquea con una explicación.
+- **Aviso a los agentes:** `setPeers` deja en el buzón de la conversación viva un correo `status` con sus compañeras y cómo escribirles; con lista vacía avisa que el enlace terminó. Si la conversación arranca después (o tras `/clear`), recibe el aviso al iniciar, una vez por sesión.
 
-  > Quedaste enlazada con **salmon** (Chat workspace board options) y **tarpon** (MSI Server). Para escribirles: `zotz orchestration send --to wt:salmon --subject … --body …` (para tarpon agrega `--on "MSI Server"`). Para contestar usa `orchestration reply`.
+### 4.6 Vista "Conversaciones enlazadas" (barra derecha)
 
-  Si la conversación se abre después (o tras `/clear`), recibe el mismo aviso al iniciar, con el mismo mecanismo que el preámbulo de workers (`deliver-worker-dispatch-preamble.ts`).
+- Pestaña `zotz-links` junto a Segundo plano (`src/renderer/src/components/zotz/links/`).
+- Arriba, el grupo de la conversación abierta: cada miembro con su estado (trabajando, esperando, terminó), agente y máquina; clic abre ese chat; desenlazar por miembro o "Salir del grupo".
+- En medio, los mensajes entre ellas en orden (`zotz.links.messages` en cada máquina con miembros, unidos por id).
+- Abajo, todas las conversaciones agrupadas por máquina (esta y cada servidor emparejado) con "Enlazar" de un clic. Un servidor sin `zotz.links.v1` sale con "Actualiza Zotz en … para enlazar".
+- Las filas enlazadas llevan un ícono de cadena en la barra lateral.
 
-- **Desenlazar:** quita el miembro, avisa a los que quedan; un grupo con un solo miembro se borra.
-- **UI:** en `ZotzConversationMenu.tsx`, "Enlazar con…" abre un diálogo (shadcn `Command`) con selección múltiple. **Por default muestra solo las conversaciones del mismo entorno** que la fila, agrupadas por proyecto. Un selector de entorno arriba ("Esta Mac" / "MSI Server") permite cambiar a otro a propósito; las elegidas de otro entorno llevan el chip de la máquina. Si la fila ya está enlazada: submenú "Enlazada con" con "Desenlazar" por compañera.
-
-### 4.6 Compatibilidad y seguridad
+### 4.7 Compatibilidad y seguridad
 
 - Campos y RPC nuevos opcionales y solo agregados. No se tocan nombres de RPC existentes ni la tabla móvil (`runtime-rpc-mobile-method-routing.ts`); móvil fuera de v1.
 - Servidor sin las capabilities: sus conversaciones salen en el diálogo como "Actualiza MSI Server para enlazar" y no se pueden elegir.
@@ -101,5 +107,4 @@ Cada PR pasa `pnpm check:changed` y sale a `main`.
 ## 8. Fuera de alcance
 
 - Resúmenes automáticos al terminar cada turno.
-- Historial de mensajes del grupo en la UI (los mensajes ya se ven dentro de cada chat).
 - Enlazar desde la app móvil.

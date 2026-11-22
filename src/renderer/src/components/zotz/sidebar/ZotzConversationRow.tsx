@@ -1,7 +1,7 @@
 import { HostRowIcon } from '@/components/host-row-icon'
 import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
 import React from 'react'
-import { Ban, GitPullRequest, Hourglass } from 'lucide-react'
+import { Ban, GitPullRequest, Hourglass, Link2 } from 'lucide-react'
 import { useNow } from '@/hooks/use-now'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
@@ -94,6 +94,7 @@ export function ZotzConversationRow({
   status,
   canceled,
   queuedSince,
+  linked = false,
   showHost = false
 }: {
   row: Row
@@ -106,6 +107,8 @@ export function ZotzConversationRow({
   canceled: boolean
   /** When its oldest agent entered the memory queue; null when none waits. */
   queuedSince: number | null
+  /** Linked with other conversations to work together. */
+  linked?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   const now = useNow(30_000, queuedSince !== null)
@@ -136,6 +139,13 @@ export function ZotzConversationRow({
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{row.title}</span>
+          {linked ? (
+            <Link2
+              role="img"
+              aria-label={t('zotz.links.linkedMark', 'Linked')}
+              className="size-3 shrink-0 text-worktree-sidebar-foreground/60"
+            />
+          ) : null}
           {row.worktree ? <LineTotalBadge worktreeId={row.worktree.id} /> : null}
         </span>
         <span className="flex min-w-0 items-center gap-1 text-2xs text-worktree-sidebar-foreground/50">

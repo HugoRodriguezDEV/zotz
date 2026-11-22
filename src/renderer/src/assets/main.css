@@ -280,8 +280,8 @@
   --question-option-border-mix: 16%;
   /* A finished agent result the user hasn't seen; blue so it never reads as a state color. */
   --unread: var(--color-blue-500);
-  /* Zotz: the working-agent wave in the simple sidebar; turquoise, apart from unread blue and done green. */
-  --zotz-working-wave: var(--color-cyan-500);
+  /* Zotz: the working-agent bars; the landing's blue, told apart from the unread dot by shape. */
+  --zotz-working-wave: var(--color-blue-600);
   /* Zotz: GitHub's own PR/check colors (Primer), so a PR reads the same here as on github.com. */
   --zotz-gh-success: #1a7f37;
   --zotz-gh-danger: #d1242f;
@@ -408,7 +408,7 @@
   --question-card-border-mix: 16%;
   --question-option-border-mix: 12%;
   --unread: var(--color-blue-400);
-  --zotz-working-wave: var(--color-cyan-400);
+  --zotz-working-wave: #3794ff;
   --zotz-gh-success: #3fb950;
   --zotz-gh-danger: #f85149;
   --zotz-gh-pending: #d29922;

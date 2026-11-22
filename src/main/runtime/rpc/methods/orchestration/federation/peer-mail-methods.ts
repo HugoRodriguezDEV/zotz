@@ -6,6 +6,7 @@ import type { OrchestrationDb } from '../../../../orchestration/db/orchestration
 import type { FederationRelayItemRow } from '../../../../orchestration/db/orchestration-records'
 import { resolveBareOrchestrationRecipient } from '../messaging/recipient-routing'
 import { prepareSessionRecipient } from '../messaging/session-recipient'
+import { resolveZotzShortNameRecipient } from '../../../../../zotz/conversation-links/zotz-short-name-recipient'
 import { waitForPeerMail } from '../../../../orchestration/federation/peer-mail/peer-mail-waiters'
 import {
   PeerMailAckParams,
@@ -120,7 +121,8 @@ export const ORCHESTRATION_PEER_MAIL_METHODS = [
       if (replayed) {
         return replayed
       }
-      const terminalRecipient = await prepareSessionRecipient(runtime, to)
+      const address = await resolveZotzShortNameRecipient(runtime, to)
+      const terminalRecipient = await prepareSessionRecipient(runtime, address)
       // Read again after the wait: a copy of this delivery may have landed meanwhile.
       const landed = delivered()
       if (landed) {
@@ -129,7 +131,7 @@ export const ORCHESTRATION_PEER_MAIL_METHODS = [
       const recipient = resolveBareOrchestrationRecipient({
         runtime,
         db,
-        handle: to,
+        handle: address,
         terminalRecipient
       })
       if (!recipient.ok) {

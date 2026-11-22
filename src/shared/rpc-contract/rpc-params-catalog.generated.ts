@@ -795,6 +795,11 @@ import {
   ZotzAgentQueueSubscribeParams,
   ZotzAgentQueueTaskParams
 } from './zotz/zotz-agent-queue-params'
+import {
+  ZotzConversationsListParams,
+  ZotzLinkMessagesParams,
+  ZotzLinkSetPeersParams
+} from './zotz/zotz-conversation-links-params'
 import { ZotzShortNameSetParams, ZotzShortNamesListParams } from './zotz/zotz-short-name-params'
 import { ZotzTasksPushParams } from './zotz/zotz-tasks-params'
 import { RepoIconDataUrlsParams } from '../sidebar-list/catalog/repo-icon-data-urls-contract'
@@ -1713,6 +1718,9 @@ export const RPC_PARAMS_BY_METHOD = {
   'zotz.agentQueue.forceStart': ZotzAgentQueueTaskParams,
   'zotz.agentQueue.snapshot': ZotzAgentQueueSnapshotParams,
   'zotz.agentQueue.subscribe': ZotzAgentQueueSubscribeParams,
+  'zotz.conversations.list': ZotzConversationsListParams,
+  'zotz.links.messages': ZotzLinkMessagesParams,
+  'zotz.links.setPeers': ZotzLinkSetPeersParams,
   'zotz.shortNames.list': ZotzShortNamesListParams,
   'zotz.shortNames.set': ZotzShortNameSetParams,
   'zotz.tasks.push': ZotzTasksPushParams

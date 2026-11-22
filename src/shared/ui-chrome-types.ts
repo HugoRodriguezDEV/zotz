@@ -105,6 +105,8 @@ export type RightSidebarTab =
   | 'ports'
   // Zotz: the active chat's background tasks.
   | 'zotz-background'
+  // Zotz: conversations linked to work together.
+  | 'zotz-links'
   // Plugin IDs encode their dynamic panel namespace without opening the static tab union.
   | `plugin:${string}`
 export type ActiveRightSidebarTab = Exclude<RightSidebarTab, 'search'>
