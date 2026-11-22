@@ -1,3 +1,4 @@
+import { ZOTZ_FEATURE_INTERACTION_CATEGORY_BY_ID } from '../../zotz/feature-education/zotz-contextual-tours'
 import type { FeatureInteractionId } from './feature-interaction-catalog'
 
 export const FEATURE_INTERACTION_CATEGORIES = [
@@ -75,7 +76,8 @@ export const FEATURE_INTERACTION_CATEGORY_BY_ID = {
   'tab-splits': 'terminal',
   'usage-tracking': 'settings',
   'voice-dictation': 'voice',
-  'workspace-cleanup': 'workspace'
+  'workspace-cleanup': 'workspace',
+  ...ZOTZ_FEATURE_INTERACTION_CATEGORY_BY_ID
 } as const satisfies Record<FeatureInteractionId, FeatureInteractionCategory>
 
 export function getFeatureInteractionCategory(

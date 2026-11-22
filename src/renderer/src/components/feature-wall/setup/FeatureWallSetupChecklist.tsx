@@ -1,3 +1,4 @@
+import { ZotzChecklistTaskBoardRow } from '../../zotz/feature-education/ZotzChecklistTaskBoardRow'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Check } from 'lucide-react'
 import type {
@@ -282,6 +283,7 @@ function TaskSourcesAction(): React.JSX.Element {
 
   return (
     <div className="space-y-5">
+      <ZotzChecklistTaskBoardRow />
       <ConnectIntegrationsList />
     </div>
   )

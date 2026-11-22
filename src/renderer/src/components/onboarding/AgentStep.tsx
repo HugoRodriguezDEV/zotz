@@ -1,3 +1,4 @@
+import { useAppStore } from '@/store/index'
 import { useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { Trans } from 'react-i18next'
@@ -59,7 +60,9 @@ export function AgentStep({
   onYoloPermissionsChange
 }: AgentStepProps) {
   const t = useTranslate()
-  const agentCatalog = getAgentCatalog()
+  const disabledAgents = useAppStore((s) => s.settings?.disabledTuiAgents)
+  // Zotz hides most of the catalog; offer only the agents left visible in Settings.
+  const agentCatalog = getAgentCatalog().filter((agent) => !disabledAgents?.includes(agent.id))
   const gridFades = useScrollEdgeFades<HTMLElement>()
   const chatMode = agentSurface === 'chat'
   // Chat runs only on native installs; an agent found only in WSL opens in a terminal.

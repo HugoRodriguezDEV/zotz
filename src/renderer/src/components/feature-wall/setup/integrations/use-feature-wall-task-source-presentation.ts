@@ -1,3 +1,4 @@
+import { countZotzTaskBoardSources } from '../../../../../../shared/zotz/tasks/zotz-task-board-source-count'
 import { useEffect } from 'react'
 import { useAppStore } from '@/store/index'
 import { getLocalPreflightContext } from '@/runtime/hosts/preflight/local-preflight-context'
@@ -88,9 +89,10 @@ export function useFeatureWallTaskSourcePresentation(
     providerRuntimeContextKey
   })
 
+  const hasZotzBoardSources = countZotzTaskBoardSources(settings) > 0
   return {
     workflow: selected,
-    hasConnectedTaskSource: taskSourceStatus.trackerConnected,
-    isCheckingTaskSources: taskSourceStatus.checking
+    hasConnectedTaskSource: taskSourceStatus.trackerConnected || hasZotzBoardSources,
+    isCheckingTaskSources: taskSourceStatus.checking && !hasZotzBoardSources
   }
 }

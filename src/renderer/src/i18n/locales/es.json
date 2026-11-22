@@ -15472,8 +15472,6 @@
                       "71bd9a8c95": "Entérate al instante cuando un agente termina, necesita atención o se bloquea.",
                       "46db810da8": "Elige tu agente predeterminado",
                       "b8e5bae17f": "Empieza a trabajar más rápido con tu agente preferido ya seleccionado.",
-                      "ad342dd4c6": "Conectar integraciones",
-                      "06fe30fdb0": "Inicia un agente desde una tarea con un clic y mantén el estado del PR a la vista.",
                       "eddc532e58": "Automatiza la configuración del espacio de trabajo",
                       "56049b74c2": "Ejecuta comandos de instalación y configuración automáticamente para que cada nuevo árbol de trabajo esté listo para los agentes.",
                       "2cf795433b": "Inicia trabajo en varios repositorios",
@@ -15613,7 +15611,6 @@
             "4795ac2d4a": "Prueba a pedir:",
             "53905bd076": "Vista previa de desarrollo: abriendo la terminal de configuración de skills.",
             "1da82af45b": "Orca CLI necesita atención",
-            "ce13a742d0": "`orca` registrado en PATH.",
             "d1a86c7eb5": "Abre Configuración para finalizar la configuración de la CLI.",
             "cliInstallFailed": "No se pudo instalar la CLI de Orca.",
             "splitPrPrompt": "«Divide este PR en dos <term>worktrees</term> y crea un PR para cada uno»."
@@ -20653,7 +20650,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "Inicia un espacio de trabajo desde cualquier incidencia o pull request de GitHub, rellenado con su título y contexto",
-          "browseIssues": "Explora incidencias y pull requests de GitHub en la vista Tareas sin salir de Orca",
           "reviewStatus": "Consulta el estado de la incidencia, la revisión y las verificaciones de CI en cada árbol de trabajo",
           "managePullRequests": "Lee, comenta y fusiona pull requests sin salir de Orca"
         }
@@ -23795,10 +23791,6 @@
         "title": "Espacios de trabajo",
         "lede": "Orca asigna a cada tarea un espacio de trabajo aislado para que los agentes puedan trabajar en paralelo."
       },
-      "tasks": {
-        "title": "Tareas",
-        "lede": "Empieza a trabajar directamente desde GitHub o Linear."
-      },
       "agents": {
         "title": "Agentes",
         "lede": "Ejecuta varios agentes a la vez, sigue su progreso y deja que la automatización controle Orca cuando sea útil."
@@ -24602,6 +24594,131 @@
       "resolvingParent": "Buscando la carpeta de proyectos…",
       "create": "Crear carpeta",
       "created": "Carpeta creada"
+    },
+    "tours": {
+      "agentQueueBoardBacklog": {
+        "body": "Primero van los lanzados a mano, luego los que llegan de otra máquina y al final las automatizaciones. Desde su tarjeta puedes lanzar uno de todos modos o cancelarlo.",
+        "title": "Agentes en espera"
+      },
+      "agentQueueBoardMemory": {
+        "body": "Cada servidor emparejado muestra su propia memoria libre y su propia fila, junto a esta máquina.",
+        "title": "La memoria de cada máquina"
+      },
+      "agentQueueSegment": {
+        "body": "Antes de lanzar un agente, Zotz revisa la memoria libre. Si no alcanza, el agente espera su turno y arranca solo cuando se libera memoria. Haz clic para ver la cola.",
+        "title": "Los agentes esperan memoria"
+      },
+      "backgroundSonar": {
+        "body": "Este eco significa que el agente terminó su turno pero dejó tests, scripts o subagentes corriendo.",
+        "title": "Sigue trabajando en segundo plano"
+      },
+      "backgroundTab": {
+        "body": "La pestaña Segundo plano muestra cada tarea con su salida y un botón para detenerla.",
+        "title": "Mira y detén ese trabajo"
+      },
+      "checklist": {
+        "taskBoard": {
+          "title": "Tablero de tareas"
+        },
+        "taskSources": {
+          "description": "Trae GitHub Projects, repos o un servicio de tareas, y dale cualquier tarea a un agente con un clic.",
+          "name": "Llena tu tablero de tareas"
+        }
+      },
+      "featureWall": {
+        "keepAwakeServer": "Siempre activo en modo servidor",
+        "node": {
+          "action": "Configurar esta máquina",
+          "isPersonal": "Esta máquina es personal. Emparéjala con tu servidor para mandarle trabajo, o conviértela en el servidor.",
+          "isServer": "Esta máquina es un servidor remoto. Corre la configuración otra vez para ver su enlace de acceso o arreglar un paso.",
+          "isUnset": "Elige si esta máquina es personal o el servidor que queda encendido siempre.",
+          "lede": "Deja una máquina encendida como nodo de agentes y mándale trabajo desde tu laptop o tu celular por Tailscale.",
+          "remoteClient": "El modo servidor se configura en la propia máquina; esta ventana pertenece a otra computadora.",
+          "title": "Nodo 24/7"
+        },
+        "queue": {
+          "action": "Abrir la cola",
+          "lede": "Zotz lanza un agente solo si cabe en memoria; los demás esperan su turno y arrancan solos.",
+          "status": "La barra de estado muestra la memoria libre; haz clic cuando quieras para ver la cola de cada máquina.",
+          "title": "Memoria y cola"
+        },
+        "tasks": {
+          "action": "Abrir el tablero",
+          "lede": "Ve todas tus tareas en un tablero y dale cualquiera a un agente en su propio workspace.",
+          "noSources": "Elige tus GitHub Projects, repos o un servicio de tareas para llenar el tablero.",
+          "sources": "{{count}} fuentes en tu tablero.",
+          "title": "Tablero de tareas"
+        }
+      },
+      "onboarding": {
+        "browseTaskBoard": "Ve tus GitHub Projects y repos en el tablero de tareas (Tareas en la barra lateral), cada tarea con sus pull requests"
+      },
+      "sidebarConversationActions": {
+        "body": "Haz clic derecho en una conversación para darle un nombre corto que los agentes pueden usar, archivarla o borrarla después de revisar sus cambios.",
+        "title": "Mantén la lista corta"
+      },
+      "sidebarNewConversation": {
+        "body": "Haz clic en + junto a un proyecto para empezar una conversación en su propia rama, en esta máquina o en un servidor.",
+        "title": "Una conversación, un worktree"
+      },
+      "sidebarTasks": {
+        "body": "Tareas abre el tablero con cada GitHub Project, repo y servicio que conectes.",
+        "title": "Tus tareas, en un tablero"
+      },
+      "taskBoardCard": {
+        "body": "Abre una tarea para ver sus PRs y ramas ligadas, y crea un workspace con ella para dársela a un agente.",
+        "title": "De la tarea al agente"
+      },
+      "taskBoardFilter": {
+        "body": "Escribe la misma sintaxis: is:open, assignee:@me, label:bug.",
+        "title": "Filtra como en GitHub"
+      },
+      "taskBoardLayouts": {
+        "body": "Cambia de layout sin perder el filtro. El roadmap usa las fechas de inicio y fin de tus Projects.",
+        "title": "Tablero, tabla o roadmap"
+      },
+      "taskBoardSources": {
+        "body": "Agrega Projects, repos o servicios aquí cuando quieras.",
+        "title": "Agrega más fuentes"
+      },
+      "taskBoardSourcesIntro": {
+        "body": "Elige GitHub Projects, repos sin Project o un servicio externo. Zotz solo los lee.",
+        "title": "Elige de dónde vienen las tareas"
+      },
+      "taskBoardViews": {
+        "body": "Cada pestaña guarda su filtro, agrupación y layout, como una vista de GitHub Projects.",
+        "title": "Guarda las vistas que usas"
+      },
+      "tips": {
+        "cliRegistered": "`{{command}}` quedó registrado en el PATH."
+      },
+      "visual": {
+        "node": {
+          "laptop": "Tu laptop",
+          "phone": "Tu celular",
+          "privateLink": "Solo tu tailnet puede entrar",
+          "server": "Servidor · encendido 24/7",
+          "taskArrived": "Conversación nueva desde tu laptop: fix-ci",
+          "tailscale": "Tailscale"
+        },
+        "queue": {
+          "needsMemory": "Necesita 3 GB · espera memoria",
+          "startedOnItsOwn": "Arrancó solo"
+        },
+        "tasks": {
+          "agentWorking": "Claude · trabajando",
+          "createWorkspace": "Crear workspace con esta tarea",
+          "inProgress": "In Progress",
+          "inReview": "In Review",
+          "todo": "Todo",
+          "demoPayments": "Pagos con tarjeta",
+          "demoFilter": "Filtro de fechas",
+          "demoDocs": "Guía de instalación"
+        }
+      },
+      "helpMenu": {
+        "explore": "Explorar Zotz"
+      }
     },
     "links": {
       "title": "Conversaciones enlazadas",

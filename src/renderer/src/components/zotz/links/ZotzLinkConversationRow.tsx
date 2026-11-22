@@ -7,7 +7,7 @@ import type {
   ZotzConversationEntry,
   ZotzConversationState
 } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
-import { ZotzWorkingRipple } from '../sidebar/ZotzWorkingRipple'
+import { ZotzWorkingBars } from '../sidebar/ZotzWorkingBars'
 
 export function ZotzConversationStateMark({
   state
@@ -15,7 +15,7 @@ export function ZotzConversationStateMark({
   state: ZotzConversationState | null
 }): React.JSX.Element {
   if (state === 'working') {
-    return <ZotzWorkingRipple />
+    return <ZotzWorkingBars />
   }
   return <AgentStateDot state={state ?? 'idle'} size="md" />
 }

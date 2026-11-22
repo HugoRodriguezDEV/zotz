@@ -1,3 +1,4 @@
+import { useZotzMachineModeWizardVisible } from '../components/zotz/zotz-machine-mode-wizard-event'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { onOnboardingReopened } from '../components/onboarding/show-onboarding-event'
@@ -35,6 +36,8 @@ export function useOnboardingAndFeatureTips() {
   const featureInteractions = useAppStore((s) => s.featureInteractions)
   const chatUiLaunchTipVariant = useAppStore((s) => s.chatUiLaunchTipVariant)
   const contextualToursAutoEligible = useAppStore((s) => s.contextualToursAutoEligible)
+  // Zotz: the full-screen machine-mode wizard holds tours and tips back, like onboarding does.
+  const zotzWizardVisible = useZotzMachineModeWizardVisible()
   const actions = useAppStore(
     useShallow((s) => ({
       openModal: s.openModal,
@@ -56,9 +59,9 @@ export function useOnboardingAndFeatureTips() {
 
   useEffect(() => {
     // Suppress tours during unknown onboarding so first-run users cannot consume them before onboarding.
-    const suppressTours = !onboardingLoaded || shouldShowOnboarding(onboarding)
+    const suppressTours = !onboardingLoaded || shouldShowOnboarding(onboarding) || zotzWizardVisible
     actions.setContextualToursOnboardingVisible(suppressTours)
-  }, [actions, onboarding, onboardingLoaded])
+  }, [actions, onboarding, onboardingLoaded, zotzWizardVisible])
 
   useEffect(() => {
     if (!persistedUIReady || !onboardingLoaded || contextualToursAutoEligible !== null) {
@@ -119,6 +122,9 @@ export function useOnboardingAndFeatureTips() {
   }, [actions, persistedUIReady])
 
   useEffect(() => {
+    if (zotzWizardVisible) {
+      return
+    }
     const featureTipsDecision = getFeatureTipsAppOpenDecision({
       activeModal,
       cliInstalled: featureTipCliInstalled,
@@ -180,7 +186,8 @@ export function useOnboardingAndFeatureTips() {
     featureTipsSeenIds,
     onboarding,
     persistedUIReady,
-    settings
+    settings,
+    zotzWizardVisible
   ])
 
   const shouldRender = onboarding !== null && shouldShowOnboarding(onboarding)

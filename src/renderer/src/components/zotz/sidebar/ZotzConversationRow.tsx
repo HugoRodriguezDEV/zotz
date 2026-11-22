@@ -1,3 +1,5 @@
+import { HostRowIcon } from '@/components/host-row-icon'
+import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
 import React from 'react'
 import { Ban, GitPullRequest, Hourglass, Link2 } from 'lucide-react'
 import { useNow } from '@/hooks/use-now'
@@ -12,7 +14,7 @@ import type {
   ZotzConversationRow as Row,
   ZotzConversationStatus
 } from './zotz-project-conversations'
-import { ZotzWorkingRipple } from './ZotzWorkingRipple'
+import { ZotzWorkingBars } from './ZotzWorkingBars'
 import { ZotzBackgroundSonar } from './ZotzBackgroundSonar'
 import { useZotzWorktreePr } from '../pr-status/use-zotz-worktree-pr'
 import { ZOTZ_PR_TONE_TEXT, zotzPrStatusLabel, zotzPrTone } from '../pr-status/zotz-pr-status'
@@ -40,7 +42,7 @@ function StatusMark({
     )
   }
   if (status?.state === 'working') {
-    return <ZotzWorkingRipple />
+    return <ZotzWorkingBars />
   }
   if (status?.state === 'monitoring') {
     return <ZotzBackgroundSonar />
@@ -92,10 +94,13 @@ export function ZotzConversationRow({
   status,
   canceled,
   queuedSince,
-  linked = false
+  linked = false,
+  showHost = false
 }: {
   row: Row
   repo: Repo | undefined
+  /** The project lives on several machines, so the row names the one it runs on. */
+  showHost?: boolean
   active: boolean
   status: ZotzConversationStatus | null
   /** Its only agent was canceled in the memory queue and never started. */
@@ -111,7 +116,10 @@ export function ZotzConversationRow({
   const prTone = pr ? zotzPrTone(pr.status) : null
   const lastActivity = row.worktree?.lastActivityAt ?? 0
   const showBranch = row.branch !== null && row.branch !== row.title && !branchRepeatsShortName(row)
-  const hasLeading = showBranch || row.shortName !== null
+  const hostLabel = useAppStore((s) =>
+    showHost ? selectExecutionHostDisplayLabel(s, row.hostId) : null
+  )
+  const hasLeading = showBranch || row.shortName !== null || hostLabel !== null
   return (
     <button
       type="button"
@@ -141,6 +149,12 @@ export function ZotzConversationRow({
           {row.worktree ? <LineTotalBadge worktreeId={row.worktree.id} /> : null}
         </span>
         <span className="flex min-w-0 items-center gap-1 text-2xs text-worktree-sidebar-foreground/50">
+          {hostLabel ? (
+            <span className="flex max-w-[45%] shrink-0 items-center gap-1 rounded border border-worktree-sidebar-border px-1 font-medium text-worktree-sidebar-foreground/70">
+              <HostRowIcon hostId={row.hostId} className="size-2.5 shrink-0" />
+              <span className="truncate">{hostLabel}</span>
+            </span>
+          ) : null}
           {row.shortName ? (
             <span className="max-w-[45%] shrink-0 truncate font-medium text-worktree-sidebar-foreground/70">
               {row.shortName}
@@ -148,7 +162,7 @@ export function ZotzConversationRow({
           ) : null}
           {showBranch ? (
             <>
-              {row.shortName ? <span aria-hidden>·</span> : null}
+              {row.shortName || hostLabel ? <span aria-hidden>·</span> : null}
               <span className="min-w-8 truncate font-mono">{row.branch}</span>
             </>
           ) : null}

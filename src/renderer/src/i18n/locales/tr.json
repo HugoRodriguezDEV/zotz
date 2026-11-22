@@ -15760,8 +15760,6 @@
                       "71bd9a8c95": "Bir ajan işini bitirdiği, dikkat gerektirdiği veya engellendiği anı hemen öğrenin.",
                       "46db810da8": "Varsayılan ajanınızı seçin",
                       "b8e5bae17f": "Tercih ettiğiniz ajan önceden seçili olduğu için yeni işlere daha hızlı başlayın.",
-                      "ad342dd4c6": "Entegrasyonları bağlayın",
-                      "06fe30fdb0": "Bir görevden tek tıklamayla ajan başlatın ve PR durumunu görünür tutun.",
                       "eddc532e58": "Çalışma alanı kurulumunu otomatikleştirin",
                       "56049b74c2": "Her yeni worktree'nin ajanlar için hazır olması için kurulum komutlarını otomatik olarak çalıştırın.",
                       "2cf795433b": "Birden fazla repoda çalışmaya başlayın",
@@ -15910,7 +15908,6 @@
             "4795ac2d4a": "Şunu sormayı deneyin:",
             "53905bd076": "Geliştirme önizlemesi: beceri kurulum terminali açılıyor.",
             "1da82af45b": "Orca CLI dikkat gerektiriyor",
-            "ce13a742d0": "`orca` PATH'e kaydedildi.",
             "d1a86c7eb5": "CLI kurulumunu tamamlamak için Ayarlar'ı açın.",
             "cliInstallFailed": "Orca CLI kurulamadı.",
             "splitPrPrompt": "“Bu PR'ı iki <term>worktree</term>'ye böl ve her biri için bir PR oluştur.”"
@@ -19165,7 +19162,6 @@
       "integrations": {
         "capabilities": {
           "startWorkspaceFromIssue": "Herhangi bir GitHub sorunundan veya pull request'inden, başlığı ve bağlamıyla önceden doldurulmuş bir çalışma alanı başlatın",
-          "browseIssues": "Orca'dan çıkmadan Görevler görünümünde GitHub sorunlarına ve pull request'lerine göz atın",
           "reviewStatus": "Her worktree'de sorun durumunu, inceleme durumunu ve CI kontrollerini görün",
           "managePullRequests": "Orca'dan çıkmadan pull request'leri okuyun, yorum yapın ve merge edin"
         }
@@ -23305,10 +23301,6 @@
       "workspaces": {
         "title": "Çalışma Alanları",
         "lede": "Orca, ajanların paralel çalışabilmesi için her görevi yalıtılmış bir çalışma alanına yerleştirir."
-      },
-      "tasks": {
-        "title": "Görevler",
-        "lede": "Doğrudan GitHub veya Linear üzerinden çalışmaya başlayın."
       },
       "agents": {
         "title": "Ajanlar",

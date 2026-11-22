@@ -4,6 +4,8 @@ import type { ReviewStepId } from './review-steps'
 import type { WorkbenchStepId } from './workbench-steps'
 
 export const FEATURE_WALL_TOUR_DEPTH_STEPS = [
+  'zotz-node',
+  'zotz-queue',
   'workspaces',
   'tasks',
   'agents_statuses',
@@ -103,6 +105,8 @@ export function buildFeatureWallTourDepthSummary(
   input: FeatureWallTourDepthInput
 ): FeatureWallTourDepthSummary {
   const visitedDepthSteps = [
+    ...(input.visitedWorkflows.has('zotz-node') ? (['zotz-node'] as const) : []),
+    ...(input.visitedWorkflows.has('zotz-queue') ? (['zotz-queue'] as const) : []),
     ...(input.visitedWorkflows.has('workspaces') ? (['workspaces'] as const) : []),
     ...(input.visitedWorkflows.has('tasks') ? (['tasks'] as const) : []),
     ...[...input.visitedAgentSteps].map((step) => AGENT_DEPTH_STEP[step]),

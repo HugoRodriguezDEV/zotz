@@ -20,7 +20,10 @@ export function ZotzTaskViewTabs({ state }: { state: ZotzTaskBoardViewsState }):
   }
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-1">
+    <div
+      className="flex min-w-0 flex-wrap items-center gap-1"
+      data-contextual-tour-target="zotz-task-view-tabs"
+    >
       {state.views.map((view) =>
         renaming === view.id ? (
           <Input

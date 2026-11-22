@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { SquareKanban } from 'lucide-react'
+import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { useNow } from '@/hooks/use-now'
 import { useTranslate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store/index'
@@ -35,6 +34,7 @@ import { ZotzTaskViewTabs } from './ZotzTaskViewTabs'
 import { ZotzTaskBoardToolbar, ZOTZ_TASK_SCOPE_EXTERNAL } from './ZotzTaskBoardToolbar'
 import { ZOTZ_TASK_BOARD_SOURCES_SECTION_ID } from './ZotzTaskBoardSourcesSetting'
 import { externalSourceColumns } from './zotz-task-board-filtering'
+import { ZotzTaskBoardEmpty } from './ZotzTaskBoardEmpty'
 
 /** Clock for relative filters like `updated:@today-7d`; refreshes are timed in useZotzTaskRelay. */
 const CLOCK_MS = 5 * 60_000
@@ -165,24 +165,10 @@ export function ZotzTaskBoard({ active }: { active: boolean }): React.JSX.Elemen
     })
   }
 
-  if (github.sources.length === 0 && external.states.length === 0) {
-    return (
-      <div className="flex min-h-64 flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center">
-        <SquareKanban className="size-6 text-muted-foreground" />
-        <p className="text-sm font-medium text-foreground">
-          {t('zotz.taskBoard.empty.title', 'No task sources yet')}
-        </p>
-        <p className="max-w-sm text-xs text-muted-foreground">
-          {t(
-            'zotz.taskBoard.empty.description',
-            'Pick the GitHub organizations and projects, or connect a task service, whose tasks show up here.'
-          )}
-        </p>
-        <Button type="button" size="sm" className="mt-2" onClick={openSourceSettings}>
-          {t('zotz.taskBoard.empty.action', 'Choose sources')}
-        </Button>
-      </div>
-    )
+  const noSources = github.sources.length === 0 && external.states.length === 0
+  useContextualTour('zotz-task-board', active && !noSources && model.items.length > 0)
+  if (noSources) {
+    return <ZotzTaskBoardEmpty active={active} onChooseSources={openSourceSettings} />
   }
 
   const errors = [

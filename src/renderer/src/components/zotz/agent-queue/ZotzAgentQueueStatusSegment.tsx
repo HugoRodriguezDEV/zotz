@@ -1,4 +1,5 @@
 import { ListOrdered } from 'lucide-react'
+import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { isPairedWebClientWindow } from '@/app-shell/chrome/desktop-window-chrome'
 import { useTranslate } from '@/i18n/use-translate'
@@ -22,6 +23,10 @@ export function ZotzAgentQueueStatusSegment({
   const snapshot = useZotzAgentQueue()
   const hostQueues = useZotzHostAgentQueues()
   const open = useZotzAgentQueueDrawerOpen()
+  useContextualTour(
+    'zotz-agent-queue',
+    !isPairedWebClientWindow() && snapshot.running.length + snapshot.queued.length > 0
+  )
 
   if (isPairedWebClientWindow()) {
     return null
@@ -59,6 +64,7 @@ export function ZotzAgentQueueStatusSegment({
           className="inline-flex cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-muted-foreground transition-colors hover:bg-accent/70 hover:text-foreground"
           aria-label={label}
           aria-expanded={open}
+          data-contextual-tour-target="zotz-agent-queue-segment"
           onClick={() => setZotzAgentQueueDrawerOpen(!open)}
         >
           <ListOrdered className="size-3" />
