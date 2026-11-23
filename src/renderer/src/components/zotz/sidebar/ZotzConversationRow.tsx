@@ -95,7 +95,8 @@ export function ZotzConversationRow({
   canceled,
   queuedSince,
   linked = false,
-  showHost = false
+  showHost = false,
+  projectName = null
 }: {
   row: Row
   repo: Repo | undefined
@@ -109,6 +110,8 @@ export function ZotzConversationRow({
   queuedSince: number | null
   /** Linked with other conversations to work together. */
   linked?: boolean
+  /** Shown in a group, where rows from several projects sit together. */
+  projectName?: string | null
 }): React.JSX.Element {
   const t = useTranslate()
   const now = useNow(30_000, queuedSince !== null)
@@ -119,7 +122,8 @@ export function ZotzConversationRow({
   const hostLabel = useAppStore((s) =>
     showHost ? selectExecutionHostDisplayLabel(s, row.hostId) : null
   )
-  const hasLeading = showBranch || row.shortName !== null || hostLabel !== null
+  const hasLeading =
+    showBranch || row.shortName !== null || hostLabel !== null || projectName !== null
   return (
     <button
       type="button"
@@ -160,9 +164,15 @@ export function ZotzConversationRow({
               {row.shortName}
             </span>
           ) : null}
-          {showBranch ? (
+          {projectName ? (
             <>
               {row.shortName || hostLabel ? <span aria-hidden>·</span> : null}
+              <span className="max-w-[45%] shrink-0 truncate">{projectName}</span>
+            </>
+          ) : null}
+          {showBranch ? (
+            <>
+              {row.shortName || hostLabel || projectName ? <span aria-hidden>·</span> : null}
               <span className="min-w-8 truncate font-mono">{row.branch}</span>
             </>
           ) : null}

@@ -67,7 +67,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
   }
   const hostFor = (hostId: string): ZotzLinkHost | undefined =>
     hosts.find((host) => host.hostId === hostId)
-  const context: ZotzLinkContext = { hosts, entryFor }
+  const context: ZotzLinkContext = { hosts, describe: entryFor }
   const group = active ? findZotzLinkGroup(groups, active) : null
   const partners = group?.members.filter((m) => !active || !sameZotzLinkMember(m, active)) ?? []
   // One string so polling restarts only when the group's addresses really change.

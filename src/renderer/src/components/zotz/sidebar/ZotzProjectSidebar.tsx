@@ -26,11 +26,16 @@ import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/executi
 import { ProjectHeaderHostLabel } from '../../sidebar/worktree-list/rows/ProjectHeaderHostLabel'
 import {
   buildZotzFolderConversations,
+  buildZotzGroupSections,
   buildZotzProjectSections,
   buildZotzShortNames,
   summarizeZotzConversationStatus,
+  zotzMemberKey,
+  type ZotzConversationRow as ConversationRow,
   type ZotzConversationStatus
 } from './zotz-project-conversations'
+import { ZotzSidebarGroups, useZotzSidebarGroups } from './ZotzSidebarGroups'
+import { sortZotzGroups } from '../links/zotz-link-groups'
 import { useZotzGitHubRepoIcons } from './use-zotz-github-repo-icons'
 import { useZotzAgentQueue } from '../agent-queue/zotz-agent-queue-store'
 import { useZotzHostAgentQueues } from '../agent-queue/zotz-host-agent-queue-store'
@@ -146,10 +151,11 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
   }, [allThreads])
   useZotzGitHubRepoIcons(repos)
   const links = useAppStore((s) => s.settings?.zotzConversationLinks)
+  const groups = useMemo(() => sortZotzGroups(links ?? []), [links])
   const linkedKeys = useMemo(
     () =>
-      new Set((links ?? []).flatMap((group) => group.members.map((m) => `${m.hostId}\n${m.path}`))),
-    [links]
+      new Set(groups.flatMap((group) => group.members.map((m) => zotzMemberKey(m.hostId, m.path)))),
+    [groups]
   )
   useContextualTour('zotz-sidebar', repos.length > 0)
   useContextualTour(
@@ -224,18 +230,58 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
           ...canceledWorkspaces,
           ...queuedSince.keys()
         ]),
-        shortNames
+        shortNames,
+        grouped: linkedKeys
       }),
-    [repos, worktreesByRepo, statusByWorkspace, canceledWorkspaces, queuedSince, shortNames]
+    [
+      repos,
+      worktreesByRepo,
+      statusByWorkspace,
+      canceledWorkspaces,
+      queuedSince,
+      shortNames,
+      linkedKeys
+    ]
+  )
+  const groupSections = useMemo(
+    () => buildZotzGroupSections({ groups, repos, worktreesByRepoId: worktreesByRepo, shortNames }),
+    [groups, repos, worktreesByRepo, shortNames]
+  )
+  const groupsUi = useZotzSidebarGroups(groups, shortNames)
+  const renderConversation = (
+    row: ConversationRow,
+    repo: Repo,
+    options: { showHost: boolean; showProject: boolean }
+  ): React.JSX.Element => (
+    <ZotzConversationMenu
+      key={row.id}
+      worktree={row.worktree}
+      onEditShortName={editShortName(repo, row.worktree)}
+      groupMenu={groupsUi.groupMenuFor(row)}
+    >
+      <ZotzConversationRow
+        row={row}
+        repo={repo}
+        showHost={options.showHost}
+        projectName={options.showProject ? repo.displayName : null}
+        active={row.id === activeWorktreeId}
+        status={statusByWorkspace.get(row.id) ?? null}
+        canceled={canceledWorkspaces.has(row.id)}
+        queuedSince={queuedSince.get(row.id) ?? null}
+        linked={
+          row.worktree !== null && linkedKeys.has(zotzMemberKey(row.hostId, row.worktree.path))
+        }
+      />
+    </ZotzConversationMenu>
   )
   // Upstream refreshes PR status only for cards it reports as on screen; this list is the cards here.
   const setVisibleReviewIds = useAppStore((s) => s.setVisibleReviewCardWorktreeIds)
   const reviewIds = useMemo(
     () =>
-      sections.flatMap(({ conversations }) =>
+      [...sections, ...groupSections].flatMap(({ conversations }) =>
         conversations.flatMap((row) => (row.worktree?.branch ? [row.worktree.id] : []))
       ),
-    [sections]
+    [sections, groupSections]
   )
   useEffect(() => {
     const publish = (): void =>
@@ -254,15 +300,23 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     [folderWorkspaces, tabsByWorktree]
   )
 
+  const sectionHeader = (label: string, action: React.ReactNode): React.JSX.Element => (
+    <div className="flex items-center justify-between px-2 pt-2 pb-1">
+      <span className="text-xs font-medium text-worktree-sidebar-foreground/60">{label}</span>
+      {action}
+    </div>
+  )
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center justify-between px-4 pt-2 pb-1">
-        <span className="text-xs font-medium text-worktree-sidebar-foreground/60">
-          {t('dashboard.sidebar.projects', 'Projects')}
-        </span>
-        <AddProjectButton />
-      </div>
       <div className="scrollbar-sleek min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+        <ZotzSidebarGroups
+          sections={groupSections}
+          ui={groupsUi}
+          renderConversation={renderConversation}
+          header={sectionHeader}
+        />
+        {sectionHeader(t('dashboard.sidebar.projects', 'Projects'), <AddProjectButton />)}
         {sections.length === 0 && folders.length === 0 ? (
           <p className="px-2 py-4 text-sm text-muted-foreground">
             {t('zotz.sidebar.empty', 'Add a project from GitHub or a local folder to start.')}
@@ -271,26 +325,9 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
         {sections.map(({ key, repo, multiHost, conversations }) => (
           <section key={key} className="mb-2">
             <ProjectHeader repo={repo} multiHost={multiHost} />
-            {conversations.map((row) => (
-              <ZotzConversationMenu
-                key={row.id}
-                worktree={row.worktree}
-                onEditShortName={editShortName(row.repo ?? repo, row.worktree)}
-              >
-                <ZotzConversationRow
-                  row={row}
-                  repo={row.repo ?? repo}
-                  showHost={multiHost}
-                  active={row.id === activeWorktreeId}
-                  status={statusByWorkspace.get(row.id) ?? null}
-                  canceled={canceledWorkspaces.has(row.id)}
-                  queuedSince={queuedSince.get(row.id) ?? null}
-                  linked={
-                    row.worktree !== null && linkedKeys.has(`${row.hostId}\n${row.worktree.path}`)
-                  }
-                />
-              </ZotzConversationMenu>
-            ))}
+            {conversations.map((row) =>
+              renderConversation(row, row.repo ?? repo, { showHost: multiHost, showProject: false })
+            )}
           </section>
         ))}
         {folders.length > 0 ? (
@@ -315,6 +352,7 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
       <ZotzArchivedSection />
       <HiddenProjectsSection />
       <ZotzShortNameDialog request={shortNameRequest} onClose={() => setShortNameRequest(null)} />
+      {groupsUi.nameDialog}
     </div>
   )
 }

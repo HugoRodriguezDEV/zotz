@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   canZotzLinkTogether,
   linkZotzMembers,
+  moveZotzMemberToGroup,
   unlinkZotzMember,
   zotzLinkPeersFor
 } from './zotz-link-groups'
@@ -45,5 +46,27 @@ describe('zotz link groups', () => {
       { shortName: 'a', title: '/a', machine: 'Local Mac', reach: 'reply-only' },
       { shortName: 'b', title: '/b', machine: 'Local Mac', reach: 'reply-only' }
     ])
+  })
+
+  it('keeps a named group when its last member leaves', () => {
+    const groups = [{ id: 'g', name: 'Citas', createdAt: 1, members: [mac('/a')] }]
+    expect(unlinkZotzMember(groups, mac('/a'))).toEqual([
+      { id: 'g', name: 'Citas', createdAt: 1, members: [] }
+    ])
+  })
+
+  it('moves a conversation out of its old link into a group, at the given place', () => {
+    const groups = [
+      { id: 'old', createdAt: 1, members: [mac('/a'), mac('/b')] },
+      { id: 'g', name: 'Citas', createdAt: 2, members: [mac('/c'), mac('/d')] }
+    ]
+    expect(moveZotzMemberToGroup(groups, mac('/a'), 'g', 1)).toEqual([
+      { id: 'g', name: 'Citas', createdAt: 2, members: [mac('/c'), mac('/a'), mac('/d')] }
+    ])
+  })
+
+  it('refuses a move that would put two servers in one group', () => {
+    const groups = [{ id: 'g', name: 'Citas', createdAt: 1, members: [msi('/a')] }]
+    expect(moveZotzMemberToGroup(groups, { hostId: 'runtime:mini', path: '/b' }, 'g')).toBeNull()
   })
 })
