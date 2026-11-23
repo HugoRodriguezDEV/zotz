@@ -300,10 +300,10 @@ export function nestZotzChildren(
   }
   const keep = (list: readonly ZotzConversationRow[]): ZotzConversationRow[] =>
     list.filter((row) => {
-      if (!nests(row)) {
+      const parent = zotzParentKey(row)
+      if (!parent || !nests(row)) {
         return true
       }
-      const parent = zotzParentKey(row) as string
       childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), row])
       return false
     })

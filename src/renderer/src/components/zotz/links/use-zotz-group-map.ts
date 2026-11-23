@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
 import { useAppStore } from '@/store/index'
-import { findWorktreeById } from '@/store/github/refresh/worktree-refresh'
 import type {
   ZotzConversationEntry,
   ZotzLinkGroup,
@@ -10,7 +9,9 @@ import type {
 import type { ZotzGroupMapNode } from './ZotzGroupMap'
 import { buildZotzGroupMapEdges, zotzEdgeKey, type ZotzGroupMapEdge } from './zotz-group-map-edges'
 import { sameZotzLinkMember, type ZotzLinkMember } from './zotz-link-groups'
-import { findZotzLinkWorktreeId } from './zotz-link-worktrees'
+import type { Repo } from '../../../../../shared/repository/repo-types'
+import type { Worktree } from '../../../../../shared/worktree/types'
+import { getRepoExecutionHostId } from '../../../../../shared/execution-host'
 
 // Long enough to notice between two 8 s polls.
 const ACTIVE_MS = 6_000
@@ -49,20 +50,9 @@ export function useZotzGroupMap(input: {
   })
   const edges = buildZotzGroupMapEdges(messages, memberIndexOf)
 
-  // Subscribed so a child's recorded parent shows as soon as its worktree arrives.
-  useAppStore(selectWorktreesByRepo)
-  const state = useAppStore.getState()
-  const ids = members.map((member) => findZotzLinkWorktreeId(state, member))
-  const parentEdges = members.flatMap((member, child) => {
-    const id = ids[child]
-    const parentId = id ? findWorktreeById(state, id)?.cliProvenance?.zotzParentWorktreeId : null
-    const parent = parentId
-      ? ids.findIndex(
-          (candidate, i) => candidate === parentId && members[i].hostId === member.hostId
-        )
-      : -1
-    return parent === -1 || parent === child ? [] : [{ child, parent }]
-  })
+  const repos = useAppStore((store) => store.repos)
+  const worktreesByRepo = useAppStore(selectWorktreesByRepo)
+  const parentEdges = zotzGroupParentEdges(members, repos, worktreesByRepo)
 
   const [activeEdges, setActiveEdges] = useState<ReadonlySet<string>>(new Set())
   const seen = useRef<{ group: string; ids: Set<string> } | null>(null)
@@ -97,4 +87,34 @@ function indexInAddresses(addressKey: string, addressOrLabel: string): number | 
     .split('\n')
     .findIndex((address) => address !== '' && addressOrLabel.includes(address))
   return index === -1 ? null : index
+}
+
+/** Dashed child → parent lines among a group's members (same machine only). */
+function zotzGroupParentEdges(
+  members: readonly ZotzLinkMember[],
+  repos: readonly Repo[],
+  worktreesByRepo: Readonly<Record<string, readonly Worktree[] | undefined>>
+): { child: number; parent: number }[] {
+  const worktreeOf = (member: ZotzLinkMember): Worktree | null => {
+    for (const repo of repos) {
+      if (getRepoExecutionHostId(repo) !== member.hostId) {
+        continue
+      }
+      const match = (worktreesByRepo[repo.id] ?? []).find((w) => w.path === member.path)
+      if (match) {
+        return match
+      }
+    }
+    return null
+  }
+  const worktrees = members.map(worktreeOf)
+  return members.flatMap((member, child) => {
+    const parentId = worktrees[child]?.cliProvenance?.zotzParentWorktreeId
+    const parent = parentId
+      ? worktrees.findIndex(
+          (candidate, i) => candidate?.id === parentId && members[i].hostId === member.hostId
+        )
+      : -1
+    return parent === -1 || parent === child ? [] : [{ child, parent }]
+  })
 }

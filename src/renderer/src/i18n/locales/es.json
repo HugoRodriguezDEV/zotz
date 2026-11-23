@@ -24767,7 +24767,9 @@
       "taskPlaceholder": "¿Qué deben construir juntos?",
       "createAndStart": "Crear y arrancar {{count}}",
       "startCreateFailed": "No se pudo arrancar una conversación en {{project}}",
-      "startLaunchFailed": "El agente en {{project}} no arrancó"
+      "startLaunchFailed": "El agente en {{project}} no arrancó",
+      "agentClaude": "Claude",
+      "agentCodex": "Codex"
     },
     "shortName": {
       "cancel": "Cancelar",

@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import type { Worktree } from '../../../../../shared/worktree/types'
+import { makeWorktree } from '../../sidebar/worktree-list/listing/worktree-list-lineage-card-test-fixtures'
 import { nestZotzChildren, type ZotzConversationRow } from './zotz-project-conversations'
 
 function row(id: string, parent?: string): ZotzConversationRow {
   const worktree = {
-    id,
-    cliProvenance: parent
-      ? { kind: 'created-by-cli', createdAt: 1, zotzParentWorktreeId: parent }
-      : undefined
-  } as Worktree
+    ...makeWorktree({ id, displayName: id, branch: id, sortOrder: 0, instanceId: id }),
+    ...(parent
+      ? {
+          cliProvenance: {
+            kind: 'created-by-cli' as const,
+            createdAt: 1,
+            zotzParentWorktreeId: parent
+          }
+        }
+      : {})
+  }
   return {
     id,
     title: id,

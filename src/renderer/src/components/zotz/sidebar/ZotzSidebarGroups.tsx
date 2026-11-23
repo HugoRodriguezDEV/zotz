@@ -9,6 +9,7 @@ import type { ZotzLinkGroup } from '../../../../../shared/zotz/conversation-link
 import { useZotzStoreLinkContext } from '../links/use-zotz-store-link-context'
 import { useZotzGroupPlacement } from '../links/use-zotz-group-placement'
 import { useAppStore } from '@/store/index'
+import { createNonSecureContextUuid } from '../../../../../shared/identifiers/non-secure-context-uuid'
 import { startZotzGroupConversations, zotzStartableProjects } from './zotz-group-start'
 import {
   createZotzGroupNamed,
@@ -80,6 +81,7 @@ export function useZotzSidebarGroups(
   const repos = useAppStore((state) => state.repos)
   const askNewGroup = (then?: (groupId: string) => Promise<unknown>): void =>
     setRequest({
+      id: createNonSecureContextUuid(),
       current: '',
       // Starting from "+" offers one copy per project; from a row's menu the row is the start.
       ...(then ? {} : { projects: zotzStartableProjects(repos) }),
@@ -112,6 +114,7 @@ export function useZotzSidebarGroups(
     },
     rename: (group) =>
       setRequest({
+        id: createNonSecureContextUuid(),
         groupId: group.id,
         current: group.name ?? '',
         onSave: (name) => renameZotzGroupNamed(group.id, name)

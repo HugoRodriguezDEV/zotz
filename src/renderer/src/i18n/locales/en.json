@@ -26400,7 +26400,9 @@
       "taskPlaceholder": "What should they build together?",
       "createAndStart": "Create and start {{count}}",
       "startCreateFailed": "Could not start a conversation in {{project}}",
-      "startLaunchFailed": "The agent in {{project}} didn't start"
+      "startLaunchFailed": "The agent in {{project}} didn't start",
+      "agentClaude": "Claude",
+      "agentCodex": "Codex"
     }
   }
 }
