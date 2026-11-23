@@ -25893,6 +25893,7 @@
         "legendAgents": "Agents",
         "legendMinFree": "Always free",
         "reviewDone": "Finished · the session is still open and holds its memory",
+        "freeMemory": "Free memory",
         "reviewWaiting": "Needs your answer",
         "runningFor": "{{minutes}} min · peak {{peak}} GB",
         "openPane": "Go to tab",

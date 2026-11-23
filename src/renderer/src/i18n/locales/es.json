@@ -24267,6 +24267,7 @@
         "legendAgents": "Agentes",
         "legendMinFree": "Siempre libre",
         "reviewDone": "Terminó · la sesión sigue abierta y ocupa memoria",
+        "freeMemory": "Liberar memoria",
         "reviewWaiting": "Necesita tu respuesta",
         "runningFor": "{{minutes}} min · pico {{peak}} GB",
         "openPane": "Ir a la pestaña",

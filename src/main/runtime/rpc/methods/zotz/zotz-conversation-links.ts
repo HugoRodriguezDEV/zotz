@@ -19,7 +19,7 @@ export const ZOTZ_CONVERSATIONS_LIST_METHOD = defineMethod({
   params: ZotzConversationsListParams,
   handler: async (_params, { runtime }): Promise<ZotzConversationsListResult> => ({
     conversations: (await listZotzHostConversations(runtime))
-      .filter((conversation) => !conversation.archived)
+      .filter((conversation) => conversation.listed)
       .map(toZotzConversationEntry)
   })
 })

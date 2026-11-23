@@ -613,7 +613,7 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
 ### 2026-11-18 — Barra lateral simple estilo Conductor (`zotz/sidebar-conductor`)
 
-- Nuevo default `zotzSidebarLayout` (≠ `'orca'`): arriba Inicio / Crear / Buscar; debajo cada proyecto con su `+` (abre el creador de workspaces de upstream con el proyecto elegido) y solo las conversaciones del usuario: sin el checkout principal salvo que tenga pestañas abiertas, sin lo creado por la CLI ni por automatizaciones. Las carpetas sueltas (`~`) salen solo con pestañas abiertas.
+- Nuevo default `zotzSidebarLayout` (≠ `'orca'`): arriba Inicio / Crear / Buscar; debajo cada proyecto con su `+` (abre el creador de workspaces de upstream con el proyecto elegido) y solo las conversaciones del usuario: sin el checkout principal salvo que tenga pestañas abiertas, sin lo creado por automatizaciones ni por la CLI, salvo lo que la CLI crea arrancando un agente (`--agent`, p. ej. una entrega a otro agente), que es una conversación nueva. Las carpetas sueltas (`~`) salen solo con pestañas abiertas.
 - Enganche: un `if` en `components/sidebar/index.tsx`; el resto vive en `components/zotz/sidebar/`. Ajustes → General → "Barra lateral simple" regresa a las tarjetas de Orca.
 - Pendiente: el switch "sin worktree" al crear (conversación directa en la carpeta del proyecto), marcar como "propias" las conversaciones abiertas desde Zotz para ocultar agentes externos dentro del mismo worktree, y "Conectar a mi servidor" en modo personal.
 - `server-hook-session-binding.test.ts` y `journal-writer-operation-expiry.test.ts` ya fallaban en `main` antes de esta rama.

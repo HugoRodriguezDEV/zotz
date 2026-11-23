@@ -10,6 +10,7 @@ import {
 import { getProjectIdentityKey } from '../../../../../shared/project/host-setup/project-host-setup-projection'
 import { resolveZotzShortNames } from '../../../../../shared/zotz/zotz-short-name'
 import type { Worktree } from '../../../../../shared/worktree/types'
+import { isZotzUserConversation } from '../../../../../shared/zotz/zotz-user-conversation'
 import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
 
 export type ZotzConversationRow = {
@@ -51,20 +52,6 @@ function branchLabel(worktree: Pick<Worktree, 'branch' | 'head'>): string | null
 
 function hasOpenTabs(tabsByWorkspace: TabsByWorkspace, key: string): boolean {
   return (tabsByWorkspace[key]?.length ?? 0) > 0
-}
-
-/** Workspaces the user started: no CLI/automation creations; the main checkout only while an agent works in it. */
-export function isZotzUserConversation(
-  worktree: Worktree,
-  workspacesWithAgents: ReadonlySet<string>
-): boolean {
-  if (worktree.isArchived || worktree.removing || worktree.cliProvenance) {
-    return false
-  }
-  if (worktree.automationProvenance) {
-    return false
-  }
-  return !worktree.isMainWorktree || workspacesWithAgents.has(worktree.id)
 }
 
 function byRecentActivity(a: ZotzConversationRow, b: ZotzConversationRow): number {

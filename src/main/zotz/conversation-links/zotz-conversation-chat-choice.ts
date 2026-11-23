@@ -16,7 +16,8 @@ export type ZotzConversationChat = {
 }
 
 export type ZotzHostConversation = Omit<ZotzConversationEntry, 'agent' | 'state' | 'address'> & {
-  archived: boolean
+  /** The sidebar lists it: not archived, removed or created by the CLI or an automation. */
+  listed: boolean
   chats: ZotzConversationChat[]
 }
 
