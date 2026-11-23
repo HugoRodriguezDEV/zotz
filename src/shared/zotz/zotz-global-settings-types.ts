@@ -33,4 +33,6 @@ export type ZotzGlobalSettings = {
   zotzTaskRelay?: ZotzTaskRelayConfig
   /** Conversations linked to work together; this machine is the source of truth for its groups. */
   zotzConversationLinks?: ZotzLinkGroup[]
+  /** Agent-created conversations already placed in their group (`host\npath`), so a drag out sticks. */
+  zotzPlacedConversations?: string[]
 }

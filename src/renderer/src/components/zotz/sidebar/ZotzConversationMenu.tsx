@@ -1,5 +1,16 @@
 import React from 'react'
-import { Archive, AtSign, Copy, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import {
+  Archive,
+  AtSign,
+  Check,
+  Copy,
+  Layers,
+  LogOut,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
@@ -9,6 +20,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import {
@@ -16,11 +30,124 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { archiveZotzConversation } from './zotz-archive'
 import { runWorktreeDelete } from '../../sidebar/workspace-actions/deletion/delete-worktree-flow'
 import type { Worktree } from '../../../../../shared/worktree/types'
+
+/** "Move to group" for a conversation: every group, a new one, and leaving its current one. */
+export type ZotzGroupMenu = {
+  groups: readonly { id: string; name: string }[]
+  currentGroupId: string | null
+  onMove: (groupId: string) => void
+  onNewGroup: () => void
+  onRemove: () => void
+}
+
+type MenuParts = {
+  Item: typeof DropdownMenuItem | typeof ContextMenuItem
+  Separator: typeof DropdownMenuSeparator | typeof ContextMenuSeparator
+  Sub: typeof DropdownMenuSub | typeof ContextMenuSub
+  SubTrigger: typeof DropdownMenuSubTrigger | typeof ContextMenuSubTrigger
+  SubContent: typeof DropdownMenuSubContent | typeof ContextMenuSubContent
+}
+
+const DROPDOWN_PARTS: MenuParts = {
+  Item: DropdownMenuItem,
+  Separator: DropdownMenuSeparator,
+  Sub: DropdownMenuSub,
+  SubTrigger: DropdownMenuSubTrigger,
+  SubContent: DropdownMenuSubContent
+}
+
+const CONTEXT_PARTS: MenuParts = {
+  Item: ContextMenuItem,
+  Separator: ContextMenuSeparator,
+  Sub: ContextMenuSub,
+  SubTrigger: ContextMenuSubTrigger,
+  SubContent: ContextMenuSubContent
+}
+
+function GroupSubmenu({
+  menu,
+  parts: { Item, Separator, Sub, SubTrigger, SubContent }
+}: {
+  menu: ZotzGroupMenu
+  parts: MenuParts
+}): React.JSX.Element {
+  const t = useTranslate()
+  return (
+    <Sub>
+      <SubTrigger>
+        <Layers className="size-4" />
+        {t('zotz.groups.moveTo', 'Move to group')}
+      </SubTrigger>
+      <SubContent>
+        {menu.groups.map((group) => (
+          <Item
+            key={group.id}
+            disabled={group.id === menu.currentGroupId}
+            onSelect={() => menu.onMove(group.id)}
+          >
+            {group.id === menu.currentGroupId ? (
+              <Check className="size-4" />
+            ) : (
+              <span className="size-4" />
+            )}
+            <span className="max-w-56 truncate">{group.name}</span>
+          </Item>
+        ))}
+        {menu.groups.length > 0 ? <Separator /> : null}
+        <Item onSelect={menu.onNewGroup}>
+          <Plus className="size-4" />
+          {t('zotz.groups.newGroupEllipsis', 'New group…')}
+        </Item>
+        {menu.currentGroupId ? (
+          <Item onSelect={menu.onRemove}>
+            <LogOut className="size-4" />
+            {t('zotz.groups.removeFromGroup', 'Remove from group')}
+          </Item>
+        ) : null}
+      </SubContent>
+    </Sub>
+  )
+}
+
+function MenuItems({
+  actions,
+  groupMenu,
+  parts
+}: {
+  actions: readonly MenuAction[]
+  groupMenu: ZotzGroupMenu | undefined
+  parts: MenuParts
+}): React.JSX.Element {
+  const { Item, Separator } = parts
+  // Grouping sits with the conversation's own actions, before archive and delete.
+  const split = actions.findIndex((action) => action.separatorBefore)
+  const head = split === -1 ? actions : actions.slice(0, split)
+  const tail = split === -1 ? [] : actions.slice(split)
+  const render = (action: MenuAction): React.JSX.Element => (
+    <React.Fragment key={action.key}>
+      {action.separatorBefore ? <Separator /> : null}
+      <Item variant={action.destructive ? 'destructive' : 'default'} onSelect={action.run}>
+        <action.icon className="size-4" />
+        {action.label}
+      </Item>
+    </React.Fragment>
+  )
+  return (
+    <>
+      {head.map(render)}
+      {groupMenu ? <GroupSubmenu menu={groupMenu} parts={parts} /> : null}
+      {tail.map(render)}
+    </>
+  )
+}
 
 type MenuAction = {
   key: string
@@ -99,15 +226,17 @@ function conversationActions(
   return actions
 }
 
-/** Right-click and "…" menu for a conversation row: rename, short name, duplicate, archive, delete. */
+/** Right-click and "…" menu for a conversation row: rename, short name, duplicate, group, archive, delete. */
 export function ZotzConversationMenu({
   worktree,
   onEditShortName,
+  groupMenu,
   children
 }: {
   worktree: Worktree | null
   /** Absent when the machine that owns it cannot keep short names. */
   onEditShortName?: () => void
+  groupMenu?: ZotzGroupMenu
   children: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
@@ -136,36 +265,14 @@ export function ZotzConversationMenu({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="bottom">
-                {actions.map((action) => (
-                  <React.Fragment key={action.key}>
-                    {action.separatorBefore ? <DropdownMenuSeparator /> : null}
-                    <DropdownMenuItem
-                      variant={action.destructive ? 'destructive' : 'default'}
-                      onSelect={action.run}
-                    >
-                      <action.icon className="size-4" />
-                      {action.label}
-                    </DropdownMenuItem>
-                  </React.Fragment>
-                ))}
+                <MenuItems actions={actions} groupMenu={groupMenu} parts={DROPDOWN_PARTS} />
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        {actions.map((action) => (
-          <React.Fragment key={action.key}>
-            {action.separatorBefore ? <ContextMenuSeparator /> : null}
-            <ContextMenuItem
-              variant={action.destructive ? 'destructive' : 'default'}
-              onSelect={action.run}
-            >
-              <action.icon className="size-4" />
-              {action.label}
-            </ContextMenuItem>
-          </React.Fragment>
-        ))}
+        <MenuItems actions={actions} groupMenu={groupMenu} parts={CONTEXT_PARTS} />
       </ContextMenuContent>
     </ContextMenu>
   )

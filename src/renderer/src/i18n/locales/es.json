@@ -24327,7 +24327,8 @@
       "viewArchived": "Ver archivadas",
       "archiveFailed": "No se pudo archivar: {{error}}",
       "archivedTitle": "Archivadas",
-      "restore": "Restaurar {{name}}"
+      "restore": "Restaurar {{name}}",
+      "shortName": "Nombre corto…"
     },
     "composer": {
       "worktreeLabel": "Worktree",
@@ -24738,6 +24739,41 @@
       "unreachable": "{{host}} no responde.",
       "updateServer": "Actualiza Zotz en {{host}} para enlazar sus conversaciones.",
       "workingTogether": "Trabajando juntas"
+    },
+    "groups": {
+      "twoServers": "Dos servidores no pueden escribirse entre sí; un grupo junta esta máquina y como máximo un servidor.",
+      "moveTo": "Mover a grupo",
+      "newGroupEllipsis": "Nuevo grupo…",
+      "removeFromGroup": "Quitar del grupo",
+      "unnamed": "Grupo sin nombre",
+      "new": "Nuevo grupo",
+      "title": "Grupos",
+      "none": "Agrupa conversaciones de varios proyectos para trabajar juntas en una tarea.",
+      "newTitle": "Nuevo grupo",
+      "renameTitle": "Renombrar grupo",
+      "nameDescription": "Un grupo junta conversaciones de cualquier proyecto para una misma tarea. Sus agentes pueden escribirse entre sí.",
+      "namePlaceholder": "Feature de citas",
+      "create": "Crear",
+      "actions": "Acciones del grupo {{name}}",
+      "rename": "Renombrar grupo",
+      "delete": "Eliminar grupo",
+      "empty": "Arrastra conversaciones aquí o usa \"Mover a grupo\" en su menú.",
+      "otherProject": "Una conversación se queda en su propio proyecto.",
+      "mapTitle": "Quién habla con quién",
+      "mapShowAll": "Ver todos los mensajes",
+      "mapLabel": "Quién le escribe a quién en el grupo",
+      "mapEdge": "{{a}} ↔ {{b}}: {{count}} mensajes",
+      "startLegend": "Opcional: arranca una conversación en cada proyecto con la misma tarea",
+      "taskPlaceholder": "¿Qué deben construir juntos?",
+      "createAndStart": "Crear y arrancar {{count}}",
+      "startCreateFailed": "No se pudo arrancar una conversación en {{project}}",
+      "startLaunchFailed": "El agente en {{project}} no arrancó",
+      "agentClaude": "Claude",
+      "agentCodex": "Codex"
+    },
+    "shortName": {
+      "cancel": "Cancelar",
+      "save": "Guardar"
     }
   }
 }

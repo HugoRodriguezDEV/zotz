@@ -64,7 +64,9 @@ export const ClientAutomationWorkspaceProvenance = z.object({
 
 // Descriptive provenance grants no authority; the host stamps createdAt to avoid client-clock sort skew.
 export const CliWorkspaceProvenanceRequest = z.object({
-  callerTerminalHandle: OptionalString
+  callerTerminalHandle: OptionalString,
+  callerAgentSessionId: OptionalString,
+  zotzGroup: z.string().max(80).optional()
 })
 
 export const WorktreeListParams = z.object({

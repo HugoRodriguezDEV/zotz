@@ -26372,6 +26372,37 @@
       "unreachable": "{{host}} isn't answering.",
       "updateServer": "Update Zotz on {{host}} to link its conversations.",
       "workingTogether": "Working together"
+    },
+    "groups": {
+      "twoServers": "Two servers can't write to each other, so a group holds this machine and at most one server.",
+      "moveTo": "Move to group",
+      "newGroupEllipsis": "New group…",
+      "removeFromGroup": "Remove from group",
+      "unnamed": "Unnamed group",
+      "new": "New group",
+      "title": "Groups",
+      "none": "Group conversations from several projects to work on one task together.",
+      "newTitle": "New group",
+      "renameTitle": "Rename group",
+      "nameDescription": "A group joins conversations from any project to work on one task. Its agents can write to each other.",
+      "namePlaceholder": "Appointments feature",
+      "create": "Create",
+      "actions": "Group actions for {{name}}",
+      "rename": "Rename group",
+      "delete": "Delete group",
+      "empty": "Drag conversations here, or use \"Move to group\" in their menu.",
+      "otherProject": "A conversation stays in its own project.",
+      "mapTitle": "Who talks to whom",
+      "mapShowAll": "Show every message",
+      "mapLabel": "Who in the group writes to whom",
+      "mapEdge": "{{a}} ↔ {{b}}: {{count}} messages",
+      "startLegend": "Optional: start a conversation in each project with the same task",
+      "taskPlaceholder": "What should they build together?",
+      "createAndStart": "Create and start {{count}}",
+      "startCreateFailed": "Could not start a conversation in {{project}}",
+      "startLaunchFailed": "The agent in {{project}} didn't start",
+      "agentClaude": "Claude",
+      "agentCodex": "Codex"
     }
   }
 }

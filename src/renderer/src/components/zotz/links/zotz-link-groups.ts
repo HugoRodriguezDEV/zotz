@@ -40,15 +40,17 @@ export function linkZotzMembers(
     return [...groups]
   }
   const members = [...(groupA?.members ?? [a]), ...(groupB?.members ?? [b])]
+  const kept = groupA ?? groupB
   const merged: ZotzLinkGroup = {
-    id: groupA?.id ?? groupB?.id ?? newId(),
+    ...kept,
+    id: kept?.id ?? newId(),
     members,
-    createdAt: groupA?.createdAt ?? groupB?.createdAt ?? now
+    createdAt: kept?.createdAt ?? now
   }
   return [...groups.filter((g) => g !== groupA && g !== groupB), merged]
 }
 
-/** Takes one member out; a group left with a single member is gone. */
+/** Takes one member out; an unnamed link left with a single member is gone, a named group stays. */
 export function unlinkZotzMember(
   groups: readonly ZotzLinkGroup[],
   member: ZotzLinkMember
@@ -58,8 +60,85 @@ export function unlinkZotzMember(
     if (members.length === group.members.length) {
       return [group]
     }
-    return members.length > 1 ? [{ ...group, members }] : []
+    return members.length > 1 || group.name !== undefined ? [{ ...group, members }] : []
   })
+}
+
+/** Groups in sidebar order: by `order`, then oldest first. */
+export function sortZotzGroups(groups: readonly ZotzLinkGroup[]): ZotzLinkGroup[] {
+  return [...groups].sort(
+    (a, b) =>
+      (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) ||
+      a.createdAt - b.createdAt
+  )
+}
+
+/** Renumbers `order` to match the given sequence. */
+function withOrder(groups: readonly ZotzLinkGroup[]): ZotzLinkGroup[] {
+  return groups.map((group, index) => ({ ...group, order: index }))
+}
+
+export function createZotzGroup(
+  groups: readonly ZotzLinkGroup[],
+  name: string,
+  now: number,
+  id: string
+): ZotzLinkGroup[] {
+  return withOrder([...sortZotzGroups(groups), { id, name, members: [], createdAt: now }])
+}
+
+export function renameZotzGroup(
+  groups: readonly ZotzLinkGroup[],
+  id: string,
+  name: string
+): ZotzLinkGroup[] {
+  return groups.map((group) => (group.id === id ? { ...group, name } : group))
+}
+
+/** Deletes the group: its members go back to their projects, unlinked. */
+export function removeZotzGroup(groups: readonly ZotzLinkGroup[], id: string): ZotzLinkGroup[] {
+  return groups.filter((group) => group.id !== id)
+}
+
+/**
+ * Moves a member into a group at `index` (end when absent), out of any other group. Null when the
+ * group is gone or would hold two servers.
+ */
+export function moveZotzMemberToGroup(
+  groups: readonly ZotzLinkGroup[],
+  member: ZotzLinkMember,
+  groupId: string,
+  index?: number
+): ZotzLinkGroup[] | null {
+  const target = groups.find((group) => group.id === groupId)
+  if (!target) {
+    return null
+  }
+  const others = target.members.filter((m) => !sameZotzLinkMember(m, member))
+  if (!canZotzLinkTogether([...others, member])) {
+    return null
+  }
+  const members = [...others]
+  members.splice(Math.max(0, Math.min(index ?? members.length, members.length)), 0, member)
+  return groups.flatMap((group) =>
+    group.id === groupId ? [{ ...target, members }] : unlinkZotzMember([group], member)
+  )
+}
+
+/** Moves a group to `index` among the sorted groups. */
+export function reorderZotzGroup(
+  groups: readonly ZotzLinkGroup[],
+  id: string,
+  index: number
+): ZotzLinkGroup[] {
+  const sorted = sortZotzGroups(groups)
+  const moving = sorted.find((group) => group.id === id)
+  if (!moving) {
+    return [...groups]
+  }
+  const rest = sorted.filter((group) => group !== moving)
+  rest.splice(Math.max(0, Math.min(index, rest.length)), 0, moving)
+  return withOrder(rest)
 }
 
 export type ZotzLinkMemberInfo = { shortName: string; title: string }

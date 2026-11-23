@@ -78,4 +78,8 @@ export type ZotzLinkGroup = {
   /** Members by machine (from this machine's point of view) and worktree path. */
   members: { hostId: ExecutionHostId; path: string }[]
   createdAt: number
+  /** Named groups show in the sidebar and survive with one member or none; links made before groups have none. */
+  name?: string
+  /** Sidebar position among groups, lowest first. */
+  order?: number
 }

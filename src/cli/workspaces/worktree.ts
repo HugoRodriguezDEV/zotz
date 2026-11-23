@@ -1,3 +1,4 @@
+import { zotzCliProvenanceRequest } from '../zotz/zotz-create-provenance'
 import { withFolderSetupSupportWarning } from './folder-setup-support-warning'
 import { withWorktreeSelectorRecovery } from './worktree-selector-recovery'
 import type {
@@ -200,7 +201,7 @@ export const WORKTREE_HANDLERS: Record<string, CommandHandler> = {
         noParent
       })),
       // Always request CLI provenance, including hand-typed creates without a terminal handle.
-      cliProvenanceRequest: callerTerminalHandle ? { callerTerminalHandle } : {}
+      cliProvenanceRequest: zotzCliProvenanceRequest(callerTerminalHandle, flags, client)
     }
     if (agentLaunch) {
       await createWorktreeWithAgent({ client, flags, create, launch: agentLaunch, json, rawArgs })
