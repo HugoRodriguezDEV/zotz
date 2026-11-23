@@ -33,7 +33,7 @@ Un **grupo** es una tarea en conjunto que cruza proyectos y máquinas: "Agenda d
 
 ### 3.3 Hijos
 
-- **Registrar quién creó a quién.** Store de Zotz `zotz-conversation-parents.json` (userData, por ruta como los nombres cortos): `childPath → parentPath`. Se escribe al crear un worktree desde la CLI cuando la llamada trae `ORCA_AGENT_SESSION_ID` (la sesión del agente que crea) y esa sesión vive en otro worktree del mismo host. Es independiente del linaje de Orca: `--no-parent` sigue significando "rama no apilada", y el hijo se registra igual.
+- **Registrar quién creó a quién.** En `cliProvenance.zotzParentWorktreeId` del worktree nuevo (viaja con su metadata a todas las ventanas, sin store ni RPC nuevos). Se escribe al crear un worktree desde la CLI cuando la llamada trae `ORCA_AGENT_SESSION_ID` (la sesión del agente que crea) y esa sesión vive en otro worktree del mismo host. Es independiente del linaje de Orca: `--no-parent` sigue significando "rama no apilada", y el hijo se registra igual.
 - **Se ve colgando del padre**, con sangría y una línea guía, dentro del grupo o del proyecto donde esté el padre. Un hijo de otro proyecto también cuelga del padre (no sale en su proyecto). Archivar al padre no archiva a los hijos; si el padre deja de verse, el hijo vuelve a su lugar normal.
 - **Herencia de grupo.** Si el padre está en un grupo, el hijo entra al grupo al crearse, con `commitZotzLinks`.
 - **Crear directo en un grupo.** El agente puede crear una conversación en el grupo por nombre: `zotz worktree create … --group "Agenda de citas"` (flag nuevo, enganche mínimo en el comando). Sin flag, aplica la herencia.
@@ -57,11 +57,11 @@ Un **grupo** es una tarea en conjunto que cruza proyectos y máquinas: "Agenda d
 
 ## 4. Fases (un PR cada una)
 
-1. **Grupos con nombre** (3.1, 3.2) y "Mover a grupo…" en el menú.
-2. **Arrastrar** (3.4).
-3. **Hijos** (3.3): store, registro en el create, anidado, herencia y `--group`.
-4. **Vista del grupo** (3.5).
-5. (Después) Arrancar un grupo de un jalón: una tarea, varios proyectos, una conversación por proyecto ya agrupadas.
+1. [x] **Grupos con nombre** (3.1, 3.2) y "Mover a grupo…" en el menú.
+2. [x] **Arrastrar** (3.4).
+3. [x] **Hijos** (3.3): registro en el create, anidado, herencia y `--group`.
+4. [x] **Vista del grupo** (3.5).
+5. [x] Arrancar un grupo de un jalón: una tarea, varios proyectos, una conversación por proyecto ya agrupadas (diálogo de "Nuevo grupo").
 
 ## 5. Preguntas abiertas
 
