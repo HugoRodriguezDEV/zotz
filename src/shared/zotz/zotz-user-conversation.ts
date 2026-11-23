@@ -1,6 +1,9 @@
 import type { Worktree } from '../worktree/types'
 
-/** Workspaces the user started: no CLI/automation creations; the main checkout only while an agent works in it. */
+/**
+ * Workspaces the user started, or handed off to a new agent (a CLI create with `--agent`);
+ * no automation or bare CLI creations; the main checkout only while an agent works in it.
+ */
 export function isZotzUserConversation(
   worktree: Pick<
     Worktree,
@@ -8,7 +11,10 @@ export function isZotzUserConversation(
   >,
   workspacesWithAgents: ReadonlySet<string>
 ): boolean {
-  if (worktree.isArchived || worktree.removing || worktree.cliProvenance) {
+  if (worktree.isArchived || worktree.removing) {
+    return false
+  }
+  if (worktree.cliProvenance && !worktree.cliProvenance.startupAgent) {
     return false
   }
   if (worktree.automationProvenance) {
