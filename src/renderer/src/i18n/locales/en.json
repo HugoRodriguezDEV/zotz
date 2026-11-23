@@ -26395,7 +26395,12 @@
       "mapTitle": "Who talks to whom",
       "mapShowAll": "Show every message",
       "mapLabel": "Who in the group writes to whom",
-      "mapEdge": "{{a}} ↔ {{b}}: {{count}} messages"
+      "mapEdge": "{{a}} ↔ {{b}}: {{count}} messages",
+      "startLegend": "Optional: start a conversation in each project with the same task",
+      "taskPlaceholder": "What should they build together?",
+      "createAndStart": "Create and start {{count}}",
+      "startCreateFailed": "Could not start a conversation in {{project}}",
+      "startLaunchFailed": "The agent in {{project}} didn't start"
     }
   }
 }

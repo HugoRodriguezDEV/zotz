@@ -8,6 +8,8 @@ import type { Repo } from '../../../../../shared/repository/repo-types'
 import type { ZotzLinkGroup } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
 import { useZotzStoreLinkContext } from '../links/use-zotz-store-link-context'
 import { useZotzGroupPlacement } from '../links/use-zotz-group-placement'
+import { useAppStore } from '@/store/index'
+import { startZotzGroupConversations, zotzStartableProjects } from './zotz-group-start'
 import {
   createZotzGroupNamed,
   deleteZotzGroup,
@@ -75,11 +77,17 @@ export function useZotzSidebarGroups(
               : Promise.resolve()
     void run.catch(showError)
   })
+  const repos = useAppStore((state) => state.repos)
   const askNewGroup = (then?: (groupId: string) => Promise<unknown>): void =>
     setRequest({
       current: '',
-      onSave: async (name) => {
+      // Starting from "+" offers one copy per project; from a row's menu the row is the start.
+      ...(then ? {} : { projects: zotzStartableProjects(repos) }),
+      onSave: async (name, start) => {
         const id = await createZotzGroupNamed(name)
+        if (start) {
+          await startZotzGroupConversations(id, name, start, linkContext)
+        }
         await then?.(id)
       }
     })

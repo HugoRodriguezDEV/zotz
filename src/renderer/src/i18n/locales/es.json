@@ -24762,7 +24762,12 @@
       "mapTitle": "Quién habla con quién",
       "mapShowAll": "Ver todos los mensajes",
       "mapLabel": "Quién le escribe a quién en el grupo",
-      "mapEdge": "{{a}} ↔ {{b}}: {{count}} mensajes"
+      "mapEdge": "{{a}} ↔ {{b}}: {{count}} mensajes",
+      "startLegend": "Opcional: arranca una conversación en cada proyecto con la misma tarea",
+      "taskPlaceholder": "¿Qué deben construir juntos?",
+      "createAndStart": "Crear y arrancar {{count}}",
+      "startCreateFailed": "No se pudo arrancar una conversación en {{project}}",
+      "startLaunchFailed": "El agente en {{project}} no arrancó"
     },
     "shortName": {
       "cancel": "Cancelar",
