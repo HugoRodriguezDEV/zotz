@@ -150,6 +150,7 @@ function board(machines: ZotzAgentQueueMachine[]): React.JSX.Element {
       now={NOW}
       workspaceName={(id) => id ?? ''}
       onOpenPane={() => {}}
+      onFreeMemory={() => {}}
     />
   )
 }
