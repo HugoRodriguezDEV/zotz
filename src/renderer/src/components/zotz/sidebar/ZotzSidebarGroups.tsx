@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import type { ZotzLinkGroup } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
 import { useZotzStoreLinkContext } from '../links/use-zotz-store-link-context'
+import { useZotzGroupPlacement } from '../links/use-zotz-group-placement'
 import {
   createZotzGroupNamed,
   deleteZotzGroup,
@@ -20,6 +21,8 @@ import { findZotzLinkGroup, sameZotzLinkMember } from '../links/zotz-link-groups
 import { cn } from '@/lib/class-names'
 import { getProjectIdentityKey } from '../../../../../shared/project/host-setup/project-host-setup-projection'
 import { isBeforeMiddle, useZotzSidebarDrag, type ZotzSidebarDrag } from './use-zotz-sidebar-drag'
+import { ZotzDropLine } from './ZotzDraggableRow'
+import { ZotzConversationTree, zotzRowMember } from './ZotzConversationTree'
 import type { ZotzDragItem, ZotzDropAction } from './zotz-sidebar-drop'
 import type { ZotzGroupMenu } from './ZotzConversationMenu'
 import { ZotzGroupNameDialog, type ZotzGroupNameRequest } from './ZotzGroupNameDialog'
@@ -50,6 +53,7 @@ export function useZotzSidebarGroups(
 ): ZotzSidebarGroupsUi {
   const t = useTranslate()
   const linkContext = useZotzStoreLinkContext(shortNames)
+  useZotzGroupPlacement(linkContext)
   const [request, setRequest] = useState<ZotzGroupNameRequest | null>(null)
   const unnamed = t('zotz.groups.unnamed', 'Unnamed group')
   const drag = useZotzSidebarDrag((item: ZotzDragItem, action: ZotzDropAction) => {
@@ -59,9 +63,15 @@ export function useZotzSidebarGroups(
         : item.kind !== 'conversation'
           ? Promise.resolve()
           : action.kind === 'move-to-group'
-            ? moveZotzConversationToGroup(item.member, action.groupId, linkContext, action.index)
+            ? moveZotzConversationToGroup(
+                item.member,
+                action.groupId,
+                linkContext,
+                action.index,
+                item.followers
+              )
             : action.kind === 'remove-from-group'
-              ? unlinkZotzConversation(item.member, linkContext)
+              ? unlinkZotzConversation(item.member, linkContext, item.followers)
               : Promise.resolve()
     void run.catch(showError)
   })
@@ -103,49 +113,6 @@ export function useZotzSidebarGroups(
   }
 }
 
-function DropLine({ show }: { show: boolean }): React.JSX.Element | null {
-  return show ? <div aria-hidden className="mx-2 my-0.5 h-0.5 rounded-full bg-primary" /> : null
-}
-
-/** A conversation row the user can drag; in a group it also takes drops before or after itself. */
-export function ZotzDraggableRow({
-  drag,
-  item,
-  dropAt,
-  children
-}: {
-  drag: ZotzSidebarDrag
-  item: ZotzDragItem
-  /** Member index of this row in its group; absent in a project, whose section takes the drop. */
-  dropAt?: { groupId: string; index: number }
-  children: React.ReactNode
-}): React.JSX.Element {
-  const zone = dropAt
-    ? drag.zone((event, dragged) =>
-        dragged.kind === 'conversation'
-          ? {
-              kind: 'group',
-              groupId: dropAt.groupId,
-              index: isBeforeMiddle(event) ? dropAt.index : dropAt.index + 1
-            }
-          : null
-      )
-    : {}
-  const target = drag.target
-  const lineAt =
-    dropAt && target?.kind === 'group' && target.groupId === dropAt.groupId ? target.index : null
-  const dragging =
-    drag.item?.kind === 'conversation' &&
-    item.kind === 'conversation' &&
-    sameZotzLinkMember(drag.item.member, item.member)
-  return (
-    <div {...drag.source(item)} {...zone} className={cn(dragging && 'opacity-50')}>
-      <DropLine show={dropAt !== undefined && lineAt === dropAt.index} />
-      {children}
-    </div>
-  )
-}
-
 /** A project section as a drop target: its own conversations come back out of a group here. */
 export function ZotzProjectDropZone({
   drag,
@@ -182,13 +149,20 @@ export function ZotzProjectDropZone({
 }
 
 /** The "Groups" part of the sidebar: header with "+", then each group and its conversations. */
+function memberIndex(group: ZotzLinkGroup, member: ZotzLinkGroup['members'][number]): number {
+  return group.members.findIndex((m) => sameZotzLinkMember(m, member))
+}
+
 export function ZotzSidebarGroups({
   sections,
+  childrenOf,
   ui,
   renderConversation,
   header
 }: {
-  sections: readonly GroupSection[]
+  /** `total` counts children too; `conversations` holds only top-level rows. */
+  sections: readonly (GroupSection & { total: number })[]
+  childrenOf: ReadonlyMap<string, readonly ConversationRow[]>
   ui: ZotzSidebarGroupsUi
   renderConversation: (
     row: ConversationRow,
@@ -228,7 +202,7 @@ export function ZotzSidebarGroups({
           )}
         </p>
       ) : null}
-      {sections.map(({ group, conversations }, groupIndex) => {
+      {sections.map(({ group, conversations, total }, groupIndex) => {
         const multiHost = new Set(conversations.map((row) => row.hostId)).size > 1
         const target = ui.drag.target
         const groupLine =
@@ -248,39 +222,51 @@ export function ZotzSidebarGroups({
                 : { kind: 'group', groupId: group.id, index: end }
             )}
           >
-            <DropLine show={groupLine === groupIndex} />
+            <ZotzDropLine show={groupLine === groupIndex} />
             <ZotzGroupSection
               group={group}
-              count={conversations.length}
+              count={total}
               dragHandle={ui.drag.source({ kind: 'group', groupId: group.id, index: groupIndex })}
               highlighted={target?.kind === 'group' && target.groupId === group.id}
               onRename={() => ui.rename(group)}
               onDelete={() => ui.remove(group)}
             >
-              {conversations.map((row) => {
-                if (!row.repo || !row.worktree) {
-                  return null
-                }
-                const member = { hostId: row.hostId, path: row.worktree.path }
-                const index = group.members.findIndex((m) => sameZotzLinkMember(m, member))
-                return (
-                  <ZotzDraggableRow
-                    key={row.id}
-                    drag={ui.drag}
-                    item={{
-                      kind: 'conversation',
-                      member,
-                      projectKey: getProjectIdentityKey(row.repo),
-                      groupId: group.id,
-                      index
-                    }}
-                    dropAt={{ groupId: group.id, index }}
-                  >
-                    {renderConversation(row, row.repo, { showHost: multiHost, showProject: true })}
-                  </ZotzDraggableRow>
-                )
-              })}
-              <DropLine
+              {conversations.map((row) => (
+                <ZotzConversationTree
+                  key={row.id}
+                  row={row}
+                  childrenOf={childrenOf}
+                  drag={ui.drag}
+                  itemFor={(node, followers) => {
+                    const member = zotzRowMember(node)
+                    return member && node.repo
+                      ? {
+                          kind: 'conversation',
+                          member,
+                          projectKey: getProjectIdentityKey(node.repo),
+                          groupId: group.id,
+                          index: memberIndex(group, member),
+                          followers
+                        }
+                      : null
+                  }}
+                  dropAtFor={(node) => {
+                    const member = zotzRowMember(node)
+                    return member
+                      ? { groupId: group.id, index: memberIndex(group, member) }
+                      : undefined
+                  }}
+                  render={(node) =>
+                    node.repo
+                      ? renderConversation(node, node.repo, {
+                          showHost: multiHost,
+                          showProject: true
+                        })
+                      : null
+                  }
+                />
+              ))}
+              <ZotzDropLine
                 show={
                   target?.kind === 'group' &&
                   target.groupId === group.id &&
@@ -290,7 +276,7 @@ export function ZotzSidebarGroups({
               />
             </ZotzGroupSection>
             {groupIndex === sections.length - 1 ? (
-              <DropLine show={groupLine === sections.length} />
+              <ZotzDropLine show={groupLine === sections.length} />
             ) : null}
           </div>
         )

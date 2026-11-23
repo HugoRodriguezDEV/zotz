@@ -120,10 +120,20 @@ export function linkZotzConversations(
 
 export function unlinkZotzConversation(
   member: ZotzLinkMember,
-  context: ZotzLinkContext
+  context: ZotzLinkContext,
+  /** Its children in the same group leave with it. */
+  followers: readonly ZotzLinkMember[] = []
 ): Promise<void> {
-  const groups = useAppStore.getState().settings?.zotzConversationLinks ?? []
-  return commitZotzLinks(unlinkZotzMember(groups, member), context)
+  const groups = currentGroups()
+  const own = findZotzLinkGroup(groups, member)
+  const leaving = [
+    member,
+    ...followers.filter((f) => own !== null && findZotzLinkGroup(groups, f)?.id === own.id)
+  ]
+  return commitZotzLinks(
+    leaving.reduce((next, m) => unlinkZotzMember(next, m), groups),
+    context
+  )
 }
 
 function currentGroups(): ZotzLinkGroup[] {
@@ -133,11 +143,9 @@ function currentGroups(): ZotzLinkGroup[] {
 /** Creates an empty named group; returns its id. */
 export async function createZotzGroupNamed(name: string): Promise<string> {
   const id = createNonSecureContextUuid()
-  await useAppStore
-    .getState()
-    .updateSettings({
-      zotzConversationLinks: createZotzGroup(currentGroups(), name, Date.now(), id)
-    })
+  await useAppStore.getState().updateSettings({
+    zotzConversationLinks: createZotzGroup(currentGroups(), name, Date.now(), id)
+  })
   return id
 }
 
@@ -162,9 +170,16 @@ export async function moveZotzConversationToGroup(
   member: ZotzLinkMember,
   groupId: string,
   context: ZotzLinkContext,
-  index?: number
+  index?: number,
+  /** Its children, placed right after it. */
+  followers: readonly ZotzLinkMember[] = []
 ): Promise<boolean> {
-  const next = moveZotzMemberToGroup(currentGroups(), member, groupId, index)
+  let next: ZotzLinkGroup[] | null = currentGroups()
+  for (const [offset, moving] of [member, ...followers].entries()) {
+    next =
+      next &&
+      moveZotzMemberToGroup(next, moving, groupId, index === undefined ? undefined : index + offset)
+  }
   if (!next) {
     toast.error(
       translate(

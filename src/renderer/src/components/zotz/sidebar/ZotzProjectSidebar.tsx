@@ -1,133 +1,42 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
-import { FolderPlus, Plus } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { RepoIconGlyph } from '@/components/repo/repo-icon'
 import type { AgentDotState } from '@/components/AgentStateDot'
-import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { activityThreadStatusId } from '@/components/activity/activity-thread-presentation'
 import { useAllAgentPaneThreads } from '@/components/activity/use-agent-pane-threads'
 import {
   selectFolderWorkspaces,
   selectWorktreesByRepo
 } from '@/store/workspaces/catalog/workspace-record-fields'
-import { AddProjectMenu } from '../../sidebar/project-admission/menu/AddProjectMenu'
-import type { AddRepoDialogEntryRequest } from '../../sidebar/project-admission/dialog/add-repo-dialog-types'
-import { openHeaderCreateComposer } from '../../sidebar/worktree-list/rows/header-create-workspace-target'
 import type { Repo } from '../../../../../shared/repository/repo-types'
-import {
-  LOCAL_EXECUTION_HOST_ID,
-  getRepoExecutionHostId
-} from '../../../../../shared/execution-host'
-import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
-import { ProjectHeaderHostLabel } from '../../sidebar/worktree-list/rows/ProjectHeaderHostLabel'
+import { getRepoExecutionHostId } from '../../../../../shared/execution-host'
 import {
   buildZotzFolderConversations,
   buildZotzGroupSections,
   buildZotzProjectSections,
   buildZotzShortNames,
+  nestZotzChildren,
   summarizeZotzConversationStatus,
   zotzMemberKey,
   type ZotzConversationRow as ConversationRow,
   type ZotzConversationStatus
 } from './zotz-project-conversations'
-import {
-  ZotzDraggableRow,
-  ZotzProjectDropZone,
-  ZotzSidebarGroups,
-  useZotzSidebarGroups
-} from './ZotzSidebarGroups'
+import { ZotzConversationTree, zotzRowMember } from './ZotzConversationTree'
+import { getProjectIdentityKey } from '../../../../../shared/project/host-setup/project-host-setup-projection'
+import { ZotzProjectDropZone, ZotzSidebarGroups, useZotzSidebarGroups } from './ZotzSidebarGroups'
 import { sortZotzGroups } from '../links/zotz-link-groups'
 import { useZotzGitHubRepoIcons } from './use-zotz-github-repo-icons'
 import { useZotzAgentQueue } from '../agent-queue/zotz-agent-queue-store'
 import { useZotzHostAgentQueues } from '../agent-queue/zotz-host-agent-queue-store'
 import { ZotzConversationMenu } from './ZotzConversationMenu'
-import { ZotzProjectMenu } from './ZotzProjectMenu'
+import { AddProjectButton, ProjectHeader } from './ZotzProjectHeader'
 import HiddenProjectsSection from '../../sidebar/hidden-projects/HiddenProjectsSection'
 import { ZotzConversationRow } from './ZotzConversationRow'
 import { ZotzArchivedSection } from './ZotzArchivedSection'
 import { ZotzShortNameDialog, type ZotzShortNameRequest } from './ZotzShortNameDialog'
 import { canEditZotzShortName, useZotzCustomShortNames } from './zotz-short-name-store'
 import type { Worktree } from '../../../../../shared/worktree/types'
-
-function AddProjectButton(): React.JSX.Element {
-  const t = useTranslate()
-  const openModal = useAppStore((s) => s.openModal)
-  const label = t('auto.components.sidebar.SidebarHeader.addProject', 'Add project')
-  const openEntryRequest = useCallback(
-    (entryRequest: AddRepoDialogEntryRequest) => openModal('add-repo', { entryRequest }),
-    [openModal]
-  )
-  return (
-    <AddProjectMenu
-      side="bottom"
-      align="end"
-      tooltipLabel={label}
-      onOpenEntryRequest={openEntryRequest}
-    >
-      <Button variant="ghost" size="icon-xs" type="button" aria-label={label}>
-        <FolderPlus className="size-3.5" />
-      </Button>
-    </AddProjectMenu>
-  )
-}
-
-function ProjectHeader({
-  repo,
-  multiHost
-}: {
-  repo: Repo
-  /** Copies on several machines: rows name their machine and "+" lets the composer pick one. */
-  multiHost: boolean
-}): React.JSX.Element {
-  const t = useTranslate()
-  const label = t('zotz.sidebar.newConversationIn', 'New conversation in {{project}}', {
-    project: repo.displayName
-  })
-  const hostId = getRepoExecutionHostId(repo)
-  const hostLabel = useAppStore((s) =>
-    multiHost || hostId === LOCAL_EXECUTION_HOST_ID
-      ? null
-      : selectExecutionHostDisplayLabel(s, hostId)
-  )
-  return (
-    <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
-      <RepoIconGlyph repoIcon={repo.repoIcon} className="size-5 shrink-0" />
-      <div className="flex min-w-0 flex-1 items-center gap-1.5">
-        <span className="min-w-0 truncate text-sm font-semibold text-worktree-sidebar-foreground">
-          {repo.displayName}
-        </span>
-        {hostLabel ? (
-          <ProjectHeaderHostLabel context={{ hostId, label: hostLabel, detail: hostLabel }} />
-        ) : null}
-      </div>
-      {repo.repoIcon?.type === 'image' && repo.repoIcon.source === 'github' ? (
-        <GitHubIcon className="size-3.5 shrink-0 text-worktree-sidebar-foreground/40" />
-      ) : null}
-      <ZotzProjectMenu repo={repo} />
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            type="button"
-            aria-label={label}
-            data-contextual-tour-target="zotz-project-new-conversation"
-            onClick={() => openHeaderCreateComposer(repo, { pinHost: !multiHost })}
-          >
-            <Plus className="size-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={4}>
-          {label}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
 
 /** Conductor-style sidebar: projects with "+", and under each only the conversations the user started. */
 export default function ZotzProjectSidebar(): React.JSX.Element {
@@ -253,6 +162,23 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     [groups, repos, worktreesByRepo, shortNames]
   )
   const groupsUi = useZotzSidebarGroups(groups, shortNames)
+  const nested = useMemo(
+    () =>
+      nestZotzChildren(
+        groupSections.map((section) => section.conversations),
+        sections.map((section) => section.conversations)
+      ),
+    [groupSections, sections]
+  )
+  const nestedGroups = groupSections.map((section, index) => ({
+    ...section,
+    conversations: nested.groupLists[index],
+    total: section.conversations.length
+  }))
+  const nestedSections = sections.map((section, index) => ({
+    ...section,
+    conversations: nested.projectLists[index]
+  }))
   const renderConversation = (
     row: ConversationRow,
     repo: Repo,
@@ -318,7 +244,8 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="scrollbar-sleek min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         <ZotzSidebarGroups
-          sections={groupSections}
+          sections={nestedGroups}
+          childrenOf={nested.childrenOf}
           ui={groupsUi}
           renderConversation={renderConversation}
           header={sectionHeader}
@@ -329,32 +256,38 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
             {t('zotz.sidebar.empty', 'Add a project from GitHub or a local folder to start.')}
           </p>
         ) : null}
-        {sections.map(({ key, repo, multiHost, conversations }) => (
+        {nestedSections.map(({ key, repo, multiHost, conversations }) => (
           <ZotzProjectDropZone key={key} drag={groupsUi.drag} projectKey={key}>
             <ProjectHeader repo={repo} multiHost={multiHost} />
-            {conversations.map((row) => {
-              const content = renderConversation(row, row.repo ?? repo, {
-                showHost: multiHost,
-                showProject: false
-              })
-              return row.worktree ? (
-                <ZotzDraggableRow
-                  key={row.id}
-                  drag={groupsUi.drag}
-                  item={{
-                    kind: 'conversation',
-                    member: { hostId: row.hostId, path: row.worktree.path },
-                    projectKey: key,
-                    groupId: null,
-                    index: 0
-                  }}
-                >
-                  {content}
-                </ZotzDraggableRow>
-              ) : (
-                content
-              )
-            })}
+            {conversations.map((row) => (
+              <ZotzConversationTree
+                key={row.id}
+                row={row}
+                childrenOf={nested.childrenOf}
+                drag={groupsUi.drag}
+                itemFor={(node, followers) => {
+                  const member = zotzRowMember(node)
+                  return member
+                    ? {
+                        kind: 'conversation',
+                        member,
+                        projectKey: node.repo ? getProjectIdentityKey(node.repo) : key,
+                        groupId: null,
+                        index: 0,
+                        followers
+                      }
+                    : null
+                }}
+                dropAtFor={() => undefined}
+                render={(node) =>
+                  renderConversation(node, node.repo ?? repo, {
+                    showHost: multiHost,
+                    // A child from another project says which one it is.
+                    showProject: node.repo !== null && node.repo.id !== repo.id && node !== row
+                  })
+                }
+              />
+            ))}
           </ZotzProjectDropZone>
         ))}
         {folders.length > 0 ? (

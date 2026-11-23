@@ -10,6 +10,8 @@ export type ZotzDragItem =
       groupId: string | null
       /** Its place in that group's list. */
       index: number
+      /** Conversations hanging under it, which move with it. */
+      followers?: { hostId: ExecutionHostId; path: string }[]
     }
   | { kind: 'group'; groupId: string; index: number }
 

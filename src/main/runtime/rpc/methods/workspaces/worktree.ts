@@ -9,7 +9,7 @@ import {
 import { getLocalWorktreeCatalogVersion } from '../../../../workspaces/catalog/local-worktree-scan-generation'
 import { getExplicitWorktreeIdSelector } from '../../../workspaces/catalog/runtime-worktree-selection'
 import { splitWorktreeId } from '../../../../../shared/worktree/id'
-import { buildCliWorkspaceProvenance } from '../../../../../shared/cli-workspace-provenance'
+import { buildZotzCliWorkspaceProvenance } from '../../../../zotz/conversation-links/zotz-conversation-parent'
 import { createWorktreeWithStartupAgent } from '../../../../agent-launch/startup-agent-worktree-create'
 import { defineMethod } from '../../core'
 import { buildManagedWorktreeCreateArgs, worktreeCreateRepoSelector } from './worktree-create-args'
@@ -145,10 +145,7 @@ export const WORKTREE_METHODS = [
               params,
               {
                 automationProvenance,
-                cliProvenance: buildCliWorkspaceProvenance(params.cliProvenanceRequest, {
-                  startupAgent: params.startupAgent ?? params.createdWithAgent,
-                  createdAt: Date.now()
-                }),
+                cliProvenance: await buildZotzCliWorkspaceProvenance(runtime, params),
                 creatorProvenance: resolveRpcWorkspaceCreatorProvenance(context)
               },
               context

@@ -3,7 +3,7 @@ import type { RuntimeTerminalCreate } from '../../../../../shared/terminal/runti
  * The executor chooses; setup, default tabs, provenance and lineage use the normal create path. */
 
 import { callerLaunchSource } from '../../../../agent-launch/agent-started-telemetry'
-import { buildCliWorkspaceProvenance } from '../../../../../shared/cli-workspace-provenance'
+import { buildZotzCliWorkspaceProvenance } from '../../../../zotz/conversation-links/zotz-conversation-parent'
 import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
 import type { OrcaRuntimeService } from '../../../orca-runtime'
 import {
@@ -89,9 +89,9 @@ export function agentLaunchWorkspaceFactory(
             },
             {
               automationProvenance,
-              cliProvenance: buildCliWorkspaceProvenance(params.cliProvenanceRequest, {
-                startupAgent: agent,
-                createdAt: Date.now()
+              cliProvenance: await buildZotzCliWorkspaceProvenance(runtime, {
+                cliProvenanceRequest: params.cliProvenanceRequest,
+                startupAgent: agent
               }),
               creatorProvenance: resolveRpcWorkspaceCreatorProvenance(context)
             },

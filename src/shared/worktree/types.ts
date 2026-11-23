@@ -177,6 +177,10 @@ export type CliWorkspaceProvenance = {
   callerTerminalHandle?: string
   /** Agent requested via `--agent`, when one was passed. */
   startupAgent?: TuiAgent
+  /** Zotz: the conversation whose agent created this one; the sidebar nests it there. */
+  zotzParentWorktreeId?: string
+  /** Zotz: the sidebar group it was asked to join. */
+  zotzGroup?: string
 }
 
 export type WorkspaceCreatorProvenance =

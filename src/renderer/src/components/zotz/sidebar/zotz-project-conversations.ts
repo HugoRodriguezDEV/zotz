@@ -248,3 +248,68 @@ export function summarizeZotzConversationStatus(
   }
   return best === null ? null : { state: best, unread }
 }
+
+/** The conversation whose agent created this one, on the same machine; null when none is recorded. */
+export function zotzParentKey(row: ZotzConversationRow): string | null {
+  const parentId = row.worktree?.cliProvenance?.zotzParentWorktreeId
+  return parentId && parentId !== row.id ? `${row.hostId}\n${parentId}` : null
+}
+
+/** A row's identity across machines: worktree ids repeat on host twins. */
+export function zotzRowKey(row: ZotzConversationRow): string {
+  return `${row.hostId}\n${row.id}`
+}
+
+/**
+ * Pulls children out of their lists to hang under their parent. A grouped child nests only under a
+ * parent in the same group; an ungrouped one nests under its ungrouped parent even across projects.
+ */
+export function nestZotzChildren(
+  groupLists: readonly (readonly ZotzConversationRow[])[],
+  projectLists: readonly (readonly ZotzConversationRow[])[]
+): {
+  groupLists: ZotzConversationRow[][]
+  projectLists: ZotzConversationRow[][]
+  childrenOf: Map<string, ZotzConversationRow[]>
+} {
+  const childrenOf = new Map<string, ZotzConversationRow[]>()
+  const place = new Map<string, string>()
+  groupLists.forEach((list, index) =>
+    list.forEach((row) => place.set(zotzRowKey(row), `g${index}`))
+  )
+  projectLists.forEach((list) => list.forEach((row) => place.set(zotzRowKey(row), 'projects')))
+  const nests = (row: ZotzConversationRow): boolean => {
+    const parent = zotzParentKey(row)
+    if (!parent || place.get(parent) !== place.get(zotzRowKey(row))) {
+      return false
+    }
+    // A cycle (never written, but stored data can be anything) keeps both rows at the top.
+    const seen = new Set([zotzRowKey(row)])
+    let current: string | null = parent
+    while (current) {
+      if (seen.has(current)) {
+        return false
+      }
+      seen.add(current)
+      const next = [...groupLists.flat(), ...projectLists.flat()].find(
+        (r) => zotzRowKey(r) === current
+      )
+      current = next ? zotzParentKey(next) : null
+    }
+    return true
+  }
+  const keep = (list: readonly ZotzConversationRow[]): ZotzConversationRow[] =>
+    list.filter((row) => {
+      if (!nests(row)) {
+        return true
+      }
+      const parent = zotzParentKey(row) as string
+      childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), row])
+      return false
+    })
+  return {
+    groupLists: groupLists.map(keep),
+    projectLists: projectLists.map(keep),
+    childrenOf
+  }
+}
