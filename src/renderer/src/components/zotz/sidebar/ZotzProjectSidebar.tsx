@@ -34,7 +34,12 @@ import {
   type ZotzConversationRow as ConversationRow,
   type ZotzConversationStatus
 } from './zotz-project-conversations'
-import { ZotzSidebarGroups, useZotzSidebarGroups } from './ZotzSidebarGroups'
+import {
+  ZotzDraggableRow,
+  ZotzProjectDropZone,
+  ZotzSidebarGroups,
+  useZotzSidebarGroups
+} from './ZotzSidebarGroups'
 import { sortZotzGroups } from '../links/zotz-link-groups'
 import { useZotzGitHubRepoIcons } from './use-zotz-github-repo-icons'
 import { useZotzAgentQueue } from '../agent-queue/zotz-agent-queue-store'
@@ -269,7 +274,9 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
         canceled={canceledWorkspaces.has(row.id)}
         queuedSince={queuedSince.get(row.id) ?? null}
         linked={
-          row.worktree !== null && linkedKeys.has(zotzMemberKey(row.hostId, row.worktree.path))
+          !options.showProject &&
+          row.worktree !== null &&
+          linkedKeys.has(zotzMemberKey(row.hostId, row.worktree.path))
         }
       />
     </ZotzConversationMenu>
@@ -323,12 +330,32 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
           </p>
         ) : null}
         {sections.map(({ key, repo, multiHost, conversations }) => (
-          <section key={key} className="mb-2">
+          <ZotzProjectDropZone key={key} drag={groupsUi.drag} projectKey={key}>
             <ProjectHeader repo={repo} multiHost={multiHost} />
-            {conversations.map((row) =>
-              renderConversation(row, row.repo ?? repo, { showHost: multiHost, showProject: false })
-            )}
-          </section>
+            {conversations.map((row) => {
+              const content = renderConversation(row, row.repo ?? repo, {
+                showHost: multiHost,
+                showProject: false
+              })
+              return row.worktree ? (
+                <ZotzDraggableRow
+                  key={row.id}
+                  drag={groupsUi.drag}
+                  item={{
+                    kind: 'conversation',
+                    member: { hostId: row.hostId, path: row.worktree.path },
+                    projectKey: key,
+                    groupId: null,
+                    index: 0
+                  }}
+                >
+                  {content}
+                </ZotzDraggableRow>
+              ) : (
+                content
+              )
+            })}
+          </ZotzProjectDropZone>
         ))}
         {folders.length > 0 ? (
           <section className="mb-2">

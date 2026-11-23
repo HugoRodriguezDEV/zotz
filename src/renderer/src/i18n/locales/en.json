@@ -26390,7 +26390,8 @@
       "actions": "Group actions for {{name}}",
       "rename": "Rename group",
       "delete": "Delete group",
-      "empty": "Drag conversations here, or use \"Move to group\" in their menu."
+      "empty": "Drag conversations here, or use \"Move to group\" in their menu.",
+      "otherProject": "A conversation stays in its own project."
     }
   }
 }

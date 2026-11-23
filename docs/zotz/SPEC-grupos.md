@@ -44,7 +44,7 @@ Un **grupo** es una tarea en conjunto que cruza proyectos y máquinas: "Agenda d
 - Destinos:
   - Encabezado o lista de un grupo → entra a ese grupo (sale del anterior si tenía).
   - Su propio proyecto → sale del grupo.
-  - Otra posición en la misma lista → reordena (orden manual: grupos en `members`; proyectos en `sortOrder` de upstream).
+  - Otra posición dentro de un grupo → reordena (`members`). Los grupos también se reordenan arrastrando su encabezado (`order`). Los proyectos siguen ordenados por actividad reciente.
   - Otro proyecto → no se permite (el worktree es de su repo); el indicador lo marca y el tooltip lo explica.
 - Los hijos se mueven con su padre.
 - Teclado: el menú de la fila gana "Mover a grupo…" para lo mismo sin arrastrar.

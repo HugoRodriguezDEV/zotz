@@ -24757,7 +24757,8 @@
       "actions": "Acciones del grupo {{name}}",
       "rename": "Renombrar grupo",
       "delete": "Eliminar grupo",
-      "empty": "Arrastra conversaciones aquí o usa \"Mover a grupo\" en su menú."
+      "empty": "Arrastra conversaciones aquí o usa \"Mover a grupo\" en su menú.",
+      "otherProject": "Una conversación se queda en su propio proyecto."
     },
     "shortName": {
       "cancel": "Cancelar",

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Ellipsis, Layers, Pencil, Trash2 } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
+import { cn } from '@/lib/class-names'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,12 +20,18 @@ export function zotzGroupName(group: ZotzLinkGroup, unnamed: string): string {
 export function ZotzGroupSection({
   group,
   count,
+  dragHandle,
+  highlighted,
   onRename,
   onDelete,
   children
 }: {
   group: ZotzLinkGroup
   count: number
+  /** Drag props for the header, to reorder groups. */
+  dragHandle: React.HTMLAttributes<HTMLDivElement>
+  /** A conversation is being dragged over it. */
+  highlighted: boolean
   onRename: () => void
   onDelete: () => void
   children: React.ReactNode
@@ -32,8 +39,14 @@ export function ZotzGroupSection({
   const t = useTranslate()
   const name = zotzGroupName(group, t('zotz.groups.unnamed', 'Unnamed group'))
   return (
-    <section className="mb-2" data-zotz-group={group.id}>
-      <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
+    <section
+      className={cn('mb-2 rounded-md', highlighted && 'bg-primary/10 ring-1 ring-primary')}
+      data-zotz-group={group.id}
+    >
+      <div
+        {...dragHandle}
+        className="group flex cursor-grab items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5 active:cursor-grabbing"
+      >
         <Layers className="size-4 shrink-0 text-worktree-sidebar-foreground/60" />
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-worktree-sidebar-foreground">
           {name}
