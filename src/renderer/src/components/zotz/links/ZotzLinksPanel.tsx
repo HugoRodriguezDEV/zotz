@@ -30,6 +30,9 @@ import {
 import { findZotzLinkWorktreeId, selectActiveZotzLinkMember } from './zotz-link-worktrees'
 import { ZotzLinkConversationRow } from './ZotzLinkConversationRow'
 import { ZotzLinkTimeline } from './ZotzLinkTimeline'
+import { ZotzGroupMap } from './ZotzGroupMap'
+import { useZotzGroupMap } from './use-zotz-group-map'
+import { isZotzMessageInPair } from './zotz-group-map-edges'
 
 const NO_GROUPS: readonly ZotzLinkGroup[] = []
 
@@ -78,6 +81,20 @@ export default function ZotzLinksPanel(): React.JSX.Element {
     })
     .join('\n')
   const messages = useZotzLinkMessages(hosts, addressKey, group !== null)
+  const [pair, setPair] = useState<{ a: number; b: number } | null>(null)
+  const map = useZotzGroupMap({
+    group,
+    active,
+    messages,
+    entryFor,
+    machineName: (member) =>
+      active && member.hostId !== active.hostId
+        ? (hostFor(member.hostId)?.name ?? member.hostId)
+        : null
+  })
+  const shownMessages = pair
+    ? messages.filter((message) => isZotzMessageInPair(message, pair, map.memberIndexOf))
+    : messages
 
   const nameFor = (addressOrLabel: string): string => {
     for (const member of group?.members ?? []) {
@@ -167,7 +184,9 @@ export default function ZotzLinksPanel(): React.JSX.Element {
           </p>
         ) : group ? (
           <>
-            <Section title={t('zotz.links.workingTogether', 'Working together')}>
+            <Section
+              title={group.name?.trim() || t('zotz.links.workingTogether', 'Working together')}
+            >
               {group.members.map((member) => {
                 const entry = entryFor(member)
                 return entry ? (
@@ -195,9 +214,28 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                 </div>
               ) : null}
             </Section>
+            {group.members.length > 1 ? (
+              <Section title={t('zotz.groups.mapTitle', 'Who talks to whom')}>
+                <div className="px-1">
+                  <ZotzGroupMap
+                    nodes={map.nodes}
+                    edges={map.edges}
+                    parentEdges={map.parentEdges}
+                    activeEdges={map.activeEdges}
+                    selected={pair}
+                    onSelect={setPair}
+                  />
+                  {pair ? (
+                    <Button variant="ghost" size="xs" onClick={() => setPair(null)}>
+                      {t('zotz.groups.mapShowAll', 'Show every message')}
+                    </Button>
+                  ) : null}
+                </div>
+              </Section>
+            ) : null}
             <Section title={t('zotz.links.messages', 'Messages between them')}>
               <div className="px-1">
-                <ZotzLinkTimeline messages={messages} nameFor={nameFor} />
+                <ZotzLinkTimeline messages={shownMessages} nameFor={nameFor} />
               </div>
             </Section>
           </>

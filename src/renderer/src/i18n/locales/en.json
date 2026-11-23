@@ -26391,7 +26391,11 @@
       "rename": "Rename group",
       "delete": "Delete group",
       "empty": "Drag conversations here, or use \"Move to group\" in their menu.",
-      "otherProject": "A conversation stays in its own project."
+      "otherProject": "A conversation stays in its own project.",
+      "mapTitle": "Who talks to whom",
+      "mapShowAll": "Show every message",
+      "mapLabel": "Who in the group writes to whom",
+      "mapEdge": "{{a}} ↔ {{b}}: {{count}} messages"
     }
   }
 }

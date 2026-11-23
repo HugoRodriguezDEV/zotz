@@ -24758,7 +24758,11 @@
       "rename": "Renombrar grupo",
       "delete": "Eliminar grupo",
       "empty": "Arrastra conversaciones aquí o usa \"Mover a grupo\" en su menú.",
-      "otherProject": "Una conversación se queda en su propio proyecto."
+      "otherProject": "Una conversación se queda en su propio proyecto.",
+      "mapTitle": "Quién habla con quién",
+      "mapShowAll": "Ver todos los mensajes",
+      "mapLabel": "Quién le escribe a quién en el grupo",
+      "mapEdge": "{{a}} ↔ {{b}}: {{count}} mensajes"
     },
     "shortName": {
       "cancel": "Cancelar",
