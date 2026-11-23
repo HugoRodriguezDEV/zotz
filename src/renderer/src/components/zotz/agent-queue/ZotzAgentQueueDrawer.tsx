@@ -21,6 +21,7 @@ import {
 } from '@/components/sidebar/workspace-chrome-metrics'
 import { isXtermHelperTextarea } from '@/components/terminal-pane/input/focus/regular-terminal-focus-ownership'
 import { navigateResourceSessionToTab } from '@/components/status-bar/resources/session-actions/resource-session-navigation'
+import { runSleepWorktree } from '@/components/sidebar/workspace-actions/sleep/sleep-worktree-flow'
 import { parsePaneKey } from '../../../../../shared/workspace-layout/stable-pane-id'
 import { ZotzAgentQueueBoard } from './ZotzAgentQueueBoard'
 import { useZotzAgentQueueMachines } from './use-zotz-agent-queue-machines'
@@ -59,6 +60,7 @@ function ZotzAgentQueueDrawerBody({ onClose }: { onClose: () => void }): React.J
       machines={machines}
       now={now}
       workspaceName={(worktreeId) => (worktreeId ? (names.get(worktreeId) ?? worktreeId) : '')}
+      onFreeMemory={(worktreeId) => void runSleepWorktree(worktreeId)}
       onOpenPane={(paneKey) => {
         const tabId = parsePaneKey(paneKey)?.tabId
         if (!tabId) {

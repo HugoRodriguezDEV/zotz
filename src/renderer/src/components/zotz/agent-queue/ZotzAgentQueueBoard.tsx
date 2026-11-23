@@ -1,4 +1,4 @@
-import { ArrowUpRight, Play, X } from 'lucide-react'
+import { ArrowUpRight, MemoryStick, Play, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/class-names'
@@ -30,6 +30,8 @@ export type ZotzAgentQueueBoardProps = {
   now: number
   workspaceName: (worktreeId: string | null) => string
   onOpenPane: (paneKey: string, worktreeId: string | null) => void
+  /** Puts the conversation to sleep: its agents close and their memory frees; the chat resumes on open. */
+  onFreeMemory?: (worktreeId: string) => void
 }
 
 function priorityLabel(priority: ZotzAgentTaskPriority, t: Translate): string {
@@ -139,12 +141,15 @@ function RunningCard({
   agent,
   machine,
   props,
-  review
+  review,
+  canFree = false
 }: {
   agent: Running
   machine: ZotzAgentQueueMachine
   props: ZotzAgentQueueBoardProps
   review: boolean
+  /** Finished and alone in its conversation, so sleeping it stops no working agent. */
+  canFree?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   const ceiling = machine.snapshot.memory?.perAgentMaxBytes ?? 0
@@ -174,7 +179,18 @@ function RunningCard({
             })}
       </div>
       {review ? (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-1.5">
+          {canFree && agent.worktreeId && props.onFreeMemory ? (
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => agent.worktreeId && props.onFreeMemory?.(agent.worktreeId)}
+            >
+              <MemoryStick className="size-3" />
+              {t('zotz.agentQueue.board.freeMemory', 'Free memory')}
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="xs"
@@ -209,6 +225,9 @@ export function ZotzAgentQueueBoard(props: ZotzAgentQueueBoardProps): React.JSX.
   const running = withMachine(machines, (s) => s.running)
   const working = running.filter(({ item }) => item.state === 'working')
   const review = running.filter(({ item }) => item.state !== 'working')
+  const busyWorkspaces = new Set(
+    working.map(({ machine, item }) => `${machine.hostId}:${item.worktreeId}`)
+  )
   const done = withMachine(machines, (s) => s.done).sort((a, b) => b.item.endedAt - a.item.endedAt)
   const empty = (text: string) => (
     <div className="px-1 py-3 text-center text-[11px] text-muted-foreground">{text}</div>
@@ -301,6 +320,10 @@ export function ZotzAgentQueueBoard(props: ZotzAgentQueueBoardProps): React.JSX.
                   machine={machine}
                   props={props}
                   review
+                  canFree={
+                    item.state === 'done' &&
+                    !busyWorkspaces.has(`${machine.hostId}:${item.worktreeId}`)
+                  }
                 />
               ))}
         </Column>

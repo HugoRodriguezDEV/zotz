@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { useAppStore } from '@/store/index'
 import { translate } from '@/i18n/i18n'
+import { runSleepWorktree } from '@/components/sidebar/workspace-actions/sleep/sleep-worktree-flow'
 import type { Worktree } from '../../../../../shared/worktree/types'
 
 const SHOW_ARCHIVED_EVENT = 'zotz:show-archived'
@@ -36,6 +37,8 @@ export async function archiveZotzConversation(
     )
     return
   }
+  // An archived conversation is out of sight, so its agents should not keep holding memory.
+  void runSleepWorktree(worktree.id)
   toast.success(translate('zotz.sidebar.archived', 'Conversation archived'), {
     action: {
       label: translate('zotz.sidebar.undo', 'Undo'),

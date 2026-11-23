@@ -17,6 +17,7 @@ import {
 } from '../../runtime/workspaces/references/runtime-reference-agents'
 import { conversationRecordReader } from '../../runtime/orchestration/addressing/session-lineage/structured-session-lineage'
 import { createCanonicalOrcaSessionResolver } from '../../runtime/orchestration/addressing/session-lineage/canonical-orca-session-id'
+import { isZotzUserConversation } from '../../../shared/zotz/zotz-user-conversation'
 import { getZotzShortNameStore } from '../zotz-short-name-store'
 import type { ZotzConversationChat, ZotzHostConversation } from './zotz-conversation-chat-choice'
 
@@ -68,7 +69,7 @@ function readOrchestrationDb(runtime: OrcaRuntimeService) {
   }
 }
 
-/** Every conversation (worktree, archived too) on this host, with the live agent chats that can take mail. */
+/** Every conversation (worktree, hidden ones too) on this host, with the live agent chats that can take mail. */
 export async function listZotzHostConversations(
   runtime: OrcaRuntimeService
 ): Promise<ZotzHostConversation[]> {
@@ -142,7 +143,7 @@ export async function listZotzHostConversations(
       // Same title the sidebar row shows.
       title: row.displayName || row.branch.replace(/^refs\/heads\//, '') || row.path,
       projectName: projectNames.get(row.repoId) ?? '',
-      archived: row.isArchived,
+      listed: isZotzUserConversation(row, chats.length > 0 ? new Set([row.id]) : new Set()),
       chats
     }
   })
