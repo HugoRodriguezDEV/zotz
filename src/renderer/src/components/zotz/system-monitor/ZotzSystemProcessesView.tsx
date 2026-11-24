@@ -249,7 +249,7 @@ export function ZotzSystemProcessesView({
             'Filter by name, PID, user, command or agent'
           )}
           aria-label={t('zotz.systemMonitor.processesFilterLabel', 'Filter processes')}
-          className="h-8 max-w-sm text-sm"
+          className="h-8 max-w-sm"
         />
         <span className="ml-auto shrink-0 text-2xs text-muted-foreground tabular-nums">
           {rows.length > ROW_LIMIT
