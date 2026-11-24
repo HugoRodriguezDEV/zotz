@@ -2,18 +2,18 @@ import type { PluginInstallSource } from '../../../shared/plugins/installation/p
 import {
   isOfficialMarketplaceGitSource,
   isOfficialOrganizationGitSource,
-  hasOfficialPluginPublisher,
   isReservedPluginIdentity
 } from '../../../shared/plugins/catalog/plugin-marketplace'
+import { isShippedPluginPublisher } from '../../../shared/zotz/zotz-shipped-plugins'
 
 export function pluginInstallTrustError(
   pluginKey: string,
   source: PluginInstallSource
 ): string | null {
   if (source.kind === 'bundled') {
-    return source.bundleId === pluginKey && hasOfficialPluginPublisher(pluginKey)
+    return source.bundleId === pluginKey && isShippedPluginPublisher(pluginKey)
       ? null
-      : 'bundled plugins must use the official stablyai publisher'
+      : 'bundled plugins must use the official stablyai or zotz publisher'
   }
   if (!isReservedPluginIdentity(pluginKey)) {
     return null

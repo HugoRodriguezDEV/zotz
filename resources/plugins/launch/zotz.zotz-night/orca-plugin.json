@@ -1,0 +1,61 @@
+{
+  "manifestVersion": 2,
+  "id": "zotz-night",
+  "publisher": "zotz",
+  "name": "Zotz Night",
+  "version": "1.0.0",
+  "execution": "data",
+  "description": "Zotz's default look: a darker Tokyo Night style theme and terminal, Karla for the interface and Atkinson Hyperlegible Mono for code.",
+  "license": "MIT AND OFL-1.1",
+  "repository": "https://github.com/HugoRodriguezDEV/zotz/tree/main/resources/plugins/launch/zotz.zotz-night",
+  "engines": {
+    "orca": ">=1.4.253"
+  },
+  "contributes": {
+    "themes": [
+      {
+        "id": "zotz-night",
+        "title": "Zotz Night",
+        "path": "themes/zotz-night.json"
+      }
+    ],
+    "fonts": [
+      {
+        "family": "Karla",
+        "faces": [
+          {
+            "path": "fonts/Karla-Variable.woff2",
+            "weight": "200 800"
+          },
+          {
+            "path": "fonts/Karla-Italic-Variable.woff2",
+            "weight": "200 800",
+            "style": "italic"
+          }
+        ]
+      },
+      {
+        "family": "Atkinson Hyperlegible Mono",
+        "faces": [
+          {
+            "path": "fonts/AtkinsonHyperlegibleMono-Variable.woff2",
+            "weight": "200 800"
+          },
+          {
+            "path": "fonts/AtkinsonHyperlegibleMono-Italic-Variable.woff2",
+            "weight": "200 800",
+            "style": "italic"
+          }
+        ]
+      }
+    ],
+    "terminalThemes": [
+      {
+        "id": "zotz-night",
+        "title": "Zotz Night",
+        "path": "terminal/zotz-night.json"
+      }
+    ]
+  },
+  "capabilities": []
+}

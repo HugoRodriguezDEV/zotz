@@ -13,6 +13,9 @@
 *.html text eol=lf
 # Bundled plugin trees are byte-hashed; CRLF checkout would break the pinned hash.
 /resources/plugins/** text eol=lf
+# Fonts shipped in bundled plugins are binary; LF normalization would corrupt them.
+/resources/plugins/**/*.woff -text
+/resources/plugins/**/*.woff2 -text
 # Keep patch diffs stable; pnpm hashes them with LF normalization.
 # CRLF upstream sources still need git -c core.autocrlf=input apply (windows-process-tree-gyp-rebuild.mjs).
 /config/patches/*.patch -text

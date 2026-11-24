@@ -35,4 +35,6 @@ export type ZotzGlobalSettings = {
   zotzConversationLinks?: ZotzLinkGroup[]
   /** Agent-created conversations already placed in their group (`host\npath`), so a drag out sticks. */
   zotzPlacedConversations?: string[]
+  /** The saved profile already moved to the Zotz Night look once. */
+  zotzNightLookApplied?: boolean
 }

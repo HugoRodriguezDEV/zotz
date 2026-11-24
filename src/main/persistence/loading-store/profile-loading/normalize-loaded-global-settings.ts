@@ -23,6 +23,7 @@ import {
 } from '../../applying-settings/terminal-settings-migrations'
 import { readLegacySidekickFlag } from '../../applying-settings/onboarding-normalization'
 import { applyZotzVisibleAgents } from '../../../../shared/zotz/zotz-visible-agents'
+import { migrateZotzNightLook } from '../../../../shared/zotz/zotz-night-look'
 import { migrateSavedLegacyOrcaWorkspaceDir } from '../../../zotz/zotz-workspace-dir-migration'
 import { normalizeMachineName } from '../../../../shared/machine-name'
 import { normalizeWorkspaceCleanupRules } from '../../../../shared/workspace-cleanup/workspace-cleanup-policy'
@@ -188,6 +189,7 @@ export function normalizeLoadedGlobalSettings(
       parsed.settings?.terminalShortcutPolicy
     ),
     ...applyZotzVisibleAgents(migratedDisabledTuiAgents, parsed.settings?.zotzSeenTuiAgents),
+    ...migrateZotzNightLook(parsed.settings),
     ...migratedAgentYoloDefaults,
     ...migratedAgentPermission,
     claudeAgentTeamsDefaultDisabledMigrated: true,
