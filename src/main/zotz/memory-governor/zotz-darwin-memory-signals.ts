@@ -85,47 +85,73 @@ export async function collectZotzHostMemory(
   }
 }
 
-/** `vm.swapusage` → bytes in use, e.g. "total = 16384.00M  used = 14992.62M  free = …". */
-export function parseDarwinSwapUsedBytes(output: string): number | null {
-  const match = /used\s*=\s*([\d.]+)([KMG])/.exec(output)
-  if (!match) {
-    return null
+export type ZotzSwapUsage = { usedBytes: number; totalBytes: number }
+
+/** `vm.swapusage`, e.g. "total = 16384.00M  used = 14992.62M  free = …". */
+export function parseDarwinSwapUsage(output: string): ZotzSwapUsage | null {
+  const bytes = (label: string): number | null => {
+    const match = new RegExp(`${label}\\s*=\\s*([\\d.]+)([KMG])`).exec(output)
+    if (!match) {
+      return null
+    }
+    const unit = match[2] === 'G' ? 1024 ** 3 : match[2] === 'M' ? 1024 ** 2 : 1024
+    const value = Number.parseFloat(match[1]) * unit
+    return Number.isFinite(value) ? value : null
   }
-  const unit = match[2] === 'G' ? 1024 ** 3 : match[2] === 'M' ? 1024 ** 2 : 1024
-  const value = Number.parseFloat(match[1]) * unit
-  return Number.isFinite(value) ? value : null
+  const usedBytes = bytes('used')
+  const totalBytes = bytes('total')
+  return usedBytes === null || totalBytes === null
+    ? null
+    : { usedBytes: Math.round(usedBytes), totalBytes: Math.round(totalBytes) }
+}
+
+export type ZotzSystemMemorySignals = {
+  pressure: ZotzMemoryPressure
+  /** macOS only; other platforms read swap where they need it. */
+  swap: ZotzSwapUsage | null
 }
 
 /**
  * macOS-only pressure from the kernel level and recent swap growth. Other platforms answer 'ok'
- * and keep relying on available memory alone.
+ * and keep relying on available memory alone. The system monitor reads its swap from here too.
  */
-export function createZotzSystemPressureReader(
+export function createZotzSystemMemorySignalsReader(
   platform: NodeJS.Platform = process.platform,
   now: () => number = Date.now
-): () => Promise<ZotzMemoryPressure> {
+): () => Promise<ZotzSystemMemorySignals> {
   const swapSamples: { at: number; used: number }[] = []
   return async () => {
     if (platform !== 'darwin') {
-      return 'ok'
+      return { pressure: 'ok', swap: null }
     }
     const [levelText, swapText] = await Promise.all([
       readSysctl('kern.memorystatus_vm_pressure_level'),
       readSysctl('vm.swapusage')
     ])
     const level = levelText === null ? null : Number.parseInt(levelText, 10)
-    const used = swapText === null ? null : parseDarwinSwapUsedBytes(swapText)
+    const swap = swapText === null ? null : parseDarwinSwapUsage(swapText)
     const at = now()
     while (swapSamples.length > 0 && at - swapSamples[0].at > SWAP_WINDOW_MS) {
       swapSamples.shift()
     }
-    if (used !== null) {
-      swapSamples.push({ at, used })
+    if (swap !== null) {
+      swapSamples.push({ at, used: swap.usedBytes })
     }
     const lowest = swapSamples.reduce((min, sample) => Math.min(min, sample.used), Infinity)
-    return zotzSystemMemoryPressure({
-      kernelLevel: Number.isFinite(level) ? level : null,
-      swapGrowthBytes: used !== null && Number.isFinite(lowest) ? used - lowest : 0
-    })
+    return {
+      pressure: zotzSystemMemoryPressure({
+        kernelLevel: Number.isFinite(level) ? level : null,
+        swapGrowthBytes: swap !== null && Number.isFinite(lowest) ? swap.usedBytes - lowest : 0
+      }),
+      swap
+    }
   }
+}
+
+export function createZotzSystemPressureReader(
+  platform: NodeJS.Platform = process.platform,
+  now: () => number = Date.now
+): () => Promise<ZotzMemoryPressure> {
+  const read = createZotzSystemMemorySignalsReader(platform, now)
+  return async () => (await read()).pressure
 }

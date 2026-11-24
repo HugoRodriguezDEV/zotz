@@ -12,6 +12,7 @@ import type { SkillsApi } from './api/skills/agent-skill-api'
 import type { AgentAwakeApi, AgentStatusApi } from './api/agent-status/agent-status-api'
 import type { ZotzNodeApi } from './api/zotz/zotz-node-api'
 import type { ZotzAgentQueueApi } from './api/zotz/zotz-agent-queue-api'
+import type { ZotzSystemMonitorApi } from './api/zotz/zotz-system-monitor-api'
 import type { ZotzTaskConnectorsApi } from './api/zotz/zotz-task-connectors-api'
 import type {
   ClaudeUsageApi,
@@ -128,6 +129,7 @@ export type PreloadApi = {
   agentAwake: AgentAwakeApi
   zotzNode: ZotzNodeApi
   zotzAgentQueue: ZotzAgentQueueApi
+  zotzSystemMonitor: ZotzSystemMonitorApi
   zotzTaskConnectors: ZotzTaskConnectorsApi
   localhostWorktreeLabels: LocalhostWorktreeLabelsApi
   keybindings: KeybindingsApi
