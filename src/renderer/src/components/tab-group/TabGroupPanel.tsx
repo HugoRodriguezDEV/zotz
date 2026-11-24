@@ -3,6 +3,8 @@ import { lazyWithRetry as lazy } from '@/app-shell/startup/lazy-with-retry'
 import { useDroppable } from '@dnd-kit/core'
 import { useAppStore } from '../../store/index'
 import TabBar from '../tab-bar/TabBar'
+import { ZotzHostStrip } from '../zotz/host-color/ZotzHostStrip'
+import { ZotzHostTabTint } from '../zotz/host-color/ZotzHostTabTint'
 
 import { TabBarQuickCommandsButton } from '../tab-bar/TabBarQuickCommandsButton'
 import { TabGroupPaneActionsMenu } from './TabGroupPaneActionsMenu'
@@ -307,7 +309,7 @@ export default function TabGroupPanel({
             ) : null}
             {/* Why: the tab-strip container excludes the reserved spacers, so width rules see only the room tabs and actions share. */}
             <div className="@container/tab-strip flex min-w-0 flex-1 items-stretch">
-              <div className="min-w-10 flex-1 h-full">{tabBar}</div>
+              <ZotzHostTabTint worktreeId={worktreeId}>{tabBar}</ZotzHostTabTint>
               {/* Why: overflowing tabs eat all strip whitespace; keep a window-drag handle while the right sidebar header is closed. It goes first in narrow strips: 203 = 40 gap + 163 for the tab floor and every control, so controls never clip behind it. */}
               {reserveRightTitlebarSpace ? (
                 <div className="w-10 min-w-0 @max-[203px]/tab-strip:hidden" />
@@ -354,6 +356,7 @@ export default function TabGroupPanel({
         </div>
       )}
 
+      <ZotzHostStrip worktreeId={worktreeId} />
       <div
         ref={setBodyRef}
         data-tab-group-body-id={groupId}

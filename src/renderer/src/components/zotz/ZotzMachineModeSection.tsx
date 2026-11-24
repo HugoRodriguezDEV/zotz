@@ -20,6 +20,7 @@ export function ZotzMachineModeSection({
   const t = useTranslate()
   const queueEnabled = useAppStore((state) => state.settings?.zotzAgentQueueEnabled !== false)
   const updateSettings = useAppStore((state) => state.updateSettings)
+  const groupByMachine = useAppStore((state) => state.settings?.zotzGroupRemoteByMachine !== false)
   const simpleSidebar = useAppStore((state) =>
     isZotzConductorSidebar(state.settings, isZotzAutomatedLaunch())
   )
@@ -65,6 +66,15 @@ export function ZotzMachineModeSection({
         onChange={() =>
           void updateSettings({ zotzSidebarLayout: simpleSidebar ? 'orca' : 'conductor' })
         }
+      />
+      <SettingsSwitchRow
+        label={t('zotz.hostColor.groupSettingLabel', 'Group remote conversations by machine')}
+        description={t(
+          'zotz.hostColor.groupSettingDescription',
+          "In the simple sidebar, each other machine's conversations go in their own list, with its name and color, below this computer's."
+        )}
+        checked={groupByMachine}
+        onChange={() => void updateSettings({ zotzGroupRemoteByMachine: !groupByMachine })}
       />
     </SettingsGroup>
   )
