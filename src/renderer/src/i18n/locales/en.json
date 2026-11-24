@@ -26473,7 +26473,8 @@
       "interfaces": "Busiest interfaces",
       "diskFreeOf": "{{free}} free of {{total}}",
       "topCpu": "Using the most CPU",
-      "topMemory": "Using the most memory"
+      "topMemory": "Using the most memory",
+      "pid": "PID"
     }
   }
 }

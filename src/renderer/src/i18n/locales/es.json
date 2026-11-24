@@ -24844,7 +24844,8 @@
       "interfaces": "Interfaces con más tráfico",
       "diskFreeOf": "{{free}} libres de {{total}}",
       "topCpu": "Los que más CPU usan",
-      "topMemory": "Los que más memoria usan"
+      "topMemory": "Los que más memoria usan",
+      "pid": "PID"
     }
   }
 }

@@ -107,8 +107,8 @@ function ProcessTable({
         <thead className="text-left text-2xs text-muted-foreground">
           <tr>
             <th className="font-normal">{t('zotz.systemMonitor.processName', 'Process')}</th>
-            <th className="w-16 text-right font-normal">PID</th>
-            <th className="w-16 text-right font-normal">CPU</th>
+            <th className="w-16 text-right font-normal">{t('zotz.systemMonitor.pid', 'PID')}</th>
+            <th className="w-16 text-right font-normal">{t('zotz.systemMonitor.cpu', 'CPU')}</th>
             <th className="w-20 text-right font-normal">
               {t('zotz.systemMonitor.memory', 'Memory')}
             </th>
@@ -145,7 +145,8 @@ function batteryStateLabel(latest: ZotzSystemReading, t: Translate): string {
       return t('zotz.systemMonitor.batteryCharged', 'Charged')
     case 'not-charging':
       return t('zotz.systemMonitor.batteryNotCharging', 'Not charging')
-    default:
+    case null:
+    case undefined:
       return '—'
   }
 }
@@ -345,14 +346,16 @@ export function ZotzSystemDetail({
       {section === 'cpu' ? (
         <Section title={t('zotz.systemMonitor.cores', 'Cores')}>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-            {latest.cpu.cores.map((percent, index) => (
-              <div key={`core-${index}`} className="space-y-1">
-                <Meter ratio={percent / 100} />
-                <div className="text-3xs text-muted-foreground tabular-nums">
-                  {index + 1} · {formatZotzPercent(percent)}
+            {latest.cpu.cores
+              .map((percent, position) => ({ core: position + 1, percent }))
+              .map(({ core, percent }) => (
+                <div key={core} className="space-y-1">
+                  <Meter ratio={percent / 100} />
+                  <div className="text-3xs text-muted-foreground tabular-nums">
+                    {core} · {formatZotzPercent(percent)}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </Section>
       ) : null}

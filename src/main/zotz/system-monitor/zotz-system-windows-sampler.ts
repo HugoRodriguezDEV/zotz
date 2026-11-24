@@ -62,6 +62,11 @@ type WindowsSamplerLine = {
   procs?: unknown[]
 }
 
+// Every field is read defensively below, so any object is a usable line.
+function isSamplerLine(value: unknown): value is WindowsSamplerLine {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 function finite(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
 }
@@ -106,15 +111,16 @@ function processRows(lines: readonly unknown[]): ZotzSystemProcess[] {
 
 /** One JSON line from the sampler script as a tick; processes only when the line carries them. */
 export function parseZotzWindowsSamplerLine(line: string): ZotzPlatformTick | null {
-  let parsed: WindowsSamplerLine
+  let raw: unknown
   try {
-    parsed = JSON.parse(line) as WindowsSamplerLine
+    raw = JSON.parse(line)
   } catch {
     return null
   }
-  if (!parsed || typeof parsed !== 'object') {
+  if (!isSamplerLine(raw)) {
     return null
   }
+  const parsed = raw
   const interfaces = (Array.isArray(parsed.net) ? parsed.net : [])
     .map((entry) => ({
       name: typeof entry?.n === 'string' ? entry.n : '',

@@ -225,7 +225,7 @@ export function createZotzLinuxSampler(now: () => number = Date.now): ZotzSystem
     if (smi !== null && parseNvidiaSmi(smi)) {
       return { kind: 'nvidia' }
     }
-    const cards = await readdir('/sys/class/drm').catch(() => [] as string[])
+    const cards = await readdir('/sys/class/drm').catch((): string[] => [])
     for (const card of cards.filter((name) => /^card\d+$/.test(name)).sort()) {
       const busy = await readZotzTextFile(`/sys/class/drm/${card}/device/gpu_busy_percent`)
       if (busy !== null && /^\d+$/.test(busy.trim())) {
@@ -269,7 +269,7 @@ export function createZotzLinuxSampler(now: () => number = Date.now): ZotzSystem
       return battery.reading
     }
     if (batteryName === undefined) {
-      const supplies = await readdir('/sys/class/power_supply').catch(() => [] as string[])
+      const supplies = await readdir('/sys/class/power_supply').catch((): string[] => [])
       batteryName = supplies.filter((name) => /^BAT\d*$/.test(name)).sort()[0] ?? null
     }
     let reading: ZotzSystemPower['battery'] = null
