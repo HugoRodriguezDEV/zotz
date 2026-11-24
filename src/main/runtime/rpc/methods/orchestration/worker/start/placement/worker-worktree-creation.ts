@@ -10,6 +10,7 @@ import { resolveUnattendedSetupDecision } from '../../../../../../../workspace-h
 import { OrchestrationError } from '../../../../../../orchestration/orchestration-error'
 import { parseWorkspaceKey } from '../../../../../../../../shared/workspace/identity/workspace-scope'
 import type { WorkerEffect, WorkerSetupReceipt } from './worker-placement-topology'
+import { recordZotzWorkerCreator } from '../../../../../../../zotz/conversation-links/zotz-conversation-parent'
 
 /** The repo a new worker worktree is created in, and its parent for `new-child`. */
 export type WorkerWorktreeCreationTarget = {
@@ -17,6 +18,8 @@ export type WorkerWorktreeCreationTarget = {
   parentWorktreeId?: string
   /** A multi-repo folder workspace parent (`folder:<id>`); its destination repo is explicit. */
   parentWorkspace?: string
+  /** Zotz: the dispatching conversation, which the sidebar nests the worker under. */
+  zotzCreatorWorktreeId?: string
 }
 
 export async function resolveWorkerWorktreeCreationTarget(args: {
@@ -28,7 +31,7 @@ export async function resolveWorkerWorktreeCreationTarget(args: {
   const { requestedWorktree, repo } = args
   // An explicit repo is all a top-level worktree needs, so callers outside a worktree can use it.
   if (requestedWorktree === 'new-top-level' && repo) {
-    return { repoSelector: repo }
+    return { repoSelector: repo, zotzCreatorWorktreeId: args.callerWorktreeId }
   }
   // A folder workspace spans several repos, so its child names the destination repo itself.
   if (
@@ -56,7 +59,8 @@ export async function resolveWorkerWorktreeCreationTarget(args: {
     })
   return {
     repoSelector: repo ?? callerWorktree.repoId,
-    ...(requestedWorktree === 'new-child' ? { parentWorktreeId: callerWorktree.id } : {})
+    ...(requestedWorktree === 'new-child' ? { parentWorktreeId: callerWorktree.id } : {}),
+    zotzCreatorWorktreeId: callerWorktree.id
   }
 }
 
@@ -162,6 +166,13 @@ export async function createWorkerWorktree(args: {
       callerTerminalHandle: params.from
     }
   })
+  if (target.zotzCreatorWorktreeId) {
+    recordZotzWorkerCreator(runtime, created.worktree, {
+      worktreeId: target.zotzCreatorWorktreeId,
+      agent: args.agent,
+      callerTerminalHandle: params.from
+    })
+  }
   const terminalHandle = created.startupTerminal?.handle
   effects.push({
     kind: 'worktree',
