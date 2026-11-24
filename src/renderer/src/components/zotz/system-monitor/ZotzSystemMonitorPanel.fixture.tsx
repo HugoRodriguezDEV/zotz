@@ -1,5 +1,6 @@
 import type {
   ZotzSystemMonitorSnapshot,
+  ZotzSystemProcessList,
   ZotzSystemReading,
   ZotzSystemSample
 } from '../../../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
@@ -146,20 +147,118 @@ export const windowsServer = defineFixture({
 
 export const cpuDetail = defineFixture({
   width: 1000,
-  render: () => <ZotzSystemMonitorPanel snapshot={SNAPSHOT} initialSection="cpu" />
+  render: () => <ZotzSystemMonitorPanel snapshot={SNAPSHOT} initialView="cpu" />
 })
 
 export const memoryDetail = defineFixture({
   width: 1000,
-  render: () => <ZotzSystemMonitorPanel snapshot={SNAPSHOT} initialSection="memory" />
+  render: () => <ZotzSystemMonitorPanel snapshot={SNAPSHOT} initialView="memory" />
 })
 
 export const networkDetail = defineFixture({
   width: 1000,
-  render: () => <ZotzSystemMonitorPanel snapshot={SNAPSHOT} initialSection="network" />
+  render: () => <ZotzSystemMonitorPanel snapshot={SNAPSHOT} initialView="network" />
 })
 
 export const loading = defineFixture({
   width: 600,
   render: () => <ZotzSystemMonitorPanel snapshot={null} />
+})
+
+const LIST: ZotzSystemProcessList = {
+  sampledAt: NOW,
+  processes: [
+    ...PROCESSES.map((process) => ({ ...process, owner: null })),
+    {
+      pid: 9001,
+      ppid: 9000,
+      name: 'claude',
+      command: '/usr/local/bin/claude --dangerously-skip-permissions',
+      user: 'hugo',
+      cpuPercent: 48,
+      memoryBytes: 1.8 * GB,
+      owner: { kind: 'agent', agent: 'claude', worktreeId: 'refactor-auth', paneKey: 'tab:1' }
+    },
+    {
+      pid: 9002,
+      ppid: 9001,
+      name: 'node',
+      command: 'node mcp-server.js',
+      user: 'hugo',
+      cpuPercent: 3,
+      memoryBytes: 220 * MB,
+      owner: { kind: 'agent', agent: 'claude', worktreeId: 'refactor-auth', paneKey: 'tab:1' }
+    },
+    {
+      pid: 812,
+      ppid: 1,
+      name: 'Zotz',
+      command: '/Applications/Zotz.app/Contents/MacOS/Zotz',
+      user: 'hugo',
+      cpuPercent: 9,
+      memoryBytes: 410 * MB,
+      owner: { kind: 'zotz' }
+    },
+    {
+      pid: 7300,
+      ppid: 900,
+      name: 'vim',
+      command: 'vim README.md',
+      user: 'hugo',
+      cpuPercent: 0,
+      memoryBytes: 12 * MB,
+      owner: { kind: 'zotz-child' }
+    }
+  ]
+}
+
+export const processes = defineFixture({
+  width: 1000,
+  render: () => (
+    <ZotzSystemMonitorPanel
+      snapshot={SNAPSHOT}
+      initialView="processes"
+      initialPid={9001}
+      processList={LIST}
+    />
+  )
+})
+
+export const closeAgentProcess = defineFixture({
+  width: 1000,
+  render: () => (
+    <ZotzSystemMonitorPanel
+      snapshot={SNAPSHOT}
+      initialView="processes"
+      initialPid={9001}
+      processList={LIST}
+    />
+  ),
+  interact: (frame) => {
+    frame.querySelector<HTMLButtonElement>('[data-zotz-process-detail] button')?.click()
+  }
+})
+
+// The MSI seen from the laptop, on a server that predates closing processes remotely.
+export const serverReadOnlyProcesses = defineFixture({
+  width: 1000,
+  render: () => (
+    <ZotzSystemMonitorPanel
+      snapshot={MSI}
+      machineName="MSI Server"
+      initialView="processes"
+      initialPid={9001}
+      processList={LIST}
+      client={{
+        processes: async () => LIST,
+        processCommand: async () => null,
+        closeProcess: null
+      }}
+    />
+  )
+})
+
+export const server = defineFixture({
+  width: 1000,
+  render: () => <ZotzSystemMonitorPanel snapshot={MSI} machineName="MSI Server" />
 })

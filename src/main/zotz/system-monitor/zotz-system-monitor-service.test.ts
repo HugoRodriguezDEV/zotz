@@ -53,7 +53,8 @@ describe('ZotzSystemMonitorService', () => {
       loadavg: () => [0, 0, 0],
       uptime: () => 1,
       now: () => 1_000,
-      publish
+      publish,
+      ownersOf: (processes) => processes.map((row) => ({ ...row, owner: null }))
     })
 
     // React's dev double mount: watch, unwatch, watch while the first read is in flight.

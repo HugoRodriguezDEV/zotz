@@ -7,7 +7,6 @@ import type {
   ZotzSystemProcess
 } from '../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
 import type { ZotzPlatformTick, ZotzSystemPlatformSampler } from './zotz-system-platform-sampler'
-import { topZotzProcesses } from './zotz-system-unix-commands'
 
 const MIB = 1024 * 1024
 const LINE_LIMIT_CHARS = 4 * 1024 * 1024
@@ -106,7 +105,7 @@ function processRows(lines: readonly unknown[]): ZotzSystemProcess[] {
       memoryBytes: Number(fields[4]) || 0
     })
   }
-  return topZotzProcesses(rows)
+  return rows
 }
 
 /** One JSON line from the sampler script as a tick; processes only when the line carries them. */

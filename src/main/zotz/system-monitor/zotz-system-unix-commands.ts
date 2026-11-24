@@ -1,10 +1,7 @@
 import { runProcess } from '@orca/process-host'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import {
-  ZOTZ_SYSTEM_PROCESS_LIMIT,
-  type ZotzSystemProcess
-} from '../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
+import type { ZotzSystemProcess } from '../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
 
 const COMMAND_TIMEOUT_MS = 1_500
 
@@ -35,7 +32,7 @@ export function readZotzTextFile(file: string): Promise<string | null> {
 // comm goes last: on macOS it is a path that may hold spaces.
 export const ZOTZ_PS_ARGS = ['-Ao', 'pid=,ppid=,pcpu=,rss=,user=,comm='] as const
 
-/** `ps -Ao pid=,ppid=,pcpu=,rss=,user=,comm=`, busiest first. */
+/** `ps -Ao pid=,ppid=,pcpu=,rss=,user=,comm=`, every process. */
 export function parseZotzPsProcesses(stdout: string): ZotzSystemProcess[] {
   const rows: ZotzSystemProcess[] = []
   for (const line of stdout.split('\n')) {
@@ -54,23 +51,7 @@ export function parseZotzPsProcesses(stdout: string): ZotzSystemProcess[] {
       name: path.posix.basename(command) || command
     })
   }
-  return topZotzProcesses(rows)
-}
-
-/** The busiest by CPU and the largest by memory, so both detail views find their leaders. */
-export function topZotzProcesses(rows: ZotzSystemProcess[]): ZotzSystemProcess[] {
-  const half = Math.ceil(ZOTZ_SYSTEM_PROCESS_LIMIT / 2)
-  const byCpu = rows.toSorted(
-    (a, b) => b.cpuPercent - a.cpuPercent || b.memoryBytes - a.memoryBytes
-  )
-  const byMemory = rows.toSorted((a, b) => b.memoryBytes - a.memoryBytes)
-  const picked = new Map<number, ZotzSystemProcess>()
-  for (const row of [...byCpu.slice(0, half), ...byMemory.slice(0, half)]) {
-    picked.set(row.pid, row)
-  }
-  return [...picked.values()].sort(
-    (a, b) => b.cpuPercent - a.cpuPercent || b.memoryBytes - a.memoryBytes
-  )
+  return rows
 }
 
 export async function readZotzPsProcesses(): Promise<ZotzSystemProcess[] | null> {

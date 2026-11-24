@@ -1,5 +1,5 @@
 import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,8 +9,6 @@ import { useTranslate } from '@/i18n/use-translate'
 import { activateTabAndFocusPane } from '@/lib/workspace/tabs/activate-tab-and-focus-pane'
 import { activateAndRevealWorktree } from '@/lib/workspace/activation/worktree-activation'
 import { useAppStore } from '@/store/index'
-import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
-import { getIndexedAllWorktrees } from '@/store/slices/worktrees/listing/worktree-catalog-index'
 import { trackSidebarLiveWidth } from '@/components/sidebar/sidebar-live-width'
 import {
   isWorkspaceBoardKeepOpenTarget,
@@ -27,9 +25,12 @@ import { parsePaneKey } from '../../../../../shared/workspace-layout/stable-pane
 import { ZotzAgentQueueBoard } from './ZotzAgentQueueBoard'
 import { ZotzSystemMonitorTab } from '../system-monitor/ZotzSystemMonitorTab'
 import { useZotzAgentQueueMachines } from './use-zotz-agent-queue-machines'
+import { useZotzWorkspaceNames } from './use-zotz-workspace-names'
 import {
   setZotzAgentQueueDrawerOpen,
-  useZotzAgentQueueDrawerOpen
+  setZotzAgentQueueDrawerTab,
+  useZotzAgentQueueDrawerOpen,
+  useZotzAgentQueueDrawerTab
 } from './zotz-agent-queue-drawer-open'
 
 // Nested overlays own Escape before the drawer; the drawer's own role=dialog is excluded.
@@ -45,8 +46,12 @@ const ESCAPE_BLOCKING_OVERLAY_SELECTOR = [
 /** Mounted only while open, so the closed drawer derives nothing. */
 function ZotzAgentQueueDrawerBody({ onClose }: { onClose: () => void }): React.JSX.Element {
   const t = useTranslate()
+  const tab = useZotzAgentQueueDrawerTab()
   return (
-    <Tabs defaultValue="queue">
+    <Tabs
+      value={tab}
+      onValueChange={(next) => setZotzAgentQueueDrawerTab(next === 'system' ? 'system' : 'queue')}
+    >
       <TabsList size="sm">
         <TabsTrigger value="queue">{t('zotz.agentQueue.board.tabQueue', 'Queue')}</TabsTrigger>
         <TabsTrigger value="system">{t('zotz.agentQueue.board.tabSystem', 'System')}</TabsTrigger>
@@ -64,22 +69,12 @@ function ZotzAgentQueueDrawerBody({ onClose }: { onClose: () => void }): React.J
 function ZotzAgentQueueBoardBody({ onClose }: { onClose: () => void }): React.JSX.Element {
   const machines = useZotzAgentQueueMachines()
   const now = useNow(30_000)
-  const worktreesByRepo = useAppStore(selectWorktreesByRepo)
-  const names = useMemo(
-    () =>
-      new Map(
-        getIndexedAllWorktrees(worktreesByRepo).map((worktree) => [
-          worktree.id,
-          worktree.displayName
-        ])
-      ),
-    [worktreesByRepo]
-  )
+  const workspaceName = useZotzWorkspaceNames()
   return (
     <ZotzAgentQueueBoard
       machines={machines}
       now={now}
-      workspaceName={(worktreeId) => (worktreeId ? (names.get(worktreeId) ?? worktreeId) : '')}
+      workspaceName={workspaceName}
       onFreeMemory={(worktreeId) => void runSleepWorktree(worktreeId)}
       onOpenPane={(paneKey) => {
         const tabId = parsePaneKey(paneKey)?.tabId

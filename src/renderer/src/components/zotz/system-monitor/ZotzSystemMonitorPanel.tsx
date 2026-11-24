@@ -1,14 +1,30 @@
 import { useState } from 'react'
-import { ArrowLeft, Battery, Cpu, Gpu, HardDrive, MemoryStick, Network } from 'lucide-react'
+import {
+  ArrowLeft,
+  Battery,
+  Cpu,
+  Gpu,
+  HardDrive,
+  ListTree,
+  MemoryStick,
+  Network
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/class-names'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import type {
   ZotzSystemMonitorSnapshot,
+  ZotzSystemProcessList,
   ZotzSystemReading
 } from '../../../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
 import { ZotzSystemHistoryChart } from './ZotzSystemHistoryChart'
 import { ZotzSystemDetail } from './ZotzSystemDetail'
+import { ZotzSystemProcessesView } from './ZotzSystemProcessesView'
+import { useZotzSystemProcesses } from './use-zotz-system-processes'
+import {
+  LOCAL_ZOTZ_SYSTEM_MONITOR_CLIENT,
+  type ZotzSystemMonitorClient
+} from './zotz-system-monitor-client'
 import {
   ZOTZ_SYSTEM_SECTIONS,
   zotzPressureBadge,
@@ -180,27 +196,91 @@ function SectionCard({
   )
 }
 
-/** docs/zotz/SPEC-monitor-y-remotos.md §A fase 2: this machine's vitals as cards, each with a detail view. */
-export function ZotzSystemMonitorPanel({
-  snapshot,
-  initialSection = null
+function ProcessesCard({
+  latest,
+  onOpen
 }: {
-  snapshot: ZotzSystemMonitorSnapshot | null
-  initialSection?: ZotzSystemSection | null
+  latest: ZotzSystemReading
+  onOpen: () => void
 }): React.JSX.Element {
   const t = useTranslate()
-  const [open, setOpen] = useState<ZotzSystemSection | null>(initialSection)
+  const busiest = latest.processes?.[0]
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      data-zotz-system-card="processes"
+      className="flex min-w-0 flex-col gap-1.5 rounded-md border border-border bg-card p-2.5 text-left text-card-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+    >
+      <span className="flex items-center gap-1.5 text-xs font-semibold">
+        <ListTree className="size-3.5 text-muted-foreground" />
+        {t('zotz.systemMonitor.processes', 'Processes')}
+      </span>
+      <span className="min-w-0 truncate text-lg font-semibold">
+        {busiest?.name ?? t('zotz.systemMonitor.processesLoading', 'Reading processes…')}
+      </span>
+      <span className="min-w-0 truncate text-2xs text-muted-foreground">
+        {busiest
+          ? t('zotz.systemMonitor.processesCard', 'Busiest now · {{cpu}} CPU · {{memory}}', {
+              cpu: formatZotzPercent(busiest.cpuPercent),
+              memory: formatZotzBytes(busiest.memoryBytes)
+            })
+          : ''}
+      </span>
+      <span className="text-2xs text-muted-foreground">
+        {t('zotz.systemMonitor.processesCardHint', 'Filter, sort and close processes')}
+      </span>
+    </button>
+  )
+}
+
+type ZotzSystemView = ZotzSystemSection | 'processes'
+
+const workspaceIdAsName = (worktreeId: string | null): string => worktreeId ?? ''
+
+/** docs/zotz/SPEC-monitor-y-remotos.md §A fases 2 y 3: this machine's vitals as cards, each with a detail view, and its processes. */
+export function ZotzSystemMonitorPanel({
+  snapshot,
+  initialView = null,
+  initialPid = null,
+  processList,
+  workspaceName = workspaceIdAsName,
+  client = LOCAL_ZOTZ_SYSTEM_MONITOR_CLIENT,
+  machineName = null
+}: {
+  snapshot: ZotzSystemMonitorSnapshot | null
+  initialView?: ZotzSystemView | null
+  initialPid?: number | null
+  /** Fixtures pass the list; the app reads it from main while the Processes view is open. */
+  processList?: ZotzSystemProcessList | null
+  workspaceName?: (worktreeId: string | null) => string
+  /** Where processes are read and closed; this machine unless a server is picked. */
+  client?: ZotzSystemMonitorClient
+  /** A server's name; null for this machine. */
+  machineName?: string | null
+}): React.JSX.Element {
+  const t = useTranslate()
+  const [open, setOpen] = useState<ZotzSystemView | null>(initialView)
+  const [pid, setPid] = useState<number | null>(initialPid)
   const latest = snapshot?.latest
+  const liveList = useZotzSystemProcesses(
+    open === 'processes' && processList === undefined ? (latest?.processesSampledAt ?? null) : null,
+    client
+  )
   if (!snapshot || !latest) {
     return (
       <div className="px-1 py-6 text-center text-xs text-muted-foreground">
-        {t('zotz.systemMonitor.loading', 'Reading this machine…')}
+        {machineName
+          ? t('zotz.systemMonitor.loadingServer', 'Reading {{name}}…', { name: machineName })
+          : t('zotz.systemMonitor.loading', 'Reading this machine…')}
       </div>
     )
   }
   const header = (
     <div className="flex min-w-0 items-baseline gap-1.5 px-1 text-xs">
-      <span className="font-semibold">{t('zotz.systemMonitor.thisMachine', 'This machine')}</span>
+      <span className="font-semibold">
+        {machineName ?? t('zotz.systemMonitor.thisMachine', 'This machine')}
+      </span>
       <span className="min-w-0 truncate text-muted-foreground">{snapshot.hostname}</span>
       <span className="ml-auto shrink-0 text-2xs text-muted-foreground">
         {t('zotz.systemMonitor.historyWindow', 'Last {{minutes}} min', {
@@ -209,18 +289,49 @@ export function ZotzSystemMonitorPanel({
       </span>
     </div>
   )
+  const openProcess = (next: number): void => {
+    setPid(next)
+    setOpen('processes')
+  }
   if (open) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-1.5">
-          <Button type="button" variant="ghost" size="xs" onClick={() => setOpen(null)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={() => {
+              setOpen(null)
+              setPid(null)
+            }}
+          >
             <ArrowLeft className="size-3" />
             {t('zotz.systemMonitor.back', 'All')}
           </Button>
-          <span className="text-sm font-semibold">{zotzSystemSectionTitle(open, t)}</span>
+          <span className="text-sm font-semibold">
+            {open === 'processes'
+              ? t('zotz.systemMonitor.processes', 'Processes')
+              : zotzSystemSectionTitle(open, t)}
+          </span>
         </div>
         {header}
-        <ZotzSystemDetail section={open} snapshot={snapshot} latest={latest} />
+        {open === 'processes' ? (
+          <ZotzSystemProcessesView
+            key={pid ?? 'none'}
+            list={processList === undefined ? liveList : processList}
+            client={client}
+            workspaceName={workspaceName}
+            initialPid={pid}
+          />
+        ) : (
+          <ZotzSystemDetail
+            section={open}
+            snapshot={snapshot}
+            latest={latest}
+            onOpenProcess={openProcess}
+          />
+        )}
       </div>
     )
   }
@@ -237,6 +348,7 @@ export function ZotzSystemMonitorPanel({
             onOpen={() => setOpen(section)}
           />
         ))}
+        <ProcessesCard latest={latest} onOpen={() => setOpen('processes')} />
       </div>
     </div>
   )

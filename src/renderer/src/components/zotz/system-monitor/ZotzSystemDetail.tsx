@@ -2,10 +2,10 @@ import { cn } from '@/lib/class-names'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import type {
   ZotzSystemMonitorSnapshot,
-  ZotzSystemProcess,
   ZotzSystemReading
 } from '../../../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
 import { ZotzSystemHistoryChart } from './ZotzSystemHistoryChart'
+import { ZotzSystemTopProcesses } from './ZotzSystemTopProcesses'
 import {
   zotzPressureBadge,
   zotzSectionMax,
@@ -18,8 +18,6 @@ import {
   formatZotzPercent,
   formatZotzRate
 } from './zotz-system-format'
-
-const TOP_PROCESSES = 6
 
 type Stat = { label: string; value: React.ReactNode }
 
@@ -80,58 +78,6 @@ function Legend({ items }: { items: readonly { label: string; primary: boolean }
         </span>
       ))}
     </div>
-  )
-}
-
-function ProcessTable({
-  title,
-  processes,
-  by
-}: {
-  title: string
-  processes: readonly ZotzSystemProcess[] | null
-  by: 'cpu' | 'memory'
-}): React.JSX.Element | null {
-  const t = useTranslate()
-  if (!processes || processes.length === 0) {
-    return null
-  }
-  const rows = processes
-    .toSorted((a, b) =>
-      by === 'cpu' ? b.cpuPercent - a.cpuPercent : b.memoryBytes - a.memoryBytes
-    )
-    .slice(0, TOP_PROCESSES)
-  return (
-    <Section title={title}>
-      <table className="w-full table-fixed text-xs">
-        <thead className="text-left text-2xs text-muted-foreground">
-          <tr>
-            <th className="font-normal">{t('zotz.systemMonitor.processName', 'Process')}</th>
-            <th className="w-16 text-right font-normal">{t('zotz.systemMonitor.pid', 'PID')}</th>
-            <th className="w-16 text-right font-normal">{t('zotz.systemMonitor.cpu', 'CPU')}</th>
-            <th className="w-20 text-right font-normal">
-              {t('zotz.systemMonitor.memory', 'Memory')}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((process) => (
-            <tr key={process.pid} className="border-t border-border">
-              <td className="truncate py-1" title={process.command}>
-                {process.name}
-              </td>
-              <td className="py-1 text-right text-muted-foreground tabular-nums">{process.pid}</td>
-              <td className="py-1 text-right tabular-nums">
-                {formatZotzPercent(process.cpuPercent)}
-              </td>
-              <td className="py-1 text-right tabular-nums">
-                {formatZotzBytes(process.memoryBytes)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </Section>
   )
 }
 
@@ -321,11 +267,14 @@ function legend(section: ZotzSystemSection, t: Translate): { label: string; prim
 export function ZotzSystemDetail({
   section,
   snapshot,
-  latest
+  latest,
+  onOpenProcess
 }: {
   section: ZotzSystemSection
   snapshot: ZotzSystemMonitorSnapshot
   latest: ZotzSystemReading
+  /** Opens the Processes view on this PID. */
+  onOpenProcess: (pid: number) => void
 }): React.JSX.Element {
   const t = useTranslate()
   const items = legend(section, t)
@@ -393,17 +342,19 @@ export function ZotzSystemDetail({
         </Section>
       ) : null}
       {section === 'cpu' ? (
-        <ProcessTable
+        <ZotzSystemTopProcesses
           title={t('zotz.systemMonitor.topCpu', 'Using the most CPU')}
           processes={latest.processes}
           by="cpu"
+          onOpen={onOpenProcess}
         />
       ) : null}
       {section === 'memory' ? (
-        <ProcessTable
+        <ZotzSystemTopProcesses
           title={t('zotz.systemMonitor.topMemory', 'Using the most memory')}
           processes={latest.processes}
           by="memory"
+          onOpen={onOpenProcess}
         />
       ) : null}
     </div>
