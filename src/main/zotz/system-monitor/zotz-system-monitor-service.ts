@@ -214,13 +214,22 @@ export class ZotzSystemMonitorService {
       console.warn('[zotz-system] sample failed', error)
     } finally {
       this.sampling = false
+      this.scheduleNext(sampler)
     }
-    if (this.sampler === sampler) {
-      this.timer = setTimeout(() => {
+  }
+
+  // A watch that came back while a stale tick ran (unwatch then watch) is owed its first sample now.
+  private scheduleNext(finished: ZotzSystemPlatformSampler): void {
+    if (!this.sampler || this.timer) {
+      return
+    }
+    this.timer = setTimeout(
+      () => {
         this.timer = null
         void this.sampleOnce()
-      }, ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS)
-      this.timer.unref?.()
-    }
+      },
+      this.sampler === finished ? ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS : 0
+    )
+    this.timer.unref?.()
   }
 }
