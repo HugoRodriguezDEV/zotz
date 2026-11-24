@@ -26513,7 +26513,11 @@
       "memoryCriticalAction": "See what uses it",
       "statusSegment": "CPU {{cpu}} · MEM {{mem}}",
       "statusTooltip": "This machine: {{used}} of {{total}} GB in use, {{free}} GB free · open System",
-      "statusTooltipNoMemory": "This machine’s CPU and memory · open System"
+      "statusTooltipNoMemory": "This machine’s CPU and memory · open System",
+      "serverFailed": "Could not read {{name}}. Check that it is online.",
+      "machine": "Machine",
+      "thisMachineNamed": "{{name}} (this machine)",
+      "loadingServer": "Reading {{name}}…"
     }
   }
 }

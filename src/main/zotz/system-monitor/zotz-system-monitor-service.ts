@@ -51,6 +51,7 @@ export type ZotzSystemMonitorDeps = {
  */
 export class ZotzSystemMonitorService {
   private readonly watchers = new Set<number>()
+  private readonly updateListeners = new Set<(update: ZotzSystemMonitorUpdate) => void>()
   private history: ZotzSystemSample[] = []
   private latest: ZotzSystemReading | null = null
   private sampler: ZotzSystemPlatformSampler | null = null
@@ -91,6 +92,12 @@ export class ZotzSystemMonitorService {
     return [...this.watchers]
   }
 
+  /** Every sample, for watchers that are not windows (a paired client over the runtime RPC). */
+  onUpdate(listener: (update: ZotzSystemMonitorUpdate) => void): () => void {
+    this.updateListeners.add(listener)
+    return () => this.updateListeners.delete(listener)
+  }
+
   snapshot(): ZotzSystemMonitorSnapshot {
     return {
       platform: this.deps.platform,
@@ -112,6 +119,7 @@ export class ZotzSystemMonitorService {
 
   dispose(): void {
     this.watchers.clear()
+    this.updateListeners.clear()
     this.stop()
   }
 
@@ -224,7 +232,11 @@ export class ZotzSystemMonitorService {
         this.history = [...this.history.filter((entry) => entry.t >= oldest), sample]
       }
       this.latest = reading
-      this.deps.publish({ sample: cpu ? sample : null, latest: reading })
+      const update = { sample: cpu ? sample : null, latest: reading }
+      this.deps.publish(update)
+      for (const listener of this.updateListeners) {
+        listener(update)
+      }
     } catch (error) {
       console.warn('[zotz-system] sample failed', error)
     } finally {

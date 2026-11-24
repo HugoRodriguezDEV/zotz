@@ -11,6 +11,7 @@ import type {
 } from '../../../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
 import { ZotzCloseProcessDialog } from './ZotzCloseProcessDialog'
 import { formatZotzBytes, formatZotzPercent } from './zotz-system-format'
+import type { ZotzSystemMonitorClient } from './zotz-system-monitor-client'
 
 type SortKey = 'name' | 'pid' | 'user' | 'cpu' | 'memory'
 type Sort = { key: SortKey; descending: boolean }
@@ -117,20 +118,23 @@ function ProcessDetail({
   entry,
   parent,
   ownerText,
+  client,
   onClose,
   onDismiss
 }: {
   entry: ZotzSystemProcessEntry
   parent: ZotzSystemProcessEntry | undefined
   ownerText: string
-  onClose: () => void
+  client: ZotzSystemMonitorClient
+  /** Absent when this machine does not accept closing processes from here. */
+  onClose?: () => void
   onDismiss: () => void
 }): React.JSX.Element {
   const t = useTranslate()
   const [command, setCommand] = useState<{ pid: number; text: string | null } | null>(null)
   useEffect(() => {
     let cancelled = false
-    void window.api?.zotzSystemMonitor?.processCommand(entry.pid).then(
+    void client.processCommand(entry.pid).then(
       (text) => {
         if (!cancelled) {
           setCommand({ pid: entry.pid, text })
@@ -141,7 +145,7 @@ function ProcessDetail({
     return () => {
       cancelled = true
     }
-  }, [entry.pid])
+  }, [entry.pid, client])
   const commandText = command?.pid === entry.pid && command.text ? command.text : entry.command
   const fields: { label: string; value: string }[] = [
     { label: t('zotz.systemMonitor.pid', 'PID'), value: String(entry.pid) },
@@ -164,9 +168,19 @@ function ProcessDetail({
     >
       <div className="flex items-center gap-2">
         <h3 className="min-w-0 truncate text-sm font-semibold">{entry.name}</h3>
-        <Button type="button" variant="destructive" size="xs" className="ml-auto" onClick={onClose}>
-          {t('zotz.systemMonitor.closeProcess', 'Close process')}
-        </Button>
+        {onClose ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="xs"
+            className="ml-auto"
+            onClick={onClose}
+          >
+            {t('zotz.systemMonitor.closeProcess', 'Close process')}
+          </Button>
+        ) : (
+          <span className="ml-auto" />
+        )}
         <Button
           type="button"
           variant="ghost"
@@ -198,10 +212,12 @@ function ProcessDetail({
 /** docs/zotz/SPEC-monitor-y-remotos.md §A.3: every process, filterable and sortable, with a way to close one. */
 export function ZotzSystemProcessesView({
   list,
+  client,
   workspaceName,
   initialPid = null
 }: {
   list: ZotzSystemProcessList | null
+  client: ZotzSystemMonitorClient
   workspaceName: (worktreeId: string | null) => string
   initialPid?: number | null
 }): React.JSX.Element {
@@ -272,7 +288,8 @@ export function ZotzSystemProcessesView({
           entry={selected}
           parent={byPid.get(selected.ppid)}
           ownerText={zotzOwnerLabel(selected, workspaceName, t)}
-          onClose={() => setClosing(selected)}
+          client={client}
+          onClose={client.closeProcess ? () => setClosing(selected) : undefined}
           onDismiss={() => setSelectedPid(null)}
         />
       ) : null}
@@ -361,17 +378,20 @@ export function ZotzSystemProcessesView({
           </div>
         ) : null}
       </div>
-      <ZotzCloseProcessDialog
-        target={closing}
-        workspaceName={workspaceName}
-        onDone={(wasClosed) => {
-          if (wasClosed && closing) {
-            setClosed({ pid: closing.pid, before: list.sampledAt })
-            setSelectedPid(null)
-          }
-          setClosing(null)
-        }}
-      />
+      {client.closeProcess ? (
+        <ZotzCloseProcessDialog
+          target={closing}
+          workspaceName={workspaceName}
+          closeProcess={client.closeProcess}
+          onDone={(wasClosed) => {
+            if (wasClosed && closing) {
+              setClosed({ pid: closing.pid, before: list.sampledAt })
+              setSelectedPid(null)
+            }
+            setClosing(null)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

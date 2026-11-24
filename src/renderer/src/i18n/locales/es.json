@@ -24884,7 +24884,11 @@
       "memoryCriticalAction": "Ver qué la usa",
       "statusSegment": "CPU {{cpu}} · MEM {{mem}}",
       "statusTooltip": "Esta máquina: {{used}} de {{total}} GB en uso, {{free}} GB libres · abrir Sistema",
-      "statusTooltipNoMemory": "CPU y memoria de esta máquina · abrir Sistema"
+      "statusTooltipNoMemory": "CPU y memoria de esta máquina · abrir Sistema",
+      "serverFailed": "No se pudo leer {{name}}. Revisa que esté en línea.",
+      "machine": "Máquina",
+      "thisMachineNamed": "{{name}} (esta máquina)",
+      "loadingServer": "Leyendo {{name}}…"
     }
   }
 }
