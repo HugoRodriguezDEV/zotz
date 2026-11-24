@@ -4,7 +4,7 @@ import {
   isOfficialOrganizationGitSource,
   isReservedPluginIdentity
 } from '../../../shared/plugins/catalog/plugin-marketplace'
-import { isShippedPluginPublisher } from '../../../shared/zotz/zotz-night-look'
+import { isShippedPluginPublisher } from '../../../shared/zotz/zotz-shipped-plugins'
 
 export function pluginInstallTrustError(
   pluginKey: string,
