@@ -15,11 +15,20 @@ export const ZOTZ_SHORT_NAMES_RUNTIME_CAPABILITY = 'zotz.short-names.v1' as cons
 // Why: `zotz tasks push` to a paired server should say "update that server" instead of a bare RPC error.
 export const ZOTZ_TASKS_PUSH_RUNTIME_CAPABILITY = 'zotz.tasks-push.v1' as const
 
+// Why: a client shows another host's System tab only when that host samples itself; older hosts omit it.
+export const ZOTZ_SYSTEM_MONITOR_RUNTIME_CAPABILITY = 'zotz.system-monitor.v1' as const
+
+// Why separate: closing a process on another machine is a stronger power than reading it.
+export const ZOTZ_SYSTEM_MONITOR_CONTROL_RUNTIME_CAPABILITY =
+  'zotz.system-monitor-control.v1' as const
+
 export const ZOTZ_RUNTIME_CAPABILITIES = [
   ZOTZ_AGENT_QUEUE_RUNTIME_CAPABILITY,
   ZOTZ_AGENT_QUEUE_CONTROL_RUNTIME_CAPABILITY,
   ZOTZ_SHORT_NAMES_RUNTIME_CAPABILITY,
   ZOTZ_TASKS_PUSH_RUNTIME_CAPABILITY,
   ZOTZ_CONVERSATIONS_RUNTIME_CAPABILITY,
-  ZOTZ_LINKS_RUNTIME_CAPABILITY
+  ZOTZ_LINKS_RUNTIME_CAPABILITY,
+  ZOTZ_SYSTEM_MONITOR_RUNTIME_CAPABILITY,
+  ZOTZ_SYSTEM_MONITOR_CONTROL_RUNTIME_CAPABILITY
 ] as const

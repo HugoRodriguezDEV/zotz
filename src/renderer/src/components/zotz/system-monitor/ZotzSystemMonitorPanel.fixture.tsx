@@ -238,3 +238,27 @@ export const closeAgentProcess = defineFixture({
     frame.querySelector<HTMLButtonElement>('[data-zotz-process-detail] button')?.click()
   }
 })
+
+// The MSI seen from the laptop, on a server that predates closing processes remotely.
+export const serverReadOnlyProcesses = defineFixture({
+  width: 1000,
+  render: () => (
+    <ZotzSystemMonitorPanel
+      snapshot={MSI}
+      machineName="MSI Server"
+      initialView="processes"
+      initialPid={9001}
+      processList={LIST}
+      client={{
+        processes: async () => LIST,
+        processCommand: async () => null,
+        closeProcess: null
+      }}
+    />
+  )
+})
+
+export const server = defineFixture({
+  width: 1000,
+  render: () => <ZotzSystemMonitorPanel snapshot={MSI} machineName="MSI Server" />
+})

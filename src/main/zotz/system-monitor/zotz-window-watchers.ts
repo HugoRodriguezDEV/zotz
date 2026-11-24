@@ -3,7 +3,6 @@ import { webContents, type WebContents } from 'electron'
 type Watchable<Snapshot> = {
   watch: (id: number) => Snapshot
   unwatch: (id: number) => void
-  watcherIds: () => number[]
 }
 
 /**
@@ -42,7 +41,8 @@ export function createZotzWindowWatchers<Snapshot>(channel: string, target: Watc
     },
     unwatch,
     publish(payload: unknown): void {
-      for (const id of target.watcherIds()) {
+      // Only windows: the same sampler may also serve watchers over the runtime RPC.
+      for (const id of detachers.keys()) {
         const window = webContents.fromId(id)
         if (!window || window.isDestroyed()) {
           unwatch(id)

@@ -19,6 +19,7 @@ import { createZotzDarwinSampler } from './zotz-system-darwin-sampler'
 import { createZotzLinuxSampler } from './zotz-system-linux-sampler'
 import { ZotzSystemMonitorService } from './zotz-system-monitor-service'
 import { ZotzSystemStatusService } from './zotz-system-status-service'
+import { registerZotzSystemMonitorSource } from './zotz-system-monitor-source'
 import { closeZotzProcess, readZotzProcessCommandLine } from './zotz-system-process-control'
 import { zotzProcessOwners, type ZotzAgentProcessRoot } from './zotz-system-process-owners'
 import type { ZotzSystemPlatformSampler } from './zotz-system-platform-sampler'
@@ -142,6 +143,11 @@ export function startZotzSystemMonitor(
   ipcMain.handle('zotzSystemMonitor:unwatch', (event) => {
     watchers.unwatch(event.sender.id)
   })
+  const unregisterSource = registerZotzSystemMonitorSource({
+    service,
+    processCommand: readZotzProcessCommandLine,
+    closeProcess: closeZotzProcess
+  })
   const status = new ZotzSystemStatusService({
     cpus: () => os.cpus(),
     governorState: () => governor.getState(),
@@ -175,6 +181,7 @@ export function startZotzSystemMonitor(
     ipcMain.removeHandler('zotzSystemMonitor:processes')
     ipcMain.removeHandler('zotzSystemMonitor:processCommand')
     ipcMain.removeHandler('zotzSystemMonitor:closeProcess')
+    unregisterSource()
     ipcMain.removeHandler('zotzSystemStatus:watch')
     ipcMain.removeHandler('zotzSystemStatus:unwatch')
     watchers.dispose()

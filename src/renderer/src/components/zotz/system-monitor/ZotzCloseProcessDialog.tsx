@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import type {
+  ZotzSystemProcessCloseRequest,
   ZotzSystemProcessCloseResult,
   ZotzSystemProcessEntry
 } from '../../../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
@@ -91,10 +92,12 @@ function failureMessage(
 export function ZotzCloseProcessDialog({
   target,
   workspaceName,
+  closeProcess,
   onDone
 }: {
   target: ZotzSystemProcessEntry | null
   workspaceName: (worktreeId: string | null) => string
+  closeProcess: (request: ZotzSystemProcessCloseRequest) => Promise<ZotzSystemProcessCloseResult>
   /** Called when the dialog closes; `closed` when the target exited. */
   onDone: (closed: boolean) => void
 }): React.JSX.Element {
@@ -109,11 +112,7 @@ export function ZotzCloseProcessDialog({
       return
     }
     setStep(force ? 'forcing' : 'closing')
-    const result = (await window.api?.zotzSystemMonitor?.closeProcess({
-      pid: target.pid,
-      name: target.name,
-      force
-    })) ?? { ok: false, reason: 'failed' }
+    const result = await closeProcess({ pid: target.pid, name: target.name, force })
     if (result.ok && result.exited) {
       toast.success(t('zotz.systemMonitor.closed', '{{name}} closed', { name: target.name }))
       close(true)

@@ -21,7 +21,7 @@ Fases (un PR cada una):
 2. [x] **Pestaña "Sistema" en el tablero**: tarjetas CPU, Memoria, Red, Disco, GPU, Energía, con gráfica de historial y vista de detalle por tarjeta. Tokens y primitivas del styleguide; sin colores nuevos.
 3. [x] **Procesos**: lista filtrable y ordenable, detalle del proceso, botón "Cerrar proceso" con confirmación (SIGTERM, luego ofrecer forzar). Los procesos de agentes se marcan con su conversación (árboles que ya conoce el gobernador). Nunca ofrecer cerrar el propio Zotz sin advertencia clara.
 4. [x] **Barra de estado y avisos**: `CPU · MEM` junto al segmento de la cola; aviso de memoria con los mismos umbrales del gobernador (un solo límite).
-5. [ ] **Servidores**: los mismos datos de cada máquina remota en la pestaña, con selector de máquina (por el mismo camino que la cola de los servidores).
+5. [x] **Servidores**: los mismos datos de cada máquina remota en la pestaña, con selector de máquina (por el mismo camino que la cola de los servidores).
 
 ## B. Multipass VM Recipes incluida
 
