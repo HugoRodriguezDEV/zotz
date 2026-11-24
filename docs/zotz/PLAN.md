@@ -865,7 +865,7 @@ Spec: [`SPEC-grupos.md`](./SPEC-grupos.md). Las 5 fases en una rama, un commit p
 - El cliente web no carga fuentes de plugins: ahí cae a Geist / la mono de la plataforma. La app móvil no cambia.
 - Verificado: `pnpm tc`, suite unitaria y en una instancia dev con perfil copiado del instalado: migración aplicada, tokens pintados, Karla en la UI y Atkinson Mono en la terminal (fondo `#111219` medido en xterm), Ajustes → Apariencia muestra "Zotz Night".
 
-### 2026-11-24 — Terminales remotas con color y subgrupo por máquina (`zotz-terminales-remotas`)
+### 2026-11-24 — Terminales remotas con color y subgrupo por máquina (`zotz-terminales-remotas`, PR #45)
 
 Sección C de la spec de monitor y remotos.
 
