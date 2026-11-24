@@ -24878,7 +24878,13 @@
       "closeStillRunning": "No se cerró al pedírselo. Forzarlo lo termina de inmediato, sin dejarle guardar nada.",
       "closeExplain": "Zotz primero le pide que se cierre, para que pueda guardar; si no lo hace, puedes forzarlo.",
       "closeCancel": "Cancelar",
-      "forceClose": "Forzar cierre"
+      "forceClose": "Forzar cierre",
+      "memoryCriticalTitle": "Memoria crítica",
+      "memoryCriticalBody": "Quedan {{free}} GB libres, menos de los {{min}} GB que Zotz deja al sistema. Los agentes nuevos esperan en la cola hasta que se libere memoria.",
+      "memoryCriticalAction": "Ver qué la usa",
+      "statusSegment": "CPU {{cpu}} · MEM {{mem}}",
+      "statusTooltip": "Esta máquina: {{used}} de {{total}} GB en uso, {{free}} GB libres · abrir Sistema",
+      "statusTooltipNoMemory": "CPU y memoria de esta máquina · abrir Sistema"
     }
   }
 }
