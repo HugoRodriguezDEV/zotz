@@ -20,7 +20,7 @@ Fases (un PR cada una):
 1. [x] **Medidor del sistema (main)**: CPU total y por núcleo, carga, uptime; memoria (reusar la del gobernador, sin duplicar el muestreo), swap y presión; red (bajada/subida, interfaz por defecto); disco (lectura/escritura, espacio del disco de arranque); GPU si hay; batería o energía; procesos (CPU, memoria, PID, usuario, padre, comando). macOS, Linux y Windows (en Windows sin `sh`: PowerShell/CIM o APIs de Node). Solo mide mientras alguien mira la vista, salvo lo que el gobernador ya mide. Historial en memoria (anillo de N minutos).
 2. [x] **Pestaña "Sistema" en el tablero**: tarjetas CPU, Memoria, Red, Disco, GPU, Energía, con gráfica de historial y vista de detalle por tarjeta. Tokens y primitivas del styleguide; sin colores nuevos.
 3. [x] **Procesos**: lista filtrable y ordenable, detalle del proceso, botón "Cerrar proceso" con confirmación (SIGTERM, luego ofrecer forzar). Los procesos de agentes se marcan con su conversación (árboles que ya conoce el gobernador). Nunca ofrecer cerrar el propio Zotz sin advertencia clara.
-4. [ ] **Barra de estado y avisos**: `CPU · MEM` junto al segmento de la cola; aviso de memoria con los mismos umbrales del gobernador (un solo límite).
+4. [x] **Barra de estado y avisos**: `CPU · MEM` junto al segmento de la cola; aviso de memoria con los mismos umbrales del gobernador (un solo límite).
 5. [ ] **Servidores**: los mismos datos de cada máquina remota en la pestaña, con selector de máquina (por el mismo camino que la cola de los servidores).
 
 ## B. Multipass VM Recipes incluida
