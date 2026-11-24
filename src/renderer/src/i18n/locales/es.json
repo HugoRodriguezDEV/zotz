@@ -24889,6 +24889,11 @@
       "machine": "Máquina",
       "thisMachineNamed": "{{name}} (esta máquina)",
       "loadingServer": "Leyendo {{name}}…"
+    },
+    "hostColor": {
+      "runsOn": "Corre en {{host}}",
+      "groupSettingLabel": "Agrupar conversaciones remotas por máquina",
+      "groupSettingDescription": "En la barra lateral simple, las conversaciones de cada máquina remota van en su propia lista, con su nombre y color, debajo de las de esta computadora."
     }
   }
 }

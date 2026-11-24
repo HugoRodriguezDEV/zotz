@@ -1,4 +1,5 @@
 import { defineFixture } from '../../../component-fixtures/component-fixture'
+import { getDefaultSettings } from '../../../../../shared/constants'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import type { PublicKnownRuntimeEnvironment } from '../../../../../shared/remote-runtime/host-catalog/runtime-environments'
 import type { Worktree } from '../../../../../shared/worktree/types'
@@ -241,6 +242,71 @@ export const projectAcrossMachines = defineFixture({
   },
   render: () => (
     <div className="flex h-[260px] flex-col bg-worktree-sidebar">
+      <ZotzProjectSidebar />
+    </div>
+  )
+})
+
+// Three machines hold the project: this Mac's conversations first, then one colored list per server.
+const apiMini: Repo = {
+  ...repo('api-mini', 'api-pagos'),
+  upstream: apiUpstream,
+  executionHostId: 'runtime:mac-mini'
+}
+const acrossThreeMachines = {
+  repos: [apiLocal, apiMsi, apiMini],
+  runtimeEnvironments: [
+    { ...msiRuntime, name: 'MSI Server' },
+    { ...msiRuntime, id: 'mac-mini', name: 'Mac mini' }
+  ],
+  worktreesByRepo: {
+    'api-local': [
+      worktree('api-local', 'repartir-sprint', 'Repartir el sprint', { lastActivityAt: 4 })
+    ],
+    'api-msi': [
+      worktree('api-msi', 'paginar-pacientes', 'Paginar el endpoint de pacientes', {
+        lastActivityAt: 5
+      }),
+      worktree('api-msi', 'exportar-csv', 'Exportar reportes a CSV', { lastActivityAt: 2 })
+    ],
+    'api-mini': [worktree('api-mini', 'cache-redis', 'Cache con Redis', { lastActivityAt: 3 })]
+  }
+}
+
+export const projectByMachine = defineFixture({
+  width: 300,
+  setup: () => {
+    Object.assign(window.api, {
+      zotzAgentQueue: {
+        onChanged: () => () => {},
+        snapshot: async () => EMPTY_ZOTZ_AGENT_QUEUE_SNAPSHOT
+      }
+    })
+  },
+  store: acrossThreeMachines,
+  render: () => (
+    <div className="flex h-[300px] flex-col bg-worktree-sidebar">
+      <ZotzProjectSidebar />
+    </div>
+  )
+})
+
+export const projectByMachineOff = defineFixture({
+  width: 300,
+  setup: () => {
+    Object.assign(window.api, {
+      zotzAgentQueue: {
+        onChanged: () => () => {},
+        snapshot: async () => EMPTY_ZOTZ_AGENT_QUEUE_SNAPSHOT
+      }
+    })
+  },
+  store: {
+    ...acrossThreeMachines,
+    settings: { ...getDefaultSettings('/home/fixture'), zotzGroupRemoteByMachine: false }
+  },
+  render: () => (
+    <div className="flex h-[300px] flex-col bg-worktree-sidebar">
       <ZotzProjectSidebar />
     </div>
   )

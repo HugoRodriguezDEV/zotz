@@ -21,6 +21,8 @@ import { ZOTZ_PR_TONE_TEXT, zotzPrStatusLabel, zotzPrTone } from '../pr-status/z
 import { ZotzPrStatusIcon } from '../pr-status/ZotzPrStatusIcon'
 import { minutesSince } from '../agent-queue/zotz-memory-format'
 import { normalizeZotzShortName } from '../../../../../shared/zotz/zotz-short-name'
+import { useZotzHostColor } from '../host-color/use-zotz-host-color'
+import { ZotzHostDot } from '../host-color/ZotzHostDot'
 
 function StatusMark({
   status,
@@ -122,6 +124,7 @@ export function ZotzConversationRow({
   const hostLabel = useAppStore((s) =>
     showHost ? selectExecutionHostDisplayLabel(s, row.hostId) : null
   )
+  const hostColor = useZotzHostColor(hostLabel ? row.hostId : null)
   const hasLeading =
     showBranch || row.shortName !== null || hostLabel !== null || projectName !== null
   return (
@@ -155,7 +158,11 @@ export function ZotzConversationRow({
         <span className="flex min-w-0 items-center gap-1 text-2xs text-worktree-sidebar-foreground/50">
           {hostLabel ? (
             <span className="flex max-w-[45%] shrink-0 items-center gap-1 rounded border border-worktree-sidebar-border px-1 font-medium text-worktree-sidebar-foreground/70">
-              <HostRowIcon hostId={row.hostId} className="size-2.5 shrink-0" />
+              {hostColor ? (
+                <ZotzHostDot color={hostColor} className="size-1.5" />
+              ) : (
+                <HostRowIcon hostId={row.hostId} className="size-2.5 shrink-0" />
+              )}
               <span className="truncate">{hostLabel}</span>
             </span>
           ) : null}

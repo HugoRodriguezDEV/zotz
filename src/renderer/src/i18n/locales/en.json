@@ -26518,6 +26518,11 @@
       "machine": "Machine",
       "thisMachineNamed": "{{name}} (this machine)",
       "loadingServer": "Reading {{name}}…"
+    },
+    "hostColor": {
+      "runsOn": "Runs on {{host}}",
+      "groupSettingLabel": "Group remote conversations by machine",
+      "groupSettingDescription": "In the simple sidebar, each other machine's conversations go in their own list, with its name and color, below this computer's."
     }
   }
 }
