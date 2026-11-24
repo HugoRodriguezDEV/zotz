@@ -10,7 +10,10 @@ import {
   selectWorktreesByRepo
 } from '@/store/workspaces/catalog/workspace-record-fields'
 import type { Repo } from '../../../../../shared/repository/repo-types'
-import { getRepoExecutionHostId } from '../../../../../shared/execution-host'
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  getRepoExecutionHostId
+} from '../../../../../shared/execution-host'
 import {
   buildZotzFolderConversations,
   buildZotzGroupSections,
@@ -33,6 +36,8 @@ import { ZotzConversationMenu } from './ZotzConversationMenu'
 import { AddProjectButton, ProjectHeader } from './ZotzProjectHeader'
 import HiddenProjectsSection from '../../sidebar/hidden-projects/HiddenProjectsSection'
 import { ZotzConversationRow } from './ZotzConversationRow'
+import { ZotzMachineSubgroups } from './ZotzMachineSubgroups'
+import { useZotzHostPalette } from '../host-color/use-zotz-host-color'
 import { ZotzArchivedSection } from './ZotzArchivedSection'
 import { ZotzShortNameDialog, type ZotzShortNameRequest } from './ZotzShortNameDialog'
 import { canEditZotzShortName, useZotzCustomShortNames } from './zotz-short-name-store'
@@ -64,6 +69,8 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     return result
   }, [allThreads])
   useZotzGitHubRepoIcons(repos)
+  const hostColorOf = useZotzHostPalette()
+  const groupByMachine = useAppStore((s) => s.settings?.zotzGroupRemoteByMachine !== false)
   const links = useAppStore((s) => s.settings?.zotzConversationLinks)
   const groups = useMemo(() => sortZotzGroups(links ?? []), [links])
   const linkedKeys = useMemo(
@@ -207,6 +214,40 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
       />
     </ZotzConversationMenu>
   )
+  const renderProjectTree = (
+    row: ConversationRow,
+    key: string,
+    repo: Repo,
+    showHost: boolean
+  ): React.JSX.Element => (
+    <ZotzConversationTree
+      key={row.id}
+      row={row}
+      childrenOf={nested.childrenOf}
+      drag={groupsUi.drag}
+      itemFor={(node, followers) => {
+        const member = zotzRowMember(node)
+        return member
+          ? {
+              kind: 'conversation',
+              member,
+              projectKey: node.repo ? getProjectIdentityKey(node.repo) : key,
+              groupId: null,
+              index: 0,
+              followers
+            }
+          : null
+      }}
+      dropAtFor={() => undefined}
+      render={(node) =>
+        renderConversation(node, node.repo ?? repo, {
+          showHost,
+          // A child from another project says which one it is.
+          showProject: node.repo !== null && node.repo.id !== repo.id && node !== row
+        })
+      }
+    />
+  )
   // Upstream refreshes PR status only for cards it reports as on screen; this list is the cards here.
   const setVisibleReviewIds = useAppStore((s) => s.setVisibleReviewCardWorktreeIds)
   const reviewIds = useMemo(
@@ -231,6 +272,18 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
     () =>
       buildZotzFolderConversations({ folders: folderWorkspaces, tabsByWorkspace: tabsByWorktree }),
     [folderWorkspaces, tabsByWorktree]
+  )
+
+  const renderFolder = (row: ConversationRow): React.JSX.Element => (
+    <ZotzConversationRow
+      key={row.id}
+      row={row}
+      repo={undefined}
+      active={row.id === activeWorktreeId}
+      status={statusByWorkspace.get(row.id) ?? null}
+      canceled={canceledWorkspaces.has(row.id)}
+      queuedSince={queuedSince.get(row.id) ?? null}
+    />
   )
 
   const sectionHeader = (label: string, action: React.ReactNode): React.JSX.Element => (
@@ -259,35 +312,23 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
         {nestedSections.map(({ key, repo, multiHost, conversations }) => (
           <ZotzProjectDropZone key={key} drag={groupsUi.drag} projectKey={key}>
             <ProjectHeader repo={repo} multiHost={multiHost} />
-            {conversations.map((row) => (
-              <ZotzConversationTree
-                key={row.id}
-                row={row}
-                childrenOf={nested.childrenOf}
-                drag={groupsUi.drag}
-                itemFor={(node, followers) => {
-                  const member = zotzRowMember(node)
-                  return member
-                    ? {
-                        kind: 'conversation',
-                        member,
-                        projectKey: node.repo ? getProjectIdentityKey(node.repo) : key,
-                        groupId: null,
-                        index: 0,
-                        followers
-                      }
-                    : null
-                }}
-                dropAtFor={() => undefined}
-                render={(node) =>
-                  renderConversation(node, node.repo ?? repo, {
-                    showHost: multiHost,
-                    // A child from another project says which one it is.
-                    showProject: node.repo !== null && node.repo.id !== repo.id && node !== row
-                  })
+            {groupByMachine && multiHost ? (
+              <ZotzMachineSubgroups
+                rows={conversations}
+                colorOf={hostColorOf}
+                // Machines without a color of their own (WSL) keep their chip.
+                render={(row) =>
+                  renderProjectTree(
+                    row,
+                    key,
+                    repo,
+                    row.hostId !== LOCAL_EXECUTION_HOST_ID && hostColorOf(row.hostId) === null
+                  )
                 }
               />
-            ))}
+            ) : (
+              conversations.map((row) => renderProjectTree(row, key, repo, multiHost))
+            )}
           </ZotzProjectDropZone>
         ))}
         {folders.length > 0 ? (
@@ -295,17 +336,11 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
             <div className="px-2 py-1.5 text-sm font-semibold text-worktree-sidebar-foreground">
               {t('zotz.sidebar.folders', 'Folders')}
             </div>
-            {folders.map((row) => (
-              <ZotzConversationRow
-                key={row.id}
-                row={row}
-                repo={undefined}
-                active={row.id === activeWorktreeId}
-                status={statusByWorkspace.get(row.id) ?? null}
-                canceled={canceledWorkspaces.has(row.id)}
-                queuedSince={queuedSince.get(row.id) ?? null}
-              />
-            ))}
+            {groupByMachine ? (
+              <ZotzMachineSubgroups rows={folders} colorOf={hostColorOf} render={renderFolder} />
+            ) : (
+              folders.map(renderFolder)
+            )}
           </section>
         ) : null}
       </div>

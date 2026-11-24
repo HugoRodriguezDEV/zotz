@@ -16,6 +16,8 @@ import {
 } from '../../../../../shared/execution-host'
 import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
 import { ProjectHeaderHostLabel } from '../../sidebar/worktree-list/rows/ProjectHeaderHostLabel'
+import { useZotzHostColor } from '../host-color/use-zotz-host-color'
+import { ZotzHostDot } from '../host-color/ZotzHostDot'
 import { ZotzProjectMenu } from './ZotzProjectMenu'
 
 export function AddProjectButton(): React.JSX.Element {
@@ -58,6 +60,7 @@ export function ProjectHeader({
       ? null
       : selectExecutionHostDisplayLabel(s, hostId)
   )
+  const hostColor = useZotzHostColor(hostLabel ? hostId : null)
   return (
     <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
       <RepoIconGlyph repoIcon={repo.repoIcon} className="size-5 shrink-0" />
@@ -65,6 +68,7 @@ export function ProjectHeader({
         <span className="min-w-0 truncate text-sm font-semibold text-worktree-sidebar-foreground">
           {repo.displayName}
         </span>
+        {hostLabel && hostColor ? <ZotzHostDot color={hostColor} /> : null}
         {hostLabel ? (
           <ProjectHeaderHostLabel context={{ hostId, label: hostLabel, detail: hostLabel }} />
         ) : null}

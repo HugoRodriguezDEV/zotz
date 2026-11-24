@@ -21,6 +21,8 @@ export type ZotzGlobalSettings = {
   zotzCliRegisteredVersion?: string
   /** 'orca' brings back upstream's workspace cards; anything else is the simple project list. */
   zotzSidebarLayout?: 'conductor' | 'orca'
+  /** Each other machine's conversations sit in their own list under the project; on unless false. */
+  zotzGroupRemoteByMachine?: boolean
   /** GitHub Projects shown on the task board, in the order they were picked. */
   zotzTaskBoardSources?: ZotzTaskBoardSource[]
   /** Finished tasks hidden from the task board's Done column. */

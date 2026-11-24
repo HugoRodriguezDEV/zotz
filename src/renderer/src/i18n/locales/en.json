@@ -26403,6 +26403,11 @@
       "startLaunchFailed": "The agent in {{project}} didn't start",
       "agentClaude": "Claude",
       "agentCodex": "Codex"
+    },
+    "hostColor": {
+      "runsOn": "Runs on {{host}}",
+      "groupSettingLabel": "Group remote conversations by machine",
+      "groupSettingDescription": "In the simple sidebar, each other machine's conversations go in their own list, with its name and color, below this computer's."
     }
   }
 }
