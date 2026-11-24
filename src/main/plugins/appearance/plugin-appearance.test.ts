@@ -124,6 +124,7 @@ function colors(expectedRevision: string, mode: 'dark' | 'light' = 'dark') {
 describe('plugin desktop appearance publication', () => {
   it('rejects a stale call even when a user changes away and back to the original theme', async () => {
     const h = await harness()
+    const before = h.settings().pluginAppThemeDark
     const stale = await revision(h.service)
     h.manualTheme('light')
     h.manualTheme('system')
@@ -135,7 +136,7 @@ describe('plugin desktop appearance publication', () => {
         'worker'
       )
     ).toMatchObject({ ok: false, code: 'conflict' })
-    expect(h.settings().pluginAppThemeDark).toBeNull()
+    expect(h.settings().pluginAppThemeDark).toBe(before)
   })
 
   it('restores the persisted prior appearance if committing settings fails', async () => {

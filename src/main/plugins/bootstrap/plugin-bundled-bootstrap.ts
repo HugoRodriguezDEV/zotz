@@ -3,7 +3,7 @@ import { isAbsolute, join, relative, sep } from 'node:path'
 import { z } from 'zod'
 import { isQualifiedPluginKey } from '../../../shared/plugins/frames/plugin-tab-key'
 import { pluginRelativeDirectorySchema } from '../../../shared/plugins/manifest/plugin-manifest-fields'
-import { hasOfficialPluginPublisher } from '../../../shared/plugins/catalog/plugin-marketplace'
+import { isShippedPluginPublisher } from '../../../shared/zotz/zotz-night-look'
 import { getPluginsDataDir, getUserPluginsDir } from '../discovery/plugin-discovery'
 import { installBundledPlugin } from '../installation/plugin-install'
 import { readPluginLockfile } from '../installation/plugin-install-lockfile-store'
@@ -26,8 +26,8 @@ const bundledPluginIndexSchema = z
               .string()
               .refine(isQualifiedPluginKey, 'invalid qualified plugin identity')
               .refine(
-                hasOfficialPluginPublisher,
-                'bundled plugins must use the official publisher'
+                isShippedPluginPublisher,
+                'bundled plugins must use the official stablyai or zotz publisher'
               ),
             path: pluginRelativeDirectorySchema,
             contentHash: z.string().regex(/^[0-9a-f]{64}$/)
@@ -94,7 +94,7 @@ async function readBundledPluginIndex(
 
 /** Whether this release ships the plugin; false when the index can't be read. */
 export async function isBundledPluginKey(root: string, pluginKey: string): Promise<boolean> {
-  if (!hasOfficialPluginPublisher(pluginKey)) {
+  if (!isShippedPluginPublisher(pluginKey)) {
     return false
   }
   const index = await readBundledPluginIndex(root).catch(() => null)

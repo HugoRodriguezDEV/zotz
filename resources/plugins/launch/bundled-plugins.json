@@ -10,6 +10,11 @@
       "pluginKey": "stablyai.orca-vscode-default-themes",
       "path": "stablyai.orca-vscode-default-themes",
       "contentHash": "ce11b29f4c21bedeaa3613e7ce9c4a6863f800e6945754ad1e36d04e24991139"
+    },
+    {
+      "pluginKey": "zotz.zotz-night",
+      "path": "zotz.zotz-night",
+      "contentHash": "3a6504e351fe9aa5129e0c5bb7536553ef4ca11771f35478c4a1adaa903088b6"
     }
   ]
 }
