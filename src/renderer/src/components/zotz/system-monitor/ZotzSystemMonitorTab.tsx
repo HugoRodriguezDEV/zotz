@@ -1,12 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Server } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+import { HostCombobox, type HostComboboxOption } from '@/components/host-picker/HostCombobox'
 import { useTranslate } from '@/i18n/use-translate'
 import { useZotzWorkspaceNames } from '../agent-queue/use-zotz-workspace-names'
 import { ZotzSystemMonitorPanel } from './ZotzSystemMonitorPanel'
@@ -65,29 +59,30 @@ export function ZotzSystemMonitorTab(): React.JSX.Element {
   const [picked, setPicked] = useState<string>(machines[0].key)
   // A server that went away falls back to this machine.
   const machine = machines.find((entry) => entry.key === picked) ?? machines[0]
+  const options: HostComboboxOption[] = machines.map((entry) => ({
+    id: entry.key,
+    label: entry.environmentId
+      ? entry.name
+      : t('zotz.systemMonitor.thisMachineNamed', '{{name}} (this machine)', { name: entry.name })
+  }))
   return (
     <div className="space-y-2">
       {machines.length > 1 ? (
-        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div
+          className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          data-zotz-system-machine-picker=""
+        >
           <Server className="size-3.5" />
           <span>{t('zotz.systemMonitor.machine', 'Machine')}</span>
-          <Select value={machine.key} onValueChange={setPicked}>
-            <SelectTrigger size="sm" className="h-7 w-48" data-zotz-system-machine-picker="">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {machines.map((entry) => (
-                <SelectItem key={entry.key} value={entry.key}>
-                  {entry.environmentId
-                    ? entry.name
-                    : t('zotz.systemMonitor.thisMachineNamed', '{{name}} (this machine)', {
-                        name: entry.name
-                      })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
+          <HostCombobox
+            value={machine.key}
+            onChange={setPicked}
+            options={options}
+            size="sm"
+            className="w-56"
+            ariaLabel={t('zotz.systemMonitor.machine', 'Machine')}
+          />
+        </div>
       ) : null}
       {machine.environmentId ? (
         <ServerSystem
