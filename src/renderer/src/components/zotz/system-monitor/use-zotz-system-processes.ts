@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import type { ZotzSystemProcessList } from '../../../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
+import type { ZotzSystemMonitorClient } from './zotz-system-monitor-client'
 
 /** The full process list, read again each time main samples processes (no timer of its own). */
-export function useZotzSystemProcesses(sampledAt: number | null): ZotzSystemProcessList | null {
+export function useZotzSystemProcesses(
+  sampledAt: number | null,
+  client: ZotzSystemMonitorClient
+): ZotzSystemProcessList | null {
   const [list, setList] = useState<ZotzSystemProcessList | null>(null)
   useEffect(() => {
-    const api = window.api?.zotzSystemMonitor
-    if (!api) {
+    if (sampledAt === null) {
       return
     }
     let cancelled = false
-    void api.processes().then(
+    void client.processes().then(
       (next) => {
         if (!cancelled) {
           setList(next)
@@ -21,6 +24,6 @@ export function useZotzSystemProcesses(sampledAt: number | null): ZotzSystemProc
     return () => {
       cancelled = true
     }
-  }, [sampledAt])
+  }, [sampledAt, client])
   return list
 }

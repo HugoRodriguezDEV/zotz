@@ -22,6 +22,10 @@ import { ZotzSystemDetail } from './ZotzSystemDetail'
 import { ZotzSystemProcessesView } from './ZotzSystemProcessesView'
 import { useZotzSystemProcesses } from './use-zotz-system-processes'
 import {
+  LOCAL_ZOTZ_SYSTEM_MONITOR_CLIENT,
+  type ZotzSystemMonitorClient
+} from './zotz-system-monitor-client'
+import {
   ZOTZ_SYSTEM_SECTIONS,
   zotzPressureBadge,
   zotzSectionMax,
@@ -240,7 +244,9 @@ export function ZotzSystemMonitorPanel({
   initialView = null,
   initialPid = null,
   processList,
-  workspaceName = workspaceIdAsName
+  workspaceName = workspaceIdAsName,
+  client = LOCAL_ZOTZ_SYSTEM_MONITOR_CLIENT,
+  machineName = null
 }: {
   snapshot: ZotzSystemMonitorSnapshot | null
   initialView?: ZotzSystemView | null
@@ -248,24 +254,33 @@ export function ZotzSystemMonitorPanel({
   /** Fixtures pass the list; the app reads it from main while the Processes view is open. */
   processList?: ZotzSystemProcessList | null
   workspaceName?: (worktreeId: string | null) => string
+  /** Where processes are read and closed; this machine unless a server is picked. */
+  client?: ZotzSystemMonitorClient
+  /** A server's name; null for this machine. */
+  machineName?: string | null
 }): React.JSX.Element {
   const t = useTranslate()
   const [open, setOpen] = useState<ZotzSystemView | null>(initialView)
   const [pid, setPid] = useState<number | null>(initialPid)
   const latest = snapshot?.latest
   const liveList = useZotzSystemProcesses(
-    open === 'processes' && processList === undefined ? (latest?.processesSampledAt ?? null) : null
+    open === 'processes' && processList === undefined ? (latest?.processesSampledAt ?? null) : null,
+    client
   )
   if (!snapshot || !latest) {
     return (
       <div className="px-1 py-6 text-center text-xs text-muted-foreground">
-        {t('zotz.systemMonitor.loading', 'Reading this machine…')}
+        {machineName
+          ? t('zotz.systemMonitor.loadingServer', 'Reading {{name}}…', { name: machineName })
+          : t('zotz.systemMonitor.loading', 'Reading this machine…')}
       </div>
     )
   }
   const header = (
     <div className="flex min-w-0 items-baseline gap-1.5 px-1 text-xs">
-      <span className="font-semibold">{t('zotz.systemMonitor.thisMachine', 'This machine')}</span>
+      <span className="font-semibold">
+        {machineName ?? t('zotz.systemMonitor.thisMachine', 'This machine')}
+      </span>
       <span className="min-w-0 truncate text-muted-foreground">{snapshot.hostname}</span>
       <span className="ml-auto shrink-0 text-2xs text-muted-foreground">
         {t('zotz.systemMonitor.historyWindow', 'Last {{minutes}} min', {
@@ -305,6 +320,7 @@ export function ZotzSystemMonitorPanel({
           <ZotzSystemProcessesView
             key={pid ?? 'none'}
             list={processList === undefined ? liveList : processList}
+            client={client}
             workspaceName={workspaceName}
             initialPid={pid}
           />

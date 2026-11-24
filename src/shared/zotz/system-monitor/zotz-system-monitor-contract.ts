@@ -155,3 +155,17 @@ export type ZotzSystemProcessCloseRequest = {
 export type ZotzSystemProcessCloseResult =
   | { ok: true; exited: boolean }
   | { ok: false; reason: 'gone' | 'changed' | 'protected' | 'not_permitted' | 'failed' }
+
+/** The status bar's `CPU · MEM` (docs/zotz/SPEC-monitor-y-remotos.md §A.4). */
+export type ZotzSystemStatus = {
+  sampledAt: number
+  /** Null until two CPU reads exist. */
+  cpuPercent: number | null
+  /** The memory governor's last reading, with its pressure and the one floor it keeps free. */
+  memory: {
+    totalBytes: number
+    availableBytes: number
+    pressure: ZotzMemoryPressure
+    minFreeBytes: number
+  } | null
+}

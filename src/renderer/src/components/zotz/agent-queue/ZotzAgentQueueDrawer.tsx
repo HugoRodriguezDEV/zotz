@@ -28,7 +28,9 @@ import { useZotzAgentQueueMachines } from './use-zotz-agent-queue-machines'
 import { useZotzWorkspaceNames } from './use-zotz-workspace-names'
 import {
   setZotzAgentQueueDrawerOpen,
-  useZotzAgentQueueDrawerOpen
+  setZotzAgentQueueDrawerTab,
+  useZotzAgentQueueDrawerOpen,
+  useZotzAgentQueueDrawerTab
 } from './zotz-agent-queue-drawer-open'
 
 // Nested overlays own Escape before the drawer; the drawer's own role=dialog is excluded.
@@ -44,8 +46,12 @@ const ESCAPE_BLOCKING_OVERLAY_SELECTOR = [
 /** Mounted only while open, so the closed drawer derives nothing. */
 function ZotzAgentQueueDrawerBody({ onClose }: { onClose: () => void }): React.JSX.Element {
   const t = useTranslate()
+  const tab = useZotzAgentQueueDrawerTab()
   return (
-    <Tabs defaultValue="queue">
+    <Tabs
+      value={tab}
+      onValueChange={(next) => setZotzAgentQueueDrawerTab(next === 'system' ? 'system' : 'queue')}
+    >
       <TabsList size="sm">
         <TabsTrigger value="queue">{t('zotz.agentQueue.board.tabQueue', 'Queue')}</TabsTrigger>
         <TabsTrigger value="system">{t('zotz.agentQueue.board.tabSystem', 'System')}</TabsTrigger>

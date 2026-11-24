@@ -1,4 +1,4 @@
-import { app, ipcMain, powerMonitor, webContents, type IpcMainInvokeEvent } from 'electron'
+import { app, ipcMain, powerMonitor, type IpcMainInvokeEvent } from 'electron'
 import { readdir, readlink, statfs } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -18,10 +18,13 @@ import type { ZotzMemoryGovernorService } from '../memory-governor/zotz-memory-g
 import { createZotzDarwinSampler } from './zotz-system-darwin-sampler'
 import { createZotzLinuxSampler } from './zotz-system-linux-sampler'
 import { ZotzSystemMonitorService } from './zotz-system-monitor-service'
+import { ZotzSystemStatusService } from './zotz-system-status-service'
+import { registerZotzSystemMonitorSource } from './zotz-system-monitor-source'
 import { closeZotzProcess, readZotzProcessCommandLine } from './zotz-system-process-control'
 import { zotzProcessOwners, type ZotzAgentProcessRoot } from './zotz-system-process-owners'
 import type { ZotzSystemPlatformSampler } from './zotz-system-platform-sampler'
 import { createZotzWindowsSampler } from './zotz-system-windows-sampler'
+import { createZotzWindowWatchers } from './zotz-window-watchers'
 
 const DARWIN_DATA_VOLUME = '/System/Volumes/Data'
 
@@ -131,52 +134,33 @@ export function startZotzSystemMonitor(
     uptime: () => os.uptime(),
     now: Date.now,
     ownersOf: (processes) => zotzProcessOwners(processes, listAgentRoots(), zotzPids()),
-    publish: (update) => {
-      for (const id of service.watcherIds()) {
-        const target = webContents.fromId(id)
-        if (!target || target.isDestroyed()) {
-          unwatch(id)
-          continue
-        }
-        target.send('zotzSystemMonitor:changed', update)
-      }
-    }
+    publish: (update) => watchers.publish(update)
   })
-  const detachers = new Map<number, () => void>()
-  const unwatch = (id: number): void => {
-    detachers.get(id)?.()
-    detachers.delete(id)
-    service.unwatch(id)
-  }
-  ipcMain.handle('zotzSystemMonitor:watch', (event) => {
-    if (!isWindowRenderer(event)) {
-      return null
-    }
-    const sender = event.sender
-    const id = sender.id
-    if (!detachers.has(id)) {
-      // A reload or closed window must not keep the machine sampled.
-      const onGone = (): void => unwatch(id)
-      const onNavigation = (
-        details: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>
-      ): void => {
-        if (details.isMainFrame && !details.isSameDocument) {
-          unwatch(id)
-        }
-      }
-      sender.once('destroyed', onGone)
-      sender.on('did-start-navigation', onNavigation)
-      detachers.set(id, () => {
-        if (!sender.isDestroyed()) {
-          sender.off('destroyed', onGone)
-          sender.off('did-start-navigation', onNavigation)
-        }
-      })
-    }
-    return service.watch(id)
-  })
+  const watchers = createZotzWindowWatchers('zotzSystemMonitor:changed', service)
+  ipcMain.handle('zotzSystemMonitor:watch', (event) =>
+    isWindowRenderer(event) ? watchers.watch(event.sender) : null
+  )
   ipcMain.handle('zotzSystemMonitor:unwatch', (event) => {
-    unwatch(event.sender.id)
+    watchers.unwatch(event.sender.id)
+  })
+  const unregisterSource = registerZotzSystemMonitorSource({
+    service,
+    processCommand: readZotzProcessCommandLine,
+    closeProcess: closeZotzProcess
+  })
+  const status = new ZotzSystemStatusService({
+    cpus: () => os.cpus(),
+    governorState: () => governor.getState(),
+    wakeGovernor: () => governor.wake(),
+    now: Date.now,
+    publish: (next) => statusWatchers.publish(next)
+  })
+  const statusWatchers = createZotzWindowWatchers('zotzSystemStatus:changed', status)
+  ipcMain.handle('zotzSystemStatus:watch', (event) =>
+    isWindowRenderer(event) ? statusWatchers.watch(event.sender) : null
+  )
+  ipcMain.handle('zotzSystemStatus:unwatch', (event) => {
+    statusWatchers.unwatch(event.sender.id)
   })
   ipcMain.handle('zotzSystemMonitor:processes', (event) =>
     isWindowRenderer(event) ? service.processList() : { sampledAt: null, processes: [] }
@@ -197,10 +181,12 @@ export function startZotzSystemMonitor(
     ipcMain.removeHandler('zotzSystemMonitor:processes')
     ipcMain.removeHandler('zotzSystemMonitor:processCommand')
     ipcMain.removeHandler('zotzSystemMonitor:closeProcess')
-    for (const detach of detachers.values()) {
-      detach()
-    }
-    detachers.clear()
+    unregisterSource()
+    ipcMain.removeHandler('zotzSystemStatus:watch')
+    ipcMain.removeHandler('zotzSystemStatus:unwatch')
+    watchers.dispose()
+    statusWatchers.dispose()
     service.dispose()
+    status.dispose()
   }
 }

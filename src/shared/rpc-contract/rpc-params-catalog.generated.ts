@@ -801,6 +801,12 @@ import {
   ZotzLinkSetPeersParams
 } from './zotz/zotz-conversation-links-params'
 import { ZotzShortNameSetParams, ZotzShortNamesListParams } from './zotz/zotz-short-name-params'
+import {
+  ZotzSystemMonitorCloseProcessParams,
+  ZotzSystemMonitorProcessParams,
+  ZotzSystemMonitorProcessesParams,
+  ZotzSystemMonitorSubscribeParams
+} from './zotz/zotz-system-monitor-params'
 import { ZotzTasksPushParams } from './zotz/zotz-tasks-params'
 import { RepoIconDataUrlsParams } from '../sidebar-list/catalog/repo-icon-data-urls-contract'
 import { SidebarInputsReadParams } from '../sidebar-list/feed/sidebar-inputs-feed-contract'
@@ -1723,6 +1729,10 @@ export const RPC_PARAMS_BY_METHOD = {
   'zotz.links.setPeers': ZotzLinkSetPeersParams,
   'zotz.shortNames.list': ZotzShortNamesListParams,
   'zotz.shortNames.set': ZotzShortNameSetParams,
+  'zotz.systemMonitor.closeProcess': ZotzSystemMonitorCloseProcessParams,
+  'zotz.systemMonitor.processCommand': ZotzSystemMonitorProcessParams,
+  'zotz.systemMonitor.processes': ZotzSystemMonitorProcessesParams,
+  'zotz.systemMonitor.subscribe': ZotzSystemMonitorSubscribeParams,
   'zotz.tasks.push': ZotzTasksPushParams
 } as const
 
