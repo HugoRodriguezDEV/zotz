@@ -1,12 +1,14 @@
-import { ipcMain, powerMonitor, webContents, type IpcMainInvokeEvent } from 'electron'
+import { app, ipcMain, powerMonitor, webContents, type IpcMainInvokeEvent } from 'electron'
 import { readdir, readlink, statfs } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { computeZotzMemoryGovernorDefaults } from '../../../shared/zotz/agent-queue/zotz-memory-governor-defaults'
 import {
   ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS,
+  type ZotzSystemProcessCloseRequest,
   type ZotzSystemVolume
 } from '../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
+import { getLocalDaemonPid } from '../../memory/local-daemon-pid'
 import { collectHostMemory } from '../../memory/host-memory'
 import {
   collectZotzHostMemory,
@@ -16,6 +18,8 @@ import type { ZotzMemoryGovernorService } from '../memory-governor/zotz-memory-g
 import { createZotzDarwinSampler } from './zotz-system-darwin-sampler'
 import { createZotzLinuxSampler } from './zotz-system-linux-sampler'
 import { ZotzSystemMonitorService } from './zotz-system-monitor-service'
+import { closeZotzProcess, readZotzProcessCommandLine } from './zotz-system-process-control'
+import { zotzProcessOwners, type ZotzAgentProcessRoot } from './zotz-system-process-owners'
 import type { ZotzSystemPlatformSampler } from './zotz-system-platform-sampler'
 import { createZotzWindowsSampler } from './zotz-system-windows-sampler'
 
@@ -76,8 +80,43 @@ function isWindowRenderer(event: IpcMainInvokeEvent): boolean {
   return !event.sender.isDestroyed() && event.sender.getType() === 'window'
 }
 
+/** Zotz's own processes: main, every Electron helper and the terminal daemon. */
+function zotzPids(): Set<number> {
+  const pids = new Set<number>([process.pid])
+  for (const metric of app.getAppMetrics()) {
+    pids.add(metric.pid)
+  }
+  const daemon = getLocalDaemonPid()
+  if (daemon !== null) {
+    pids.add(daemon)
+  }
+  return pids
+}
+
+function closeRequest(value: unknown): ZotzSystemProcessCloseRequest | null {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('pid' in value) ||
+    !('name' in value) ||
+    !('force' in value)
+  ) {
+    return null
+  }
+  const { pid, name, force } = value
+  return typeof pid === 'number' &&
+    Number.isSafeInteger(pid) &&
+    typeof name === 'string' &&
+    typeof force === 'boolean'
+    ? { pid, name, force }
+    : null
+}
+
 /** docs/zotz/SPEC-monitor-y-remotos.md §A: the System tab's sampler, idle until a window watches. */
-export function startZotzSystemMonitor(governor: ZotzMemoryGovernorService): () => void {
+export function startZotzSystemMonitor(
+  governor: ZotzMemoryGovernorService,
+  listAgentRoots: () => ZotzAgentProcessRoot[]
+): () => void {
   const service = new ZotzSystemMonitorService({
     platform: process.platform,
     hostname: os.hostname(),
@@ -91,6 +130,7 @@ export function startZotzSystemMonitor(governor: ZotzMemoryGovernorService): () 
     loadavg: () => os.loadavg(),
     uptime: () => os.uptime(),
     now: Date.now,
+    ownersOf: (processes) => zotzProcessOwners(processes, listAgentRoots(), zotzPids()),
     publish: (update) => {
       for (const id of service.watcherIds()) {
         const target = webContents.fromId(id)
@@ -138,9 +178,25 @@ export function startZotzSystemMonitor(governor: ZotzMemoryGovernorService): () 
   ipcMain.handle('zotzSystemMonitor:unwatch', (event) => {
     unwatch(event.sender.id)
   })
+  ipcMain.handle('zotzSystemMonitor:processes', (event) =>
+    isWindowRenderer(event) ? service.processList() : { sampledAt: null, processes: [] }
+  )
+  ipcMain.handle('zotzSystemMonitor:processCommand', (event, pid: unknown) =>
+    isWindowRenderer(event) && typeof pid === 'number' ? readZotzProcessCommandLine(pid) : null
+  )
+  ipcMain.handle('zotzSystemMonitor:closeProcess', (event, value: unknown) => {
+    const request = closeRequest(value)
+    if (!isWindowRenderer(event) || !request) {
+      return { ok: false, reason: 'failed' }
+    }
+    return closeZotzProcess(request)
+  })
   return () => {
     ipcMain.removeHandler('zotzSystemMonitor:watch')
     ipcMain.removeHandler('zotzSystemMonitor:unwatch')
+    ipcMain.removeHandler('zotzSystemMonitor:processes')
+    ipcMain.removeHandler('zotzSystemMonitor:processCommand')
+    ipcMain.removeHandler('zotzSystemMonitor:closeProcess')
     for (const detach of detachers.values()) {
       detach()
     }

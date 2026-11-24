@@ -55,7 +55,9 @@ export function startZotzMemoryGovernor(input: {
   })
   const unregisterIpc = registerZotzAgentQueueHandlers(service, launchQueue)
   const unregisterSource = registerZotzAgentQueueSource({ governor: service, queue: launchQueue })
-  const stopSystemMonitor = startZotzSystemMonitor(service)
+  const stopSystemMonitor = startZotzSystemMonitor(service, () =>
+    listZotzAgentProcessRoots(input.server.getStatusSnapshot())
+  )
   void service.start()
   const unsubscribe = input.server.subscribeStatusRowMutations(() => service.wake())
   return () => {

@@ -12,12 +12,15 @@ import {
   type ZotzSystemMonitorSnapshot,
   type ZotzSystemMonitorUpdate,
   type ZotzSystemProcess,
+  type ZotzSystemProcessEntry,
+  type ZotzSystemProcessList,
   type ZotzSystemReading,
   type ZotzSystemSample,
   type ZotzSystemVolume
 } from '../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
 import type { ZotzSystemMemorySignals } from '../memory-governor/zotz-darwin-memory-signals'
 import type { ZotzSystemPlatformSampler } from './zotz-system-platform-sampler'
+import { topZotzProcesses } from './zotz-system-process-owners'
 import { zotzCpuUsage, type ZotzCpuTimes } from './zotz-system-rates'
 
 const VOLUME_EVERY_SAMPLES = 15
@@ -38,6 +41,8 @@ export type ZotzSystemMonitorDeps = {
   uptime: () => number
   now: () => number
   publish: (update: ZotzSystemMonitorUpdate) => void
+  /** Tags each process with the agent or Zotz tree it belongs to. */
+  ownersOf: (processes: readonly ZotzSystemProcess[]) => ZotzSystemProcessEntry[]
 }
 
 /**
@@ -51,6 +56,7 @@ export class ZotzSystemMonitorService {
   private sampler: ZotzSystemPlatformSampler | null = null
   private previousCpu: ZotzCpuTimes[] = []
   private processes: ZotzSystemProcess[] | null = null
+  private allProcesses: ZotzSystemProcess[] = []
   private processesSampledAt: number | null = null
   private volume: ZotzSystemVolume | null = null
   private tick = 0
@@ -96,6 +102,14 @@ export class ZotzSystemMonitorService {
     }
   }
 
+  /** Every process at the last read, tagged by owner; empty until a watched tick reads them. */
+  processList(): ZotzSystemProcessList {
+    return {
+      sampledAt: this.processesSampledAt,
+      processes: this.deps.ownersOf(this.allProcesses)
+    }
+  }
+
   dispose(): void {
     this.watchers.clear()
     this.stop()
@@ -137,7 +151,8 @@ export class ZotzSystemMonitorService {
       this.volume = volume
       const now = this.deps.now()
       if (platform.processes !== undefined) {
-        this.processes = platform.processes
+        this.allProcesses = platform.processes ?? []
+        this.processes = platform.processes ? topZotzProcesses(platform.processes) : null
         this.processesSampledAt = now
       }
       const cpus = this.deps.cpus()

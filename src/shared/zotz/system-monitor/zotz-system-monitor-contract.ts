@@ -127,3 +127,31 @@ export type ZotzSystemMonitorUpdate = {
   sample: ZotzSystemSample | null
   latest: ZotzSystemReading
 }
+
+/** Who a process belongs to, from the trees Zotz already knows (docs/zotz/SPEC-monitor-y-remotos.md §A.3). */
+export type ZotzSystemProcessOwner =
+  | { kind: 'agent'; agent: string; worktreeId: string | null; paneKey: string }
+  /** Zotz itself: its main process, helpers and terminal daemon. */
+  | { kind: 'zotz' }
+  /** Started by Zotz and no agent owns it: a terminal, a tool. */
+  | { kind: 'zotz-child' }
+
+export type ZotzSystemProcessEntry = ZotzSystemProcess & { owner: ZotzSystemProcessOwner | null }
+
+/** Every process at the last read, for the Processes view. */
+export type ZotzSystemProcessList = {
+  sampledAt: number | null
+  processes: ZotzSystemProcessEntry[]
+}
+
+export type ZotzSystemProcessCloseRequest = {
+  pid: number
+  /** The name the list showed; a different process under a reused PID is refused. */
+  name: string
+  /** SIGKILL on macOS and Linux, `taskkill /F` on Windows; otherwise SIGTERM or a plain `taskkill`. */
+  force: boolean
+}
+
+export type ZotzSystemProcessCloseResult =
+  | { ok: true; exited: boolean }
+  | { ok: false; reason: 'gone' | 'changed' | 'protected' | 'not_permitted' | 'failed' }
