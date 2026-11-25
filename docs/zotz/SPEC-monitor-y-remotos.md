@@ -27,10 +27,10 @@ Fases (un PR cada una):
 
 Referencia: `github.com/stablyai/orca-plugins/tree/main/plugins/multipass-recipes` (MIT): receta declarativa `recipes/ubuntu-lts.json` (create, suspend, resume, destroy) que entrega una conexión SSH. Zotz ya soporta recetas de VM (`src/main/ephemeral-vm`, `vmRecipes`).
 
-1. [ ] Incluir la receta en Zotz como plugin o recurso incluido (igual que el tema `zotz.zotz-night`), para que funcione con el catálogo de Orca apagado.
-2. [ ] Rutas propias: `${XDG_STATE_HOME:-$HOME/.local/state}/zotz/multipass/` en vez de `orca/multipass`.
-3. [ ] Si `multipass` no está instalado, mensaje claro con cómo instalarlo según el sistema.
-4. [ ] Solo macOS/Linux por ahora (la receta es `sh`); en Windows no se ofrece o se explica por qué.
+1. [x] Incluir la receta en Zotz como plugin o recurso incluido (igual que el tema `zotz.zotz-night`), para que funcione con el catálogo de Orca apagado.
+2. [x] Rutas propias: `${XDG_STATE_HOME:-$HOME/.local/state}/zotz/multipass/` en vez de `orca/multipass`.
+3. [x] Si `multipass` no está instalado, mensaje claro con cómo instalarlo según el sistema.
+4. [x] Solo macOS/Linux por ahora (la receta es `sh`); en Windows no se ofrece o se explica por qué.
 
 ## C. Terminales remotas: grupo propio y color
 

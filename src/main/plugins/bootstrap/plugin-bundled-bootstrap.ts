@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { isQualifiedPluginKey } from '../../../shared/plugins/frames/plugin-tab-key'
 import { pluginRelativeDirectorySchema } from '../../../shared/plugins/manifest/plugin-manifest-fields'
 import { isShippedPluginPublisher } from '../../../shared/zotz/zotz-shipped-plugins'
+import { isBundledPluginOfferedOnPlatform } from '../../zotz/zotz-multipass-recipe'
 import { getPluginsDataDir, getUserPluginsDir } from '../discovery/plugin-discovery'
 import { installBundledPlugin } from '../installation/plugin-install'
 import { readPluginLockfile } from '../installation/plugin-install-lockfile-store'
@@ -89,7 +90,11 @@ async function readBundledPluginIndex(
   if (!metadata.isFile() || metadata.size > BUNDLED_PLUGIN_INDEX_MAX_BYTES) {
     throw new Error(`bundled plugin index exceeds ${BUNDLED_PLUGIN_INDEX_MAX_BYTES} bytes`)
   }
-  return bundledPluginIndexSchema.parse(JSON.parse(await readFile(indexPath, 'utf8')))
+  const index = bundledPluginIndexSchema.parse(JSON.parse(await readFile(indexPath, 'utf8')))
+  return {
+    ...index,
+    plugins: index.plugins.filter((entry) => isBundledPluginOfferedOnPlatform(entry))
+  }
 }
 
 /** Whether this release ships the plugin; false when the index can't be read. */

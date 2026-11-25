@@ -15,6 +15,11 @@
       "pluginKey": "zotz.zotz-night",
       "path": "zotz.zotz-night",
       "contentHash": "3a6504e351fe9aa5129e0c5bb7536553ef4ca11771f35478c4a1adaa903088b6"
+    },
+    {
+      "pluginKey": "zotz.zotz-multipass",
+      "path": "zotz.zotz-multipass",
+      "contentHash": "2e22c8be686920988c5c5a8784aa3d60bccc9e88f24101056d339de438960aff"
     }
   ]
 }
