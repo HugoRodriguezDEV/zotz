@@ -31,7 +31,9 @@ test('plugin syntax highlights live and follows updates', async ({ orcaPage, see
   const grammarPath = join(pluginRoot, 'syntaxes', 'gleam.tmLanguage.json')
   try {
     // Zotz starts on Zotz Night; the expected colors are Monaco's built-in themes.
-    await orcaPage.evaluate(() => window.api.settings.set({ pluginAppThemeDark: null }))
+    await orcaPage.evaluate(() =>
+      window.__store?.getState().updateSettings({ pluginAppThemeDark: null })
+    )
     await expect
       .poll(() => orcaPage.evaluate(() => window.__store?.getState().settings?.pluginAppThemeDark))
       .toBeFalsy()
