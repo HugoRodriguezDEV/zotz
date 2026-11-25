@@ -117,7 +117,8 @@ export class ZotzAgentLaunchQueue {
         estimatedBytes: estimateZotzAgentMemory(
           this.governor.getLedger(),
           request.agent,
-          limits?.agentDefaultReserveBytes ?? 2.5 * 1024 ** 3
+          limits?.agentDefaultReserveBytes ?? 2.5 * 1024 ** 3,
+          limits?.perAgentMaxBytes ?? Number.POSITIVE_INFINITY
         ),
         label: request.label,
         launch: null

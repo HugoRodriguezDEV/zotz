@@ -276,7 +276,7 @@ Nuevo `src/main/daemon/admission/zotz-memory-pressure.ts`:
 Nuevo `zotz-agent-memory-ledger.ts`:
 
 - Mide el **RSS del árbol completo** de cada terminal de agente (padre + hijos: tests, builds, servidores), reutilizando los scopes por terminal de `process-growth-breaker.ts`.
-- Guarda por tipo de agente (`claude`, `codex`, `antigravity`) el **p90 del pico** de las últimas 20 corridas, persistido en el userData de Zotz.
+- Guarda por tipo de agente (`claude`, `codex`, `antigravity`) la **mediana del pico** de las últimas 20 corridas (topada en el máximo por agente), persistida en el userData de Zotz.
 - Sin historial, usa el default de configuración (`agentDefaultReserveGb`, 2.5 GB).
 
 ### 8c. Admisión por memoria antes de lanzar
@@ -327,7 +327,7 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 
 ### Pruebas
 
-- Unit tests **solo** para la lógica pura de admisión y regulación (alimentada con muestras falsas): cabe/no cabe, orden FIFO, reanudación con histéresis (no reanudar y pausar en bucle), p90 del ledger y procesos protegidos nunca tocados.
+- Unit tests **solo** para la lógica pura de admisión y regulación (alimentada con muestras falsas): cabe/no cabe, orden FIFO, reanudación con histéresis (no reanudar y pausar en bucle), mediana con tope del ledger y procesos protegidos nunca tocados.
 - Prueba manual documentada en `docs/zotz/MEMORIA.md`: en la MSI, lanzar 6 tareas que corran un script que consuma 3 GB cada una. Resultado esperado: nunca bajan de `minFreeGb`, las que no caben esperan en cola y arrancan solas, y nada se mata.
 
 **Listo cuando:** en la MSI se pueden mandar 10 tareas de golpe por Tailscale y la máquina **no se traba ni entra a swap fuerte**. Las tareas corren por tandas según la memoria y todas terminan.
@@ -566,7 +566,7 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
 ### 2026-11-18 — Fase 8, parte 1 (`zotz/fase-8-memoria`)
 
-- **Cola (datos):** `src/shared/zotz/agent-queue/`. FIFO multinivel (manual › remota › automatización) con relleno y envejecimiento (10 min o 3 rebases), libro de picos (p90 de 20 corridas), defaults según la RAM y nivel de presión. Persistencia en `zotz-agent-queue-store.ts` (hoy solo la usa el libro de picos).
+- **Cola (datos):** `src/shared/zotz/agent-queue/`. FIFO multinivel (manual › remota › automatización) con relleno y envejecimiento (10 min o 3 rebases), libro de picos (mediana de 20 corridas, topada en el máximo por agente), defaults según la RAM y nivel de presión. Persistencia en `zotz-agent-queue-store.ts` (hoy solo la usa el libro de picos).
 - **Medición (8a/8b):** `ZotzMemoryGovernorService`.
   - Junta las filas de hooks (agente, estado, workspace) con los PTY locales y mide su árbol completo con `collectMemorySnapshot`. La memoria disponible sale de `collectHostMemory`.
   - Muestrea cada 15 s solo con agentes vivos o tareas en cola, y los cambios de estado de los agentes lo despiertan.
@@ -923,3 +923,8 @@ Spec: [`SPEC-monitor-y-remotos.md`](./SPEC-monitor-y-remotos.md) §A. Lectores y
 - **Selector de máquina** en la pestaña Sistema (solo si hay servidores que lo publican): esta máquina y cada servidor emparejado. El servidor muestrea **solo mientras el stream está abierto**, igual que una ventana local; un watcher remoto usa ids por encima de 1 000 000 000 para no chocar con los de las ventanas.
 - La vista de procesos y el diálogo de cerrar reciben un "cliente" (`zotz-system-monitor-client.ts`): IPC para esta máquina, runtime RPC para un servidor. Mismas advertencias y misma confirmación.
 - Verificado: `pnpm tc`, oxlint/oxfmt, prueba del método de suscripción (snapshot, actualización, se suelta al salir el cliente), fixtures de servidor en claro y oscuro, y en la app dev llamando los métodos por el despacho del runtime (`window.api.runtime.call/subscribe`): capacidades anunciadas, stream con snapshot y actualizaciones, 1 122 procesos, línea de comando y cierre de un `sleep` de prueba. **Sin probar:** con un servidor emparejado de verdad (la MSI necesita esta versión), ni el selector en la app real (el perfil dev no tiene servidores).
+
+### 2026-11-25 — Estimación de memoria por agente: mediana con tope (`zotz-gobernador-estimacion`)
+
+- **Problema:** con 24 GB y memoria de sobra, cada lanzamiento de Claude quedaba en la cola y pedía "Lanzar de todos modos". El libro de picos guardaba el árbol entero de la terminal, y las corridas que arrancaron builds o `pnpm dev` (12–18 GB) dejaban el p90 en ~14 GB: nunca cabía sobre la reserva mínima.
+- **Arreglo:** la estimación es la **mediana** de las últimas 20 corridas y nunca pasa de `perAgentMaxBytes` (35 % de la RAM, máx. 6 GB). Con el mismo historial queda en ~2 GB y entra sin preguntar. La presión del kernel y el crecimiento del swap siguen frenando lanzamientos cuando la máquina de verdad se queda sin memoria.
