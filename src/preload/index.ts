@@ -39,6 +39,7 @@ import { settingsApi } from './api/preferences/settings-bridge'
 import { agentAwakeApi } from './api/agent-status/agent-awake-bridge'
 import { zotzNodeApi } from './api/zotz/zotz-node-bridge'
 import { zotzAgentQueueApi } from './api/zotz/zotz-agent-queue-bridge'
+import { zotzSystemMonitorApi } from './api/zotz/zotz-system-monitor-bridge'
 import { zotzTaskConnectorsApi } from './api/zotz/zotz-task-connectors-bridge'
 import { localhostWorktreeLabelsApi } from './api/workspaces/localhost-worktree-labels-bridge'
 import { keybindingsApi } from './api/preferences/keybindings-bridge'
@@ -151,6 +152,7 @@ const api = {
   agentAwake: agentAwakeApi,
   zotzNode: zotzNodeApi,
   zotzAgentQueue: zotzAgentQueueApi,
+  zotzSystemMonitor: zotzSystemMonitorApi,
   zotzTaskConnectors: zotzTaskConnectorsApi,
   localhostWorktreeLabels: localhostWorktreeLabelsApi,
   keybindings: keybindingsApi,

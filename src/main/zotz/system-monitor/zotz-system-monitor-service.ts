@@ -1,0 +1,262 @@
+import type { CpuInfo } from 'node:os'
+import type { HostMemory } from '../../../shared/diagnostics/process-stats-types'
+import type { ZotzMemoryGovernorLimits } from '../../../shared/zotz/agent-queue/zotz-memory-governor-defaults'
+import {
+  strongerZotzMemoryPressure,
+  zotzMemoryPressure
+} from '../../../shared/zotz/agent-queue/zotz-memory-pressure'
+import {
+  ZOTZ_SYSTEM_HISTORY_MS,
+  ZOTZ_SYSTEM_PROCESS_EVERY_SAMPLES,
+  ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS,
+  type ZotzSystemMonitorSnapshot,
+  type ZotzSystemMonitorUpdate,
+  type ZotzSystemProcess,
+  type ZotzSystemProcessEntry,
+  type ZotzSystemProcessList,
+  type ZotzSystemReading,
+  type ZotzSystemSample,
+  type ZotzSystemVolume
+} from '../../../shared/zotz/system-monitor/zotz-system-monitor-contract'
+import type { ZotzSystemMemorySignals } from '../memory-governor/zotz-darwin-memory-signals'
+import type { ZotzSystemPlatformSampler } from './zotz-system-platform-sampler'
+import { topZotzProcesses } from './zotz-system-process-owners'
+import { zotzCpuUsage, type ZotzCpuTimes } from './zotz-system-rates'
+
+const VOLUME_EVERY_SAMPLES = 15
+
+export type ZotzSystemMonitorDeps = {
+  platform: NodeJS.Platform
+  hostname: string
+  createPlatformSampler: () => ZotzSystemPlatformSampler
+  /** The governor's host memory (Activity Monitor's "used" on macOS). */
+  collectHost: () => Promise<HostMemory>
+  /** The governor's pressure signals; one reader per monitor keeps its own swap window. */
+  readMemorySignals: () => Promise<ZotzSystemMemorySignals>
+  limits: () => ZotzMemoryGovernorLimits
+  readStartupVolume: () => Promise<ZotzSystemVolume | null>
+  isOnBatteryPower: () => boolean
+  cpus: () => CpuInfo[]
+  loadavg: () => number[]
+  uptime: () => number
+  now: () => number
+  publish: (update: ZotzSystemMonitorUpdate) => void
+  /** Tags each process with the agent or Zotz tree it belongs to. */
+  ownersOf: (processes: readonly ZotzSystemProcess[]) => ZotzSystemProcessEntry[]
+}
+
+/**
+ * Samples the machine only while some window watches the System tab; the agent governor keeps
+ * its own cadence. History lives in memory and keeps gaps where nobody was watching.
+ */
+export class ZotzSystemMonitorService {
+  private readonly watchers = new Set<number>()
+  private readonly updateListeners = new Set<(update: ZotzSystemMonitorUpdate) => void>()
+  private history: ZotzSystemSample[] = []
+  private latest: ZotzSystemReading | null = null
+  private sampler: ZotzSystemPlatformSampler | null = null
+  private previousCpu: ZotzCpuTimes[] = []
+  private processes: ZotzSystemProcess[] | null = null
+  private allProcesses: ZotzSystemProcess[] = []
+  private processesSampledAt: number | null = null
+  private volume: ZotzSystemVolume | null = null
+  private tick = 0
+  private timer: ReturnType<typeof setTimeout> | null = null
+  private sampling = false
+
+  constructor(private readonly deps: ZotzSystemMonitorDeps) {}
+
+  watch(watcherId: number): ZotzSystemMonitorSnapshot {
+    this.watchers.add(watcherId)
+    if (!this.sampler) {
+      this.sampler = this.deps.createPlatformSampler()
+      this.previousCpu = this.readCpuTimes()
+      this.tick = 0
+      void this.sampleOnce()
+    }
+    return this.snapshot()
+  }
+
+  unwatch(watcherId: number): void {
+    this.watchers.delete(watcherId)
+    if (this.watchers.size === 0) {
+      this.stop()
+    }
+  }
+
+  isWatching(watcherId: number): boolean {
+    return this.watchers.has(watcherId)
+  }
+
+  watcherIds(): number[] {
+    return [...this.watchers]
+  }
+
+  /** Every sample, for watchers that are not windows (a paired client over the runtime RPC). */
+  onUpdate(listener: (update: ZotzSystemMonitorUpdate) => void): () => void {
+    this.updateListeners.add(listener)
+    return () => this.updateListeners.delete(listener)
+  }
+
+  snapshot(): ZotzSystemMonitorSnapshot {
+    return {
+      platform: this.deps.platform,
+      hostname: this.deps.hostname,
+      intervalMs: ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS,
+      historyMs: ZOTZ_SYSTEM_HISTORY_MS,
+      history: this.history,
+      latest: this.latest
+    }
+  }
+
+  /** Every process at the last read, tagged by owner; empty until a watched tick reads them. */
+  processList(): ZotzSystemProcessList {
+    return {
+      sampledAt: this.processesSampledAt,
+      processes: this.deps.ownersOf(this.allProcesses)
+    }
+  }
+
+  dispose(): void {
+    this.watchers.clear()
+    this.updateListeners.clear()
+    this.stop()
+  }
+
+  private stop(): void {
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+    this.sampler?.dispose()
+    this.sampler = null
+  }
+
+  private readCpuTimes(): ZotzCpuTimes[] {
+    return this.deps.cpus().map(({ times }) => ({ ...times }))
+  }
+
+  private async sampleOnce(): Promise<void> {
+    const sampler = this.sampler
+    if (!sampler || this.sampling) {
+      return
+    }
+    this.sampling = true
+    try {
+      const withProcesses = this.tick % ZOTZ_SYSTEM_PROCESS_EVERY_SAMPLES === 0
+      const [host, signals, platform, volume] = await Promise.all([
+        this.deps.collectHost(),
+        this.deps.readMemorySignals(),
+        sampler.sample({ withProcesses }),
+        this.tick % VOLUME_EVERY_SAMPLES === 0
+          ? this.deps.readStartupVolume().catch(() => null)
+          : Promise.resolve(this.volume)
+      ])
+      if (this.sampler !== sampler) {
+        return
+      }
+      this.tick += 1
+      this.volume = volume
+      const now = this.deps.now()
+      if (platform.processes !== undefined) {
+        this.allProcesses = platform.processes ?? []
+        this.processes = platform.processes ? topZotzProcesses(platform.processes) : null
+        this.processesSampledAt = now
+      }
+      const cpus = this.deps.cpus()
+      const cpuTimes = cpus.map(({ times }) => ({ ...times }))
+      const cpu = zotzCpuUsage(this.previousCpu, cpuTimes)
+      this.previousCpu = cpuTimes
+      const limits = this.deps.limits()
+      const swap = signals.swap ?? platform.swap
+      const load = this.deps.loadavg()
+      const reading: ZotzSystemReading = {
+        sampledAt: now,
+        cpu: {
+          model: cpus[0]?.model.trim() || null,
+          percent: cpu?.total ?? 0,
+          userPercent: cpu?.user ?? 0,
+          systemPercent: cpu?.system ?? 0,
+          cores: cpu?.cores ?? cpus.map(() => 0),
+          load:
+            this.deps.platform === 'win32' || load.length < 3
+              ? null
+              : [load[0] ?? 0, load[1] ?? 0, load[2] ?? 0],
+          uptimeSeconds: Math.round(this.deps.uptime())
+        },
+        memory: {
+          totalBytes: host.totalMemory,
+          usedBytes: host.usedMemory,
+          availableBytes: host.availableMemory,
+          swapUsedBytes: swap?.usedBytes ?? null,
+          swapTotalBytes: swap?.totalBytes ?? null,
+          pressure: strongerZotzMemoryPressure(
+            zotzMemoryPressure({
+              availableBytes: host.availableMemory,
+              totalBytes: host.totalMemory,
+              minFreeBytes: limits.minFreeBytes
+            }),
+            signals.pressure
+          ),
+          minFreeBytes: limits.minFreeBytes
+        },
+        network: platform.network,
+        disk: {
+          readBps: platform.diskIo?.readBps ?? null,
+          writeBps: platform.diskIo?.writeBps ?? null,
+          startup: volume
+        },
+        gpu: platform.gpu,
+        power: {
+          onBattery: platform.onBattery ?? this.deps.isOnBatteryPower(),
+          battery: platform.battery
+        },
+        processes: this.processes,
+        processesSampledAt: this.processesSampledAt
+      }
+      const sample: ZotzSystemSample = {
+        t: now,
+        cpuPercent: reading.cpu.percent,
+        memoryUsedBytes: reading.memory.usedBytes,
+        swapUsedBytes: reading.memory.swapUsedBytes,
+        netDownBps: reading.network?.downBps ?? null,
+        netUpBps: reading.network?.upBps ?? null,
+        diskReadBps: reading.disk.readBps,
+        diskWriteBps: reading.disk.writeBps,
+        gpuPercent: reading.gpu?.percent ?? null,
+        batteryPercent: reading.power.battery?.percent ?? null
+      }
+      // The first sample after a pause has no CPU baseline; it would chart a false zero.
+      if (cpu) {
+        const oldest = now - ZOTZ_SYSTEM_HISTORY_MS
+        this.history = [...this.history.filter((entry) => entry.t >= oldest), sample]
+      }
+      this.latest = reading
+      const update = { sample: cpu ? sample : null, latest: reading }
+      this.deps.publish(update)
+      for (const listener of this.updateListeners) {
+        listener(update)
+      }
+    } catch (error) {
+      console.warn('[zotz-system] sample failed', error)
+    } finally {
+      this.sampling = false
+      this.scheduleNext(sampler)
+    }
+  }
+
+  // A watch that came back while a stale tick ran (unwatch then watch) is owed its first sample now.
+  private scheduleNext(finished: ZotzSystemPlatformSampler): void {
+    if (!this.sampler || this.timer) {
+      return
+    }
+    this.timer = setTimeout(
+      () => {
+        this.timer = null
+        void this.sampleOnce()
+      },
+      this.sampler === finished ? ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS : 0
+    )
+    this.timer.unref?.()
+  }
+}

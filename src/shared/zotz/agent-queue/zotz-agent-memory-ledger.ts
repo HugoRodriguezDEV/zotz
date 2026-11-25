@@ -5,7 +5,6 @@ import { isTuiAgent } from '../../agent-launch/catalog/tui-agent-config'
 export type ZotzAgentMemoryLedger = Partial<Record<TuiAgent, number[]>>
 
 const RUNS_KEPT = 20
-const ESTIMATE_PERCENTILE = 0.9
 
 export function recordZotzAgentPeak(
   ledger: ZotzAgentMemoryLedger,
@@ -19,19 +18,24 @@ export function recordZotzAgentPeak(
   return { ...ledger, [agent]: runs }
 }
 
-/** p90 of the recorded peaks (nearest rank), so one unusually small run does not under-reserve. */
+/**
+ * Median of the recorded peaks, capped at the per-agent ceiling. Why not a high percentile: a peak
+ * covers the whole terminal tree, so the odd run that starts builds or dev servers would hold
+ * every later launch even with plenty of memory free.
+ */
 export function estimateZotzAgentMemory(
   ledger: ZotzAgentMemoryLedger,
   agent: TuiAgent,
-  defaultBytes: number
+  defaultBytes: number,
+  maxBytes: number
 ): number {
   const runs = ledger[agent]
   if (!runs || runs.length === 0) {
-    return defaultBytes
+    return Math.min(defaultBytes, maxBytes)
   }
   const sorted = [...runs].sort((left, right) => left - right)
-  const rank = Math.ceil(ESTIMATE_PERCENTILE * sorted.length)
-  return sorted[rank - 1]!
+  const median = sorted[Math.ceil(sorted.length / 2) - 1]!
+  return Math.min(median, maxBytes)
 }
 
 export function normalizeZotzAgentMemoryLedger(value: unknown): ZotzAgentMemoryLedger {

@@ -276,7 +276,7 @@ Nuevo `src/main/daemon/admission/zotz-memory-pressure.ts`:
 Nuevo `zotz-agent-memory-ledger.ts`:
 
 - Mide el **RSS del árbol completo** de cada terminal de agente (padre + hijos: tests, builds, servidores), reutilizando los scopes por terminal de `process-growth-breaker.ts`.
-- Guarda por tipo de agente (`claude`, `codex`, `antigravity`) el **p90 del pico** de las últimas 20 corridas, persistido en el userData de Zotz.
+- Guarda por tipo de agente (`claude`, `codex`, `antigravity`) la **mediana del pico** de las últimas 20 corridas (topada en el máximo por agente), persistida en el userData de Zotz.
 - Sin historial, usa el default de configuración (`agentDefaultReserveGb`, 2.5 GB).
 
 ### 8c. Admisión por memoria antes de lanzar
@@ -327,7 +327,7 @@ Nueva sección **Settings → Recursos** y claves en `src/shared/default-global-
 
 ### Pruebas
 
-- Unit tests **solo** para la lógica pura de admisión y regulación (alimentada con muestras falsas): cabe/no cabe, orden FIFO, reanudación con histéresis (no reanudar y pausar en bucle), p90 del ledger y procesos protegidos nunca tocados.
+- Unit tests **solo** para la lógica pura de admisión y regulación (alimentada con muestras falsas): cabe/no cabe, orden FIFO, reanudación con histéresis (no reanudar y pausar en bucle), mediana con tope del ledger y procesos protegidos nunca tocados.
 - Prueba manual documentada en `docs/zotz/MEMORIA.md`: en la MSI, lanzar 6 tareas que corran un script que consuma 3 GB cada una. Resultado esperado: nunca bajan de `minFreeGb`, las que no caben esperan en cola y arrancan solas, y nada se mata.
 
 **Listo cuando:** en la MSI se pueden mandar 10 tareas de golpe por Tailscale y la máquina **no se traba ni entra a swap fuerte**. Las tareas corren por tandas según la memoria y todas terminan.
@@ -566,7 +566,7 @@ Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
 ### 2026-11-18 — Fase 8, parte 1 (`zotz/fase-8-memoria`)
 
-- **Cola (datos):** `src/shared/zotz/agent-queue/`. FIFO multinivel (manual › remota › automatización) con relleno y envejecimiento (10 min o 3 rebases), libro de picos (p90 de 20 corridas), defaults según la RAM y nivel de presión. Persistencia en `zotz-agent-queue-store.ts` (hoy solo la usa el libro de picos).
+- **Cola (datos):** `src/shared/zotz/agent-queue/`. FIFO multinivel (manual › remota › automatización) con relleno y envejecimiento (10 min o 3 rebases), libro de picos (mediana de 20 corridas, topada en el máximo por agente), defaults según la RAM y nivel de presión. Persistencia en `zotz-agent-queue-store.ts` (hoy solo la usa el libro de picos).
 - **Medición (8a/8b):** `ZotzMemoryGovernorService`.
   - Junta las filas de hooks (agente, estado, workspace) con los PTY locales y mide su árbol completo con `collectMemorySnapshot`. La memoria disponible sale de `collectHostMemory`.
   - Muestrea cada 15 s solo con agentes vivos o tareas en cola, y los cambios de estado de los agentes lo despiertan.
@@ -886,3 +886,45 @@ Sección C de la spec de monitor y remotos.
 - Enganches en upstream: dos líneas en `TabGroupPanel.tsx` (la franja y el contenedor de la tira de pestañas). `SortableTab.tsx` está en el tope de 400 líneas, por eso el tinte va en el contenedor y no en cada pestaña.
 - **Sorpresa:** en la app, el host de una pestaña sale de `worktree.hostId` y de `activeWorkspaceExecutionHostId`, no del repo. Para simular un remoto en una instancia dev hubo que poner los tres.
 - Verificado: `pnpm tc`, oxlint/oxfmt, test de la asignación de colores, fixtures (`zotz/host-color/ZotzHostStrip`, `ZotzProjectSidebar:projectByMachine` y `:projectByMachineOff`, ambos temas) y en una instancia dev con perfil copiado por CDP, con la MSI y un "Mac mini" simulados en el store en memoria: terminal real con pestaña teñida y franja, subgrupos, ajuste apagado, claro y oscuro. **Sin probar con un servidor real pareado**, ni el cliente web pareado. La app móvil no cambia (solo un campo opcional nuevo en los ajustes de Zotz).
+
+### 2026-11-24 — Monitor del sistema, fases 1 y 2 (`zotz-monitor-sistema`)
+
+Spec: [`SPEC-monitor-y-remotos.md`](./SPEC-monitor-y-remotos.md) §A. Lectores y parsers portados de `pblobp.os-vitals` 1.0.0 (MIT, crédito en el encabezado de cada archivo portado); el plugin no se instala.
+
+- **Medidor en main** (`src/main/zotz/system-monitor/`): CPU total y por núcleo (deltas de `os.cpus()`), carga, uptime; memoria con las funciones del gobernador (`collectZotzHostMemory` y su lector de presión, que ahora también entrega el swap de macOS sin leer `sysctl` dos veces); red, disco (E/S y espacio del disco de arranque con `statfs`), GPU, batería y procesos. Muestra cada 2 s **solo mientras una ventana mira la pestaña** (IPC `zotzSystemMonitor:watch/unwatch`, se suelta al cerrar o recargar la ventana); historial en memoria de 10 min con huecos donde nadie miraba.
+- **Por plataforma:** macOS `netstat`/`route`/`ioreg`/`pmset`/`ps`; Linux `/proc` y `/sys` (+ `nvidia-smi` si existe); Windows **un solo PowerShell vivo** mientras se mira, con clases CIM de rendimiento (no dependen del idioma, a diferencia de `typeperf`), que se cierra solo si Zotz muere. En Windows no hay carga ni usuario de proceso ni totales desde el arranque.
+- **Contrato** (`src/shared/zotz/system-monitor/zotz-system-monitor-contract.ts`): ya trae la lista de procesos (mitad más CPU + mitad más memoria, con PID, padre, usuario, comando) para la fase 3, y es serializable para la fase 5 (servidores).
+- **Pestaña "Sistema"** en el tablero de la cola (pestañas Cola / Sistema): seis tarjetas con gráfica de historial y vista de detalle por tarjeta (núcleos, procesos que más CPU o memoria usan, interfaces, disco de arranque). Solo tokens existentes (`chart-2`, `muted-foreground`, `destructive`); textos en `en` + `es`.
+- Enganches en upstream: una línea cada uno en `preload/index.ts` y `preload/api-types.ts`; el arranque cuelga del gobernador (`zotz-memory-governor-startup.ts`).
+- Verificado: `pnpm tc`, oxlint/oxfmt, pruebas de parsers (netstat, diskstats, swap de Linux, línea del muestreador de Windows), el muestreador de macOS contra esta Mac, fixtures `zotz/system-monitor/ZotzSystemMonitorPanel` en claro y oscuro y la pestaña en una instancia dev por CDP (capturas en `capturas/monitor-sistema/`). **Sin probar en hardware:** Windows (el script de PowerShell/CIM) y Linux.
+- **Sorpresa:** `typeperf` traduce los nombres de contadores en Windows en español, por eso se descartó para la MSI.
+- **Sorpresa 2:** en desarrollo React monta dos veces (watch, unwatch, watch) y el segundo muestreo nunca arrancaba: un `return` dentro del `try` se saltaba la reprogramación. Ahora se reprograma en el `finally`, con prueba.
+
+### 2026-11-24 — Monitor del sistema, fase 3: procesos (`zotz-monitor-procesos`)
+
+- **Vista Procesos** (séptima tarjeta de la pestaña Sistema, y clic en un proceso desde los detalles de CPU o Memoria): todos los procesos, con filtro (nombre, PID, usuario, comando o agente), orden por columna y detalle (padre, usuario, CPU, memoria, línea de comando completa, a quién pertenece). Muestra 200 filas; el filtro encuentra el resto.
+- **Dueños** (`zotz-system-process-owners.ts`): subiendo por los padres, el primer árbol de agente que conoce el gobernador (`listZotzAgentProcessRoots`) marca el proceso con su agente y conversación; si no, los PIDs de Zotz (main, helpers de Electron, daemon de terminales) lo marcan como **Zotz** o "en Zotz" (algo que Zotz inició).
+- **Cerrar proceso** (`zotz-system-process-control.ts`): diálogo de confirmación; advertencia en rojo si es Zotz o un agente vivo. Primero SIGTERM (Windows: `taskkill` sin `/F`, que pide cerrar); si a los 3 s sigue vivo, el diálogo ofrece **Forzar cierre** (SIGKILL / `taskkill /F`). Se niega si el PID ya es de otro programa (reuso de PID) y nunca toca PID 0, 1 ni 4.
+- La lista completa vive en main (la toma el mismo muestreo de la pestaña); el renderer la pide cuando main lee procesos, sin timer propio.
+- Verificado: `pnpm tc`, oxlint/oxfmt, pruebas (dueños y la carrera del servicio), fixtures `processes` y `closeAgentProcess` en claro y oscuro, y en la app dev por CDP: un `sleep` se cerró con SIGTERM y uno que ignora SIGTERM ofreció "Forzar cierre" y se cerró; los procesos de la instancia salen como Zotz con su advertencia. **Sin probar:** Windows (`taskkill`, línea de comando vía `windows-process-table`) y la marca de agente con un agente real (la instancia dev no tenía agentes; cubierto con fixture y prueba).
+
+### 2026-11-24 — Monitor del sistema, fase 4: barra de estado (`zotz-monitor-barra`)
+
+- **`CPU · MEM`** junto al segmento de la cola (`ZotzSystemStatusSegment`, enganchado dentro del segmento de la cola: no toca `StatusBarSurface`). Clic abre el tablero directo en la pestaña Sistema (el tablero ahora recuerda su pestaña en `zotz-agent-queue-drawer-open`). Tooltip con GB usados, total y libres.
+- **Sin segundo muestreador de memoria** (`zotz-system-status-service.ts`): CPU de los contadores que Node ya lee (`os.cpus()`, sin lanzar procesos) cada 3 s; memoria, presión y piso libre son los del gobernador, al que se le pide una muestra si su lectura tiene más de 15 s. Solo corre mientras una ventana visible muestra la barra (se suelta al ocultarse).
+- **Aviso de memoria** con el mismo límite del gobernador: punto naranja en `elevated`, texto en rojo y un aviso (toast) al entrar en `critical`, con botón para ver el sistema. Es el mismo umbral que frena agentes nuevos, así la barra y la cola nunca discrepan.
+- El manejo de ventanas que miran un muestreador quedó en `zotz-window-watchers.ts`, compartido por el monitor y la barra.
+- Verificado: `pnpm tc`, oxlint/oxfmt, fixtures del segmento (normal, justo, crítico) en claro y oscuro, y en la app dev por CDP: el segmento muestra CPU y MEM, el tooltip coincide con la memoria libre del segmento de la cola y el clic abre la pestaña Sistema. **Sin probar:** el aviso de memoria crítica en vivo (la máquina no cruzó el piso durante la prueba).
+
+### 2026-11-24 — Monitor del sistema, fase 5: servidores (`zotz-monitor-servidores`)
+
+- **Por el mismo camino que la cola de los servidores:** métodos del runtime `zotz.systemMonitor.subscribe` (stream: snapshot y luego una actualización por muestra), `processes`, `processCommand` y `closeProcess`, leídos de `zotz-system-monitor-source.ts` como la cola lee `zotz-agent-queue-source.ts`. Enganche de una línea en `rpc-method-registry.ts`.
+- **Capacidades nuevas** `zotz.system-monitor.v1` (leer) y `zotz.system-monitor-control.v1` (cerrar procesos), separadas porque cerrar es un poder mayor. Un servidor viejo no aparece; uno sin la segunda se ve sin el botón de cerrar.
+- **Selector de máquina** en la pestaña Sistema (solo si hay servidores que lo publican): esta máquina y cada servidor emparejado. El servidor muestrea **solo mientras el stream está abierto**, igual que una ventana local; un watcher remoto usa ids por encima de 1 000 000 000 para no chocar con los de las ventanas.
+- La vista de procesos y el diálogo de cerrar reciben un "cliente" (`zotz-system-monitor-client.ts`): IPC para esta máquina, runtime RPC para un servidor. Mismas advertencias y misma confirmación.
+- Verificado: `pnpm tc`, oxlint/oxfmt, prueba del método de suscripción (snapshot, actualización, se suelta al salir el cliente), fixtures de servidor en claro y oscuro, y en la app dev llamando los métodos por el despacho del runtime (`window.api.runtime.call/subscribe`): capacidades anunciadas, stream con snapshot y actualizaciones, 1 122 procesos, línea de comando y cierre de un `sleep` de prueba. **Sin probar:** con un servidor emparejado de verdad (la MSI necesita esta versión), ni el selector en la app real (el perfil dev no tiene servidores).
+
+### 2026-11-25 — Estimación de memoria por agente: mediana con tope (`zotz-gobernador-estimacion`)
+
+- **Problema:** con 24 GB y memoria de sobra, cada lanzamiento de Claude quedaba en la cola y pedía "Lanzar de todos modos". El libro de picos guardaba el árbol entero de la terminal, y las corridas que arrancaron builds o `pnpm dev` (12–18 GB) dejaban el p90 en ~14 GB: nunca cabía sobre la reserva mínima.
+- **Arreglo:** la estimación es la **mediana** de las últimas 20 corridas y nunca pasa de `perAgentMaxBytes` (35 % de la RAM, máx. 6 GB). Con el mismo historial queda en ~2 GB y entra sin preguntar. La presión del kernel y el crecimiento del swap siguen frenando lanzamientos cuando la máquina de verdad se queda sin memoria.
