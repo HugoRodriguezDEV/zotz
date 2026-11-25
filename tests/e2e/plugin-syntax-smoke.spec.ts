@@ -30,6 +30,13 @@ test('plugin syntax highlights live and follows updates', async ({ orcaPage, see
   const pluginRoot = await mkdtemp(join(tmpdir(), 'orca-syntax-smoke-'))
   const grammarPath = join(pluginRoot, 'syntaxes', 'gleam.tmLanguage.json')
   try {
+    // Zotz starts on Zotz Night; the expected colors are Monaco's built-in themes.
+    await orcaPage.evaluate(() =>
+      window.__store?.getState().updateSettings({ pluginAppThemeDark: null })
+    )
+    await expect
+      .poll(() => orcaPage.evaluate(() => window.__store?.getState().settings?.pluginAppThemeDark))
+      .toBeFalsy()
     await cp(join(process.cwd(), 'examples', 'plugins', 'orca-gleam-syntax'), pluginRoot, {
       recursive: true
     })
