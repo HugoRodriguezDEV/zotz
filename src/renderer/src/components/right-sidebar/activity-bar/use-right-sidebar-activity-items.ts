@@ -151,11 +151,11 @@ export function useRightSidebarActivityItems({
 
   const visibleItems = useMemo(
     () =>
-      getVisibleRightSidebarActivityItems(activityItems, {
-        isFolder,
-        isFolderWorkspace,
-        hasSshHost
-      }),
+      getVisibleRightSidebarActivityItems(
+        // Zotz: the sidebar's conversations replace the agent session history tab.
+        activityItems.filter((item) => item.id !== 'vault'),
+        { isFolder, isFolderWorkspace, hasSshHost }
+      ),
     [activityItems, isFolder, isFolderWorkspace, hasSshHost]
   )
 

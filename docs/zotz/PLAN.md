@@ -950,3 +950,9 @@ Sección B de la spec de monitor y remotos.
 
 - **Zotz Contraluz** (app + terminal) en el plugin incluido `zotz.zotz-night` (v1.1.0): base oscura de alto contraste para trabajar con reflejos o contra la luz. Texto casi blanco (`#f5f7ff` sobre `#0b0c12`, 18:1), texto secundario y pestañas inactivas ≥10:1, acentos más claros y saturados ≥9:1, bordes y divisores ≥3:1, selección azul sólida con texto blanco, comentarios sin itálica.
 - No cambia el default: se elige en Ajustes → Apariencia (tema) y Ajustes → Terminal.
+
+### 2026-11-26 — Sin la pestaña de historial de sesiones (`zotz-quitar-historial`)
+
+- La pestaña **Agent Session History** (`vault`) del panel derecho se oculta: las conversaciones de la barra lateral ya cumplen ese papel. No se borra de upstream; se filtra en `use-right-sidebar-activity-items.ts`.
+- Si algo pide abrirla (por ejemplo `showAiVaultSearch` desde Ajustes), el panel cae en el Explorador con el respaldo que ya trae upstream para pestañas ocultas. El diálogo de historial para reanudar sesiones desde el chat no cambia.
+- Verificado en una instancia dev por CDP: la barra ya no muestra el ícono y `showAiVaultSearch` deja el panel en el Explorador (captura en `capturas/quitar-historial/`).
