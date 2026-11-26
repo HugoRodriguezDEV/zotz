@@ -24897,6 +24897,21 @@
     },
     "dictation": {
       "languageUpgrade": "El dictado ahora usa {{model}}, que entiende todos los idiomas que hablas."
+    },
+    "prReview": {
+      "open": "Revisar",
+      "markDraft": "Pasar a draft",
+      "markReady": "Listo para revisión",
+      "placeholder": "Deja un comentario de revisión",
+      "comment": "Comentar",
+      "approve": "Aprobar",
+      "requestChanges": "Pedir cambios",
+      "markedDraft": "El pull request pasó a draft",
+      "markedReady": "El pull request está listo para revisión",
+      "approved": "Pull request aprobado",
+      "changesRequested": "Cambios pedidos",
+      "commented": "Comentario de revisión enviado",
+      "ownPr": "GitHub no deja aprobar ni pedir cambios en tu propio pull request."
     }
   }
 }

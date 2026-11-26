@@ -1,4 +1,5 @@
 import React from 'react'
+import { ZotzPrReviewButton } from '../../zotz/source-control/ZotzPrReviewButton'
 import { FileText, ListChecks, LoaderCircle, MessageSquare, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -118,6 +119,18 @@ export function PullRequestPageTabs({
             </span>
           )}
         </TabsTrigger>
+        <ZotzPrReviewButton
+          pr={{
+            repoPath,
+            repoId: effectiveRepoId,
+            sourceContext,
+            prNumber: workItem.number,
+            prRepo: resolvePullRequestRepo(workItem, projectOrigin)
+          }}
+          state={localState}
+          onStateChange={setLocalState}
+          onMutated={invalidateCurrentDetailsCache}
+        />
       </TabsList>
 
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-sleek">

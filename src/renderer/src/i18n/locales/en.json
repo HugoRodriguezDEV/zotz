@@ -26526,6 +26526,21 @@
     },
     "dictation": {
       "languageUpgrade": "Dictation now uses {{model}}, which understands every language you speak."
+    },
+    "prReview": {
+      "open": "Review",
+      "markDraft": "Convert to draft",
+      "markReady": "Ready for review",
+      "placeholder": "Leave a review comment",
+      "comment": "Comment",
+      "approve": "Approve",
+      "requestChanges": "Request changes",
+      "markedDraft": "Pull request moved to draft",
+      "markedReady": "Pull request ready for review",
+      "approved": "Pull request approved",
+      "changesRequested": "Changes requested",
+      "commented": "Review comment sent",
+      "ownPr": "GitHub doesn't let you approve or request changes on your own pull request."
     }
   }
 }

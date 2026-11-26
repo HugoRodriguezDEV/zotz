@@ -21,6 +21,7 @@ import { PRTriageStrip } from './triage-strip'
 import { ConflictingFilesSection, MergeConflictNotice } from './conflict-summary'
 import { ChecksList } from './checks-list'
 import { ZotzChecksAutofixToggle } from '../../../zotz/source-control/ZotzChecksAutofixToggle'
+import { ZotzPrReviewControls } from '../../../zotz/source-control/ZotzPrReviewControls'
 import { PRCommentsList } from '../comments/comments-list'
 import { openAnnotationLocation } from '@/components/editor/check-details/actions/check-annotation-open'
 import { useTranslate } from '@/i18n/use-translate'
@@ -209,6 +210,19 @@ export function ChecksPanelActiveContent({
             onRefreshReview={refreshHostedReviewAfterMutation}
           />
         )}
+        {repo && activeReview.provider === 'github' ? (
+          <ZotzPrReviewControls
+            pr={{
+              repoPath: repo.path,
+              repoId: repo.id,
+              prNumber: activeReview.number,
+              prRepo: activeReview.githubRepository ?? pr?.prRepo ?? null
+            }}
+            state={activeReview.state}
+            showMarkReady={false}
+            onMutated={() => void handleRefresh()}
+          />
+        ) : null}
       </div>
 
       {shouldShowReviewTriageStrip && sourceControlAiActionsVisible && (

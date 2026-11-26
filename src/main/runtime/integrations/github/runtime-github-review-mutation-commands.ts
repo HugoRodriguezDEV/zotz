@@ -15,6 +15,8 @@ import { setPRFileViewed } from '../../../github/client/update/pr-file-viewed'
 import { updatePRDetails, updatePRTitle } from '../../../github/client/update/pr-details'
 import { updatePRState } from '../../../github/client/update/pr-state'
 import { getRepoRoutingConnectionId } from '../../../../shared/execution-host'
+import type { ZotzPrReviewEvent } from '../../../../shared/zotz/zotz-pr-review'
+import { submitPRReview } from '../../../zotz/github/zotz-pr-review'
 
 type LocalGitArgs = [] | [LocalProjectGhExecOptions]
 
@@ -190,6 +192,25 @@ export class RuntimeGitHubReviewMutationCommands {
     return markPRDraft(
       repo.path,
       prNumber,
+      getRepoRoutingConnectionId(repo),
+      prRepo ?? null,
+      ...this.deps.getLocalGitArgs(repo)
+    )
+  }
+
+  async submitRepoPRReview(
+    repoSelector: string,
+    prNumber: number,
+    event: ZotzPrReviewEvent,
+    body: string,
+    prRepo?: GitHubOwnerRepo | null
+  ): Promise<Awaited<ReturnType<typeof submitPRReview>>> {
+    const repo = await this.deps.resolveRepo(repoSelector)
+    return submitPRReview(
+      repo.path,
+      prNumber,
+      event,
+      body,
       getRepoRoutingConnectionId(repo),
       prRepo ?? null,
       ...this.deps.getLocalGitArgs(repo)
