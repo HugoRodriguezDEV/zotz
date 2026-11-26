@@ -4,6 +4,9 @@ Zotz's default look:
 
 - **Zotz Night** app and terminal theme (dark), a darker take on
   [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme)'s colors.
+- **Zotz Contraluz** app and terminal theme (dark, high contrast) for glare and backlit screens:
+  near-white text, brighter accents, stronger borders and no italic comments; body text stays
+  above 12:1 and every accent above 7:1.
 - **Karla** for the interface and **Atkinson Hyperlegible Mono** for the terminal and code; the
   Braille Institute designed the mono so similar letters (I l 1, O 0) never look alike.
 

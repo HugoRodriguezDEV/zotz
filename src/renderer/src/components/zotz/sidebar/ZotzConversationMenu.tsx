@@ -37,6 +37,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { archiveZotzConversation } from './zotz-archive'
 import { runWorktreeDelete } from '../../sidebar/workspace-actions/deletion/delete-worktree-flow'
+import { deleteFolderWorkspaceUnlessUnsaved } from '../../sidebar/workspace-actions/deletion/folder-workspace-delete'
+import { parseWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
 import type { Worktree } from '../../../../../shared/worktree/types'
 
 /** "Move to group" for a conversation: every group, a new one, and leaving its current one. */
@@ -158,6 +160,23 @@ type MenuAction = {
   run: () => void
 }
 
+function deleteZotzConversation(worktree: Worktree): void {
+  const scope = parseWorkspaceKey(worktree.id)
+  // Loose folders leave the sidebar but keep their files; Git worktrees go through Git removal.
+  if (scope?.type === 'folder') {
+    void deleteFolderWorkspaceUnlessUnsaved(
+      useAppStore.getState,
+      scope.folderWorkspaceId,
+      worktree.hostId
+    )
+    return
+  }
+  runWorktreeDelete(worktree.id, {
+    expectedInstanceId: worktree.instanceId,
+    ...(worktree.hostId ? { expectedHostId: worktree.hostId } : {})
+  })
+}
+
 function conversationActions(
   worktree: Worktree,
   t: Translate,
@@ -216,11 +235,7 @@ function conversationActions(
       label: t('zotz.sidebar.delete', 'Delete'),
       icon: Trash2,
       destructive: true,
-      run: () =>
-        runWorktreeDelete(worktree.id, {
-          expectedInstanceId: worktree.instanceId,
-          ...(worktree.hostId ? { expectedHostId: worktree.hostId } : {})
-        })
+      run: () => deleteZotzConversation(worktree)
     })
   }
   return actions

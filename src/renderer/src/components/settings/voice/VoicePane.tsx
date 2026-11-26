@@ -27,8 +27,8 @@ import { VoiceSpeechGpuSetting } from './VoiceSpeechGpuSetting'
 import { useTranslate } from '@/i18n/use-translate'
 import { readIpcErrorMessage } from '@/runtime/errors/ipc-error'
 import { useLanguageReadiness } from '@/i18n/language-readiness'
-import { speechModelRatingLanguage } from './speech-model-quality'
-import { suggestSpeechModel } from './speech-model-suggestion'
+import { dictationSpokenLanguages, speechModelRatingLanguage } from './speech-model-quality'
+import { favorsAccurateSpeechModel, suggestSpeechModel } from './speech-model-suggestion'
 
 type VoicePaneProps = {
   settings: GlobalSettings
@@ -49,6 +49,7 @@ export function VoicePane({
   const refreshModelStates = useAppStore((s) => s.refreshModelStates)
   const markFeatureTipsSeen = useAppStore((s) => s.markFeatureTipsSeen)
   const systemLanguageTag = useLanguageReadiness((s) => s.detection?.detectedTag)
+  const systemLanguageTags = useLanguageReadiness((s) => s.detection?.preferredTags)
   // null until main answers, so the status and list never show a state the catalog would contradict.
   const [loadedCatalog, setCatalog] = useState<SpeechModelManifest[] | null>(null)
   const catalog = loadedCatalog ?? []
@@ -240,15 +241,19 @@ export function VoicePane({
   const ratingLanguage =
     speechModelRatingLanguage(voiceSettings.dictationLanguage, systemLanguageTag ?? undefined) ??
     'en'
-  const platform = window.api.platform?.get()
-  const suggestedModel = suggestSpeechModel(catalog, ratingLanguage, {
-    selectedModelId: voiceSettings.sttModel,
-    // Metal runs the large models fast; other machines get the small, quick ones.
-    favorAccuracy:
-      platform?.platform === 'darwin' &&
-      platform.arch === 'arm64' &&
-      voiceSettings.speechGpu !== 'off'
-  })
+  const spokenLanguages = dictationSpokenLanguages(
+    voiceSettings.dictationLanguage,
+    settings.uiLanguage,
+    systemLanguageTags ?? (systemLanguageTag ? [systemLanguageTag] : [])
+  )
+  const suggestedModel = suggestSpeechModel(
+    catalog,
+    spokenLanguages.length > 0 ? spokenLanguages : [ratingLanguage],
+    {
+      selectedModelId: voiceSettings.sttModel,
+      favorAccuracy: favorsAccurateSpeechModel(voiceSettings.speechGpu)
+    }
+  )
 
   const setUpDictation = (): void => {
     if (!suggestedModel) {
