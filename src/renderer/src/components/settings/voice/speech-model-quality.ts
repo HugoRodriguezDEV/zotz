@@ -1,4 +1,5 @@
 import { DICTATION_LANGUAGE_AUTO } from '../../../../../shared/speech/models/dictation-language'
+import { UI_LANGUAGE_SYSTEM, isPluginUiLanguage } from '../../../../../shared/ui-language'
 import type {
   SpeechModelErrorRate,
   SpeechModelManifest
@@ -37,6 +38,29 @@ export function speechModelRatingLanguage(
   }
   const language = systemLocale?.split(/[-_]/)[0]?.toLowerCase()
   return (language && LOCALE_LANGUAGE_ALIASES[language]) || language || undefined
+}
+
+/**
+ * The languages the user dictates in, main one first: the dictation language, or with Auto-detect
+ * the chosen UI language and every preferred system language, so a bilingual user is fully served.
+ */
+export function dictationSpokenLanguages(
+  dictationLanguage: string | undefined,
+  uiLanguage: string | undefined,
+  systemTags: readonly string[]
+): string[] {
+  const explicit = speechModelRatingLanguage(dictationLanguage, undefined)
+  if (explicit) {
+    return [explicit]
+  }
+  const tags = [...systemTags]
+  if (uiLanguage && uiLanguage !== UI_LANGUAGE_SYSTEM && !isPluginUiLanguage(uiLanguage)) {
+    tags.push(uiLanguage)
+  }
+  const languages = tags
+    .map((tag) => speechModelRatingLanguage(DICTATION_LANGUAGE_AUTO, tag))
+    .filter((language): language is string => Boolean(language))
+  return [...new Set(languages)]
 }
 
 export function speechModelQuality(

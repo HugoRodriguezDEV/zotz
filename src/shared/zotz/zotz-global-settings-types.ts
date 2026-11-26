@@ -39,4 +39,6 @@ export type ZotzGlobalSettings = {
   zotzPlacedConversations?: string[]
   /** The saved profile already moved to the Zotz Night look once. */
   zotzNightLookApplied?: boolean
+  /** The saved dictation model was already checked once against the languages the user speaks. */
+  zotzDictationLanguagesChecked?: boolean
 }

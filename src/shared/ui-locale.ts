@@ -19,6 +19,8 @@ export const DEFAULT_UI_LOCALE: SupportedUiLocale = 'en'
 
 export type UiLanguageDetection = {
   detectedTag: string | null
+  /** Every preferred tag in order, so features like dictation can serve all of a bilingual user's languages. */
+  preferredTags?: string[]
   status: 'supported' | 'unsupported' | 'unknown'
   locale: SupportedUiLocale
   source: 'native' | 'browser' | 'browser-fallback'
@@ -83,10 +85,14 @@ export function detectUiLanguage(
   preferences: readonly string[],
   source: UiLanguageDetection['source']
 ): UiLanguageDetection {
-  const detectedTag = preferences.map(normalizeUiLocaleTag).find((tag) => tag !== null) ?? null
+  const preferredTags = preferences
+    .map(normalizeUiLocaleTag)
+    .filter((tag): tag is string => tag !== null)
+  const detectedTag = preferredTags[0] ?? null
   const match = detectedTag ? matchUiLocale(detectedTag) : null
   return {
     detectedTag,
+    preferredTags,
     status: detectedTag ? (match ? 'supported' : 'unsupported') : 'unknown',
     locale: match ?? DEFAULT_UI_LOCALE,
     source
