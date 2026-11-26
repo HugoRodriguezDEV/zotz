@@ -119,18 +119,6 @@ export function PullRequestPageTabs({
             </span>
           )}
         </TabsTrigger>
-        <ZotzPrReviewButton
-          pr={{
-            repoPath,
-            repoId: effectiveRepoId,
-            sourceContext,
-            prNumber: workItem.number,
-            prRepo: resolvePullRequestRepo(workItem, projectOrigin)
-          }}
-          state={localState}
-          onStateChange={setLocalState}
-          onMutated={invalidateCurrentDetailsCache}
-        />
       </TabsList>
 
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-sleek">
@@ -234,6 +222,20 @@ export function PullRequestPageTabs({
               pendingViewedPaths={pendingViewedPaths}
               onCommentAdded={appendOptimisticComment}
               onViewedChange={handlePRFileViewedChange}
+              reviewAction={
+                <ZotzPrReviewButton
+                  pr={{
+                    repoPath,
+                    repoId: effectiveRepoId,
+                    sourceContext,
+                    prNumber: workItem.number,
+                    prRepo: resolvePullRequestRepo(workItem, projectOrigin)
+                  }}
+                  state={localState}
+                  onStateChange={setLocalState}
+                  onMutated={invalidateCurrentDetailsCache}
+                />
+              }
             />
           )}
         </TabsContent>

@@ -953,7 +953,7 @@ Sección B de la spec de monitor y remotos.
 
 ### 2026-11-26 — Revisar, aprobar y pasar a draft desde Zotz (`zotz-pr-revision`)
 
-- **Página del PR:** botón **Review** junto a las pestañas (visible también en Files changed), como el "Review changes" de GitHub: comentario y Comentar / Aprobar / Pedir cambios, más **Pasar a draft** o **Listo para revisión**. Merge y cerrar ya existían en upstream.
+- **Página del PR:** botón **Review** en la barra de Files changed, junto a "Side by Side", como el "Review changes" de GitHub: comentario y Comentar / Aprobar / Pedir cambios, más **Pasar a draft** o **Listo para revisión**. Merge y cerrar ya existían en upstream.
 - **Panel del PR (lateral):** la misma caja de revisión y **Pasar a draft** para PRs abiertos; "Listo para revisión" de los drafts ya lo traía upstream.
 - **Backend:** `gh pr review` en `src/main/zotz/github/zotz-pr-review.ts`; IPC `gh:submitPRReview` y `gh:markPRDraft` (upstream solo tenía draft por RPC) en `zotz-pr-review-ipc.ts`; RPC `github.submitPRReview` para servidores emparejados y el cliente web.
 - GitHub no deja aprobar ni pedir cambios en tu propio PR; Zotz lo dice en vez de mostrar el error de GraphQL.

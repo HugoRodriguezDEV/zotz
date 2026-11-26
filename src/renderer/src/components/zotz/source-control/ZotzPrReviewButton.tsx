@@ -27,7 +27,7 @@ export function ZotzPrReviewButton({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" size="sm" className="my-1.5 ml-auto">
+        <Button type="button" size="xs">
           <ClipboardCheck className="size-3.5" />
           {t('zotz.prReview.open', 'Review')}
           <ChevronDown className="size-3.5" />
