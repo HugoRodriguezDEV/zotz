@@ -13,6 +13,7 @@ import type { Worktree } from '../../../../../shared/worktree/types'
 import type { ZotzLinkGroup } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
 import { isZotzUserConversation } from '../../../../../shared/zotz/zotz-user-conversation'
 import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
+import { folderWorkspaceToWorktree } from '../../../../../shared/folder-workspaces/folder-workspace-worktree'
 
 export type ZotzConversationRow = {
   /** Activation key: a worktree id, or `folder:<id>` for a folder workspace. */
@@ -22,8 +23,10 @@ export type ZotzConversationRow = {
   /** What agents type to message it (`salmon`); null for loose folders. */
   shortName: string | null
   lastActivityAt: number
-  /** Null for loose folders, which have no worktree actions. */
+  /** Null for loose folders, which have no Git actions. */
   worktree: Worktree | null
+  /** A loose folder as a worktree record, for rename, archive and delete. */
+  folderWorktree?: Worktree
   /** The repo copy it lives in; null for loose folders. */
   repo: Repo | null
   /** The machine it runs on. */
@@ -212,6 +215,7 @@ export function buildZotzFolderConversations(input: {
       shortName: null,
       lastActivityAt: 0,
       worktree: null,
+      folderWorktree: folderWorkspaceToWorktree(folder),
       repo: null,
       hostId: folder.executionHostId ?? LOCAL_EXECUTION_HOST_ID
     }))

@@ -275,15 +275,16 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
   )
 
   const renderFolder = (row: ConversationRow): React.JSX.Element => (
-    <ZotzConversationRow
-      key={row.id}
-      row={row}
-      repo={undefined}
-      active={row.id === activeWorktreeId}
-      status={statusByWorkspace.get(row.id) ?? null}
-      canceled={canceledWorkspaces.has(row.id)}
-      queuedSince={queuedSince.get(row.id) ?? null}
-    />
+    <ZotzConversationMenu key={`${row.hostId}:${row.id}`} worktree={row.folderWorktree ?? null}>
+      <ZotzConversationRow
+        row={row}
+        repo={undefined}
+        active={row.id === activeWorktreeId}
+        status={statusByWorkspace.get(row.id) ?? null}
+        canceled={canceledWorkspaces.has(row.id)}
+        queuedSince={queuedSince.get(row.id) ?? null}
+      />
+    </ZotzConversationMenu>
   )
 
   const sectionHeader = (label: string, action: React.ReactNode): React.JSX.Element => (

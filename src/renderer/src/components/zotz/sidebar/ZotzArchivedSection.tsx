@@ -3,7 +3,11 @@ import { ArchiveRestore, ChevronDown, ChevronRight } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
-import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
+import {
+  selectFolderWorkspaces,
+  selectWorktreesByRepo
+} from '@/store/workspaces/catalog/workspace-record-fields'
+import { folderWorkspaceToWorktree } from '../../../../../shared/folder-workspaces/folder-workspace-worktree'
 import { isRepoHidden } from '../../../../../shared/hidden-projects'
 import { onZotzShowArchived, setZotzConversationArchived } from './zotz-archive'
 
@@ -13,19 +17,27 @@ export function ZotzArchivedSection(): React.JSX.Element | null {
   const [open, setOpen] = useState(false)
   const repos = useAppStore((s) => s.repos)
   const worktreesByRepo = useAppStore((s) => selectWorktreesByRepo(s))
+  const folderWorkspaces = useAppStore((s) => selectFolderWorkspaces(s))
   useEffect(() => onZotzShowArchived(() => setOpen(true)), [])
 
   const archived = useMemo(
     () =>
-      repos
-        .filter((repo) => !isRepoHidden(repo))
-        .flatMap((repo) =>
-          (worktreesByRepo[repo.id] ?? [])
-            .filter((worktree) => worktree.isArchived)
-            .map((worktree) => ({ worktree, repo }))
-        )
-        .sort((a, b) => b.worktree.lastActivityAt - a.worktree.lastActivityAt),
-    [repos, worktreesByRepo]
+      [
+        ...repos
+          .filter((repo) => !isRepoHidden(repo))
+          .flatMap((repo) =>
+            (worktreesByRepo[repo.id] ?? [])
+              .filter((worktree) => worktree.isArchived)
+              .map((worktree) => ({ worktree, source: repo.displayName }))
+          ),
+        ...folderWorkspaces
+          .filter((folder) => folder.isArchived)
+          .map((folder) => ({
+            worktree: folderWorkspaceToWorktree(folder),
+            source: folder.folderPath
+          }))
+      ].sort((a, b) => b.worktree.lastActivityAt - a.worktree.lastActivityAt),
+    [repos, worktreesByRepo, folderWorkspaces]
   )
   if (archived.length === 0) {
     return null
@@ -44,15 +56,15 @@ export function ZotzArchivedSection(): React.JSX.Element | null {
       </button>
       {open ? (
         <ul className="scrollbar-sleek mt-1 max-h-56 space-y-0.5 overflow-y-auto">
-          {archived.map(({ worktree, repo }) => (
+          {archived.map(({ worktree, source }) => (
             <li
-              key={worktree.id}
+              key={`${worktree.hostId ?? ''}:${worktree.id}`}
               className="flex min-w-0 items-center gap-2 rounded-md py-1 pr-1 pl-6 text-worktree-sidebar-foreground/70"
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs">{worktree.displayName}</span>
                 <span className="block truncate text-2xs text-worktree-sidebar-foreground/45">
-                  {repo.displayName}
+                  {source}
                 </span>
               </span>
               <Button
