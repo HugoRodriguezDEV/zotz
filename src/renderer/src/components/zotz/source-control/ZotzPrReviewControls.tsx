@@ -62,9 +62,8 @@ export function ZotzPrReviewControls({
     } catch (error) {
       onStatePatch?.(state)
       toast.error(error instanceof Error ? error.message : String(error))
-    } finally {
-      setPending(null)
     }
+    setPending(null)
   }
 
   const submit = async (event: ZotzPrReviewEvent): Promise<void> => {
@@ -82,9 +81,8 @@ export function ZotzPrReviewControls({
       onMutated()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error))
-    } finally {
-      setPending(null)
     }
+    setPending(null)
   }
 
   const spinnerOr = (kind: Pending, icon: React.ReactNode): React.ReactNode =>
