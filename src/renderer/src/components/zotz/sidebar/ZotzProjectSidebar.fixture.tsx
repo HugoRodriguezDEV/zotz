@@ -311,3 +311,52 @@ export const projectByMachineOff = defineFixture({
     </div>
   )
 })
+
+// Icons already set, so the GitHub avatar lookup leaves them alone.
+const zotzOnGitHub: Repo = { ...zotz, repoIcon: { type: 'emoji', emoji: '🦇' } }
+const empresas: Repo = {
+  ...repo('empresas', 'avena-empresas'),
+  repoIcon: { type: 'emoji', emoji: '🧾' }
+}
+const GITHUB_SLUGS: Record<string, { owner: string; repo: string }> = {
+  zotz: { owner: 'HugoRodriguezDEV', repo: 'zotz' },
+  empresas: { owner: 'Avena-Health', repo: 'avena-backoffice' }
+}
+
+export const githubRepoInGroup = defineFixture({
+  width: 300,
+  setup: () => {
+    Object.assign(window.api, {
+      gh: {
+        ...window.api.gh,
+        repoSlug: async ({ repoId }: { repoId?: string }) => GITHUB_SLUGS[repoId ?? ''] ?? null
+      }
+    })
+  },
+  store: {
+    repos: [zotzOnGitHub, empresas],
+    worktreesByRepo: {
+      zotz: [worktree('zotz', 'repo-visible', 'Mostrar el repo de GitHub')],
+      empresas: [worktree('empresas', 'op-200-facturas', 'OP-200 facturas')]
+    },
+    settings: {
+      ...getDefaultSettings('/home/fixture'),
+      zotzConversationLinks: [
+        {
+          id: 'g1',
+          name: 'Facturación',
+          createdAt: 1,
+          members: [
+            { hostId: 'local', path: '/code/zotz/repo-visible' },
+            { hostId: 'local', path: '/code/empresas/op-200-facturas' }
+          ]
+        }
+      ]
+    }
+  },
+  render: () => (
+    <div className="flex h-[300px] flex-col bg-worktree-sidebar">
+      <ZotzProjectSidebar />
+    </div>
+  )
+})
