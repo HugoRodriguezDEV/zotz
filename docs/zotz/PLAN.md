@@ -945,3 +945,8 @@ Sección B de la spec de monitor y remotos.
 - **Sugerencia de modelo:** ahora cubre todos los idiomas que habla el usuario (idioma del dictado; con Auto, el idioma de la interfaz elegido y todos los idiomas preferidos del sistema). Entre los modelos que los cubren gana el de menor error en el peor idioma; con en + es es **Parakeet TDT v3** (en 3.7 %, es 1.7 %). `UiLanguageDetection` lleva `preferredTags` con la lista completa.
 - **Perfiles guardados:** una vez por perfil (`zotzDictationLanguagesChecked`), si el modelo elegido no oye uno de esos idiomas, Zotz baja el sugerido en segundo plano y cambia al terminar (el dictado nunca se queda sin modelo); avisa con un toast. Si el usuario cambió de modelo mientras bajaba, se respeta el suyo. Modelos en la nube y dictado apagado no se tocan; el cliente web emparejado no corre la revisión.
 - Verificado en una instancia dev con el modelo solo-inglés: la migración bajó Parakeet TDT v3 y cambió; el mismo audio en español (voz Eddy es-MX) pasó de "Necessitamos are a form of Nictara in Espaol…" a "Necesitamos agregar una forma de dictar en español. Si estoy hablando en español, la transcripción tiene que salir en español, con acentos y puntuación."; inglés sigue exacto.
+
+### 2026-11-24 — Tema Zotz Contraluz (`zotz-tema-contraluz`)
+
+- **Zotz Contraluz** (app + terminal) en el plugin incluido `zotz.zotz-night` (v1.1.0): base oscura de alto contraste para trabajar con reflejos o contra la luz. Texto casi blanco (`#f5f7ff` sobre `#0b0c12`, 18:1), texto secundario y pestañas inactivas ≥10:1, acentos más claros y saturados ≥9:1, bordes y divisores ≥3:1, selección azul sólida con texto blanco, comentarios sin itálica.
+- No cambia el default: se elige en Ajustes → Apariencia (tema) y Ajustes → Terminal.
