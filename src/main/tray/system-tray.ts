@@ -1,6 +1,9 @@
 import { Menu, Tray, nativeImage, nativeTheme, type NativeImage } from 'electron'
 import menuBarIconPath from '../../../resources/tray/orca-menu-barTemplate.png?asset&asarUnpack'
 import menuBarIconRetinaPath from '../../../resources/tray/orca-menu-barTemplate@2x.png?asset&asarUnpack'
+import windowsTrayIconPath from '../../../resources/tray/zotz-tray-windows.png?asset'
+import windowsTrayIconRetinaPath from '../../../resources/tray/zotz-tray-windows@2x.png?asset'
+import { DEFAULT_APP_ICON_ID, normalizeAppIconId } from '../../shared/app-icon'
 import { deferAppKitSceneMutation } from '../window/desktop-integration/appkit-scene-mutation'
 import { createAppIconImage } from '../window/desktop-integration/app-icon'
 import { translateMain } from '../i18n/main-i18n'
@@ -143,6 +146,24 @@ function createMacMenuBarImage(): NativeImage | null {
   return image
 }
 
+// The default pixel logo ships pixel-exact 16/32 px tray art; downscaling the 256 px moon would blur it.
+function createWindowsTrayImage(appIcon: unknown): NativeImage {
+  if (normalizeAppIconId(appIcon) === DEFAULT_APP_ICON_ID) {
+    const image = nativeImage.createFromPath(windowsTrayIconPath)
+    const retinaImage = nativeImage.createFromPath(windowsTrayIconRetinaPath)
+    if (!image.isEmpty()) {
+      if (!retinaImage.isEmpty()) {
+        image.addRepresentation({ scaleFactor: 2, dataURL: retinaImage.toDataURL() })
+      }
+      return image
+    }
+  }
+  return createAppIconImage(appIcon).resize({
+    width: TRAY_ICON_SIZE,
+    height: TRAY_ICON_SIZE
+  })
+}
+
 // Badge dev pixels inside the production-width template; attention tint inherits them, unlike a separate tray title.
 function stampMacDevBadge(base: NativeImage): NativeImage {
   try {
@@ -216,10 +237,7 @@ export function createSystemTray(opts: SystemTrayOptions): Tray | null {
       baseTrayImage = stampMacDevBadge(baseTrayImage)
     }
   } else {
-    baseTrayImage = createAppIconImage(opts.appIcon).resize({
-      width: TRAY_ICON_SIZE,
-      height: TRAY_ICON_SIZE
-    })
+    baseTrayImage = createWindowsTrayImage(opts.appIcon)
   }
 
   tray = new Tray(baseTrayImage)

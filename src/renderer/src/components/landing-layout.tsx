@@ -1,6 +1,7 @@
 import { ShortcutKeyCombo } from './ShortcutKeyCombo'
 import type { ShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
-import logo from '../../../../resources/logo.svg'
+import moonLogo from '../../../../resources/logo-moon.svg'
+import moonLogoWingsDown from '../../../../resources/logo-moon-wings-down.svg'
 import { useTranslate } from '@/i18n/use-translate'
 
 export type LandingShortcutItem = {
@@ -17,17 +18,24 @@ export function LandingBrand(): React.JSX.Element {
   return (
     <>
       <div
-        className="flex items-center justify-center size-20 rounded-2xl border border-border/80 shadow-lg shadow-black/40"
-        style={{ backgroundColor: '#12181e' }}
+        className="relative flex items-center justify-center size-20 rounded-2xl border border-border/80 shadow-lg shadow-black/40"
+        style={{ backgroundImage: 'linear-gradient(#2a2347, #0f0d1a)' }}
       >
+        {/* Two stacked frames flap the bat; 64px keeps each of the 32 cells at 2px. */}
         <img
-          src={logo}
-          alt={t('auto.components.Landing.520304a067', 'Orca logo')}
-          className="size-12"
+          src={moonLogo}
+          alt={t('auto.components.Landing.520304a067', 'Zotz logo')}
+          className="size-16"
+        />
+        <img
+          src={moonLogoWingsDown}
+          alt=""
+          aria-hidden="true"
+          className="zotz-bat-flap-down absolute size-16"
         />
       </div>
       <h1 className="text-4xl font-bold text-foreground tracking-tight">
-        {t('auto.components.Landing.6ca6ff404e', 'ORCA')}
+        {t('auto.components.Landing.6ca6ff404e', 'ZOTZ')}
       </h1>
     </>
   )

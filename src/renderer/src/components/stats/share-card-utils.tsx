@@ -139,18 +139,19 @@ export function getLegendItems(provider: 'claude' | 'codex', t: Translate = tran
 }
 
 export function OrcaLogo(): React.JSX.Element {
-  // Zotz bat mark; same path as resources/logo.svg.
+  // Zotz pixel bat; same cells as resources/logo.svg.
   return (
     <svg
-      width={26}
-      height={14}
-      viewBox="2 15 60 32"
+      width={24}
+      height={15}
+      viewBox="0 0 16 10"
+      shapeRendering="crispEdges"
       xmlns="http://www.w3.org/2000/svg"
       style={{ opacity: 0.9, verticalAlign: 'middle' }}
     >
       <path
         style={{ fill: '#ffffff' }}
-        d="M32 24L35 22L37 15L39.5 24C46 22 55 18 62 20C59 26 58 31 58 37Q53 31 48 36Q43 32 39 40Q35 40 32 47Q29 40 25 40Q21 32 16 36Q11 31 6 37C6 31 5 26 2 20C9 18 18 22 24.5 24L27 15L29 22Z"
+        d="M5 0h1v1h-1zM10 0h1v1h-1zM0 1h1v1h-1zM5 1h2v1h-2zM9 1h2v1h-2zM15 1h1v1h-1zM0 2h2v1h-2zM5 2h6v1h-6zM14 2h2v1h-2zM0 3h3v1h-3zM4 3h2v1h-2zM7 3h2v1h-2zM10 3h2v1h-2zM13 3h3v1h-3zM0 4h16v1h-16zM0 5h16v1h-16zM1 6h2v1h-2zM4 6h8v1h-8zM13 6h2v1h-2zM2 7h1v1h-1zM5 7h6v1h-6zM13 7h1v1h-1zM6 8h4v1h-4zM6 9h1v1h-1zM9 9h1v1h-1z"
       />
     </svg>
   )

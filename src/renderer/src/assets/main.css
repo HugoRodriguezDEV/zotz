@@ -1327,7 +1327,8 @@ html.native-shell .app-layout {
 
 /* Custom titlebars hide native app identity; invert the white SVG in light mode for contrast. */
 .titlebar-logo {
-  height: 16px;
+  /* 20px = 2px per cell of the 16×10 pixel bat. */
+  height: 20px;
   flex-shrink: 0;
   margin: 0 4px 0 10px;
   opacity: 0.75;
@@ -1336,6 +1337,27 @@ html.native-shell .app-layout {
 /* .dark lives on the root; descendant :not(.dark) would also match dark mode. */
 :root:not(.dark) .titlebar-logo {
   filter: invert(1);
+}
+
+/* Landing bat flap: the wings-down frame covers the moon for 220ms of every 560ms; reduced motion keeps wings up. */
+.zotz-bat-flap-down {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .zotz-bat-flap-down {
+    animation: zotz-bat-flap 560ms step-end infinite;
+  }
+}
+
+@keyframes zotz-bat-flap {
+  0% {
+    visibility: hidden;
+  }
+  60.7%,
+  100% {
+    visibility: visible;
+  }
 }
 
 /* Fixed window controls replace hidden native chrome in every layout mode. */
