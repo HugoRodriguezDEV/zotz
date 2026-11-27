@@ -29,6 +29,8 @@ import {
 } from './zotz-link-groups'
 import { findZotzLinkWorktreeId, selectActiveZotzLinkMember } from './zotz-link-worktrees'
 import { ZotzLinkConversationRow } from './ZotzLinkConversationRow'
+import { ZotzLinkHostRoom } from './ZotzLinkHostRoom'
+import { ZotzLinkHostSection } from './ZotzLinkHostSection'
 import { ZotzLinkTimeline } from './ZotzLinkTimeline'
 import { ZotzGroupMap } from './ZotzGroupMap'
 import { useZotzGroupMap } from './use-zotz-group-map'
@@ -256,7 +258,13 @@ export default function ZotzLinksPanel(): React.JSX.Element {
         {hosts.map((host) => {
           const list = conversations.get(host.hostId)
           return (
-            <Section key={host.hostId} title={host.name}>
+            <ZotzLinkHostSection
+              key={host.hostId}
+              host={host}
+              list={list}
+              groupKey={group?.id ?? null}
+              compact={(group?.members.length ?? 0) > 1}
+            >
               {!host.supported ? (
                 <p className="px-2 text-[11px] text-muted-foreground">
                   {t(
@@ -273,18 +281,23 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                     {t('zotz.links.none', 'No conversations here.')}
                   </p>
                 ) : (
-                  list.conversations.map((entry) => {
-                    const member = { hostId: host.hostId, path: entry.path }
-                    return (
-                      <ZotzLinkConversationRow
-                        key={entry.path}
-                        entry={entry}
-                        highlighted={active ? sameZotzLinkMember(member, active) : false}
-                        onOpen={() => open(member)}
-                        action={linkAction(member)}
-                      />
-                    )
-                  })
+                  <ZotzLinkHostRoom
+                    host={host}
+                    entries={list.conversations}
+                    groupMap={map}
+                    isCurrent={(entry) =>
+                      active
+                        ? sameZotzLinkMember({ hostId: host.hostId, path: entry.path }, active)
+                        : false
+                    }
+                    isInGroup={(entry) =>
+                      (group?.members ?? []).some((m) =>
+                        sameZotzLinkMember(m, { hostId: host.hostId, path: entry.path })
+                      )
+                    }
+                    actionFor={(entry) => linkAction({ hostId: host.hostId, path: entry.path })}
+                    onOpen={(entry) => open({ hostId: host.hostId, path: entry.path })}
+                  />
                 )
               ) : (
                 <p className="px-2 text-[11px] text-muted-foreground">
@@ -293,7 +306,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                     : t('zotz.links.loading', 'Loading…')}
                 </p>
               )}
-            </Section>
+            </ZotzLinkHostSection>
           )
         })}
       </div>
