@@ -37,6 +37,8 @@ export type ZotzGlobalSettings = {
   zotzConversationLinks?: ZotzLinkGroup[]
   /** Agent-created conversations already placed in their group (`host\npath`), so a drag out sticks. */
   zotzPlacedConversations?: string[]
+  /** Where each agent stands in a pixel room (group map, machine…): room key → agent key → fractions. */
+  zotzAgentRoomPositions?: Record<string, Record<string, [number, number]>>
   /** The saved profile already moved to the Zotz Night look once. */
   zotzNightLookApplied?: boolean
   /** The saved dictation model was already checked once against the languages the user speaks. */

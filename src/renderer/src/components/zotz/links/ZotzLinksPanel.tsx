@@ -32,7 +32,7 @@ import { ZotzLinkConversationRow } from './ZotzLinkConversationRow'
 import { ZotzLinkTimeline } from './ZotzLinkTimeline'
 import { ZotzGroupMap } from './ZotzGroupMap'
 import { useZotzGroupMap } from './use-zotz-group-map'
-import { isZotzMessageInPair } from './zotz-group-map-edges'
+import { isZotzMessageOfMember } from './zotz-group-map-edges'
 
 const NO_GROUPS: readonly ZotzLinkGroup[] = []
 
@@ -81,7 +81,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
     })
     .join('\n')
   const messages = useZotzLinkMessages(hosts, addressKey, group !== null)
-  const [pair, setPair] = useState<{ a: number; b: number } | null>(null)
+  const [focusedMember, setFocusedMember] = useState<string | null>(null)
   const map = useZotzGroupMap({
     group,
     active,
@@ -92,9 +92,13 @@ export default function ZotzLinksPanel(): React.JSX.Element {
         ? (hostFor(member.hostId)?.name ?? member.hostId)
         : null
   })
-  const shownMessages = pair
-    ? messages.filter((message) => isZotzMessageInPair(message, pair, map.memberIndexOf))
-    : messages
+  const focusedIndex = map.nodes.findIndex((node) => node.key === focusedMember)
+  const shownMessages =
+    focusedIndex === -1
+      ? messages
+      : messages.filter((message) =>
+          isZotzMessageOfMember(message, focusedIndex, map.memberIndexOf)
+        )
 
   const nameFor = (addressOrLabel: string): string => {
     for (const member of group?.members ?? []) {
@@ -218,15 +222,16 @@ export default function ZotzLinksPanel(): React.JSX.Element {
               <Section title={t('zotz.groups.mapTitle', 'Who talks to whom')}>
                 <div className="px-1">
                   <ZotzGroupMap
+                    groupId={group.id}
                     nodes={map.nodes}
                     edges={map.edges}
                     parentEdges={map.parentEdges}
-                    activeEdges={map.activeEdges}
-                    selected={pair}
-                    onSelect={setPair}
+                    mail={map.mail}
+                    selected={focusedIndex === -1 ? null : focusedMember}
+                    onSelect={setFocusedMember}
                   />
-                  {pair ? (
-                    <Button variant="ghost" size="xs" onClick={() => setPair(null)}>
+                  {focusedIndex !== -1 ? (
+                    <Button variant="ghost" size="xs" onClick={() => setFocusedMember(null)}>
                       {t('zotz.groups.mapShowAll', 'Show every message')}
                     </Button>
                   ) : null}
