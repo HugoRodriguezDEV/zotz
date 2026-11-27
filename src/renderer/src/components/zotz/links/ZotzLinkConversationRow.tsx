@@ -2,6 +2,7 @@ import type React from 'react'
 import { AgentStateDot } from '@/components/AgentStateDot'
 import { HostRowIcon } from '@/components/host-row-icon'
 import { cn } from '@/lib/class-names'
+import { ZotzAgentWithBrand } from '../agent-sprite/ZotzAgentWithBrand'
 import type { ExecutionHostId } from '../../../../../shared/execution-host'
 import type {
   ZotzConversationEntry,
@@ -46,9 +47,9 @@ export function ZotzLinkConversationRow({
         onClick={onOpen}
         className="flex min-w-0 flex-1 items-center gap-2 text-left"
       >
-        <span className="flex shrink-0 items-center justify-center">
+        <ZotzAgentWithBrand agentType={entry.agent}>
           <ZotzConversationStateMark state={entry.state} identity={entry.shortName} />
-        </span>
+        </ZotzAgentWithBrand>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-foreground">{entry.title}</span>
           <span className="flex min-w-0 items-center gap-1 text-2xs text-muted-foreground">

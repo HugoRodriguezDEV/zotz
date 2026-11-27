@@ -1,4 +1,5 @@
 import type { AgentDotState } from '../../AgentStateDot'
+import type { AgentType } from '../../../../../shared/agent-status/contracts/agent-status-types'
 import type { FolderWorkspace } from '../../../../../shared/folder-workspaces/folder-workspace-types'
 import { isRepoHidden } from '../../../../../shared/hidden-projects'
 import type { Repo } from '../../../../../shared/repository/repo-types'
@@ -236,21 +237,28 @@ const STATUS_URGENCY: readonly AgentDotState[] = [
   'idle'
 ]
 
-export type ZotzConversationStatus = { state: AgentDotState; unread: boolean }
+export type ZotzConversationStatus = {
+  state: AgentDotState
+  unread: boolean
+  /** The agent behind the most urgent thread, for its brand mark. */
+  agentType?: AgentType
+}
 
 /** One marker per conversation from all its agent threads: the most urgent state, unread if any finished unseen. */
 export function summarizeZotzConversationStatus(
-  threads: readonly { state: AgentDotState; unread: boolean }[]
+  threads: readonly { state: AgentDotState; unread: boolean; agentType?: AgentType }[]
 ): ZotzConversationStatus | null {
   let best: AgentDotState | null = null
+  let agentType: AgentType | undefined
   let unread = false
   for (const thread of threads) {
     if (best === null || STATUS_URGENCY.indexOf(thread.state) < STATUS_URGENCY.indexOf(best)) {
       best = thread.state
+      agentType = thread.agentType
     }
     unread ||= thread.unread
   }
-  return best === null ? null : { state: best, unread }
+  return best === null ? null : { state: best, unread, agentType }
 }
 
 /** The conversation whose agent created this one, on the same machine; null when none is recorded. */

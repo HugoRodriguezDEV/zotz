@@ -167,7 +167,7 @@ export const queuedConversation = defineFixture({
         }}
         repo={zotz}
         active={false}
-        status={{ state: 'working', unread: false }}
+        status={{ state: 'working', unread: false, agentType: 'claude' }}
         canceled={false}
         queuedSince={Date.now() - 20 * 60_000}
       />

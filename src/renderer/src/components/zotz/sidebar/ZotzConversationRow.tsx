@@ -15,6 +15,7 @@ import type {
   ZotzConversationStatus
 } from './zotz-project-conversations'
 import { ZotzAgentSprite } from '../agent-sprite/ZotzAgentSprite'
+import { ZotzAgentWithBrand } from '../agent-sprite/ZotzAgentWithBrand'
 import { useZotzWorktreePr } from '../pr-status/use-zotz-worktree-pr'
 import { ZOTZ_PR_TONE_TEXT, zotzPrStatusLabel, zotzPrTone } from '../pr-status/zotz-pr-status'
 import { ZotzPrStatusIcon } from '../pr-status/ZotzPrStatusIcon'
@@ -143,14 +144,14 @@ export function ZotzConversationRow({
           : 'text-worktree-sidebar-foreground/80 hover:bg-worktree-sidebar-foreground/8'
       )}
     >
-      <span className="-mt-0.5 flex shrink-0 items-center justify-center">
+      <ZotzAgentWithBrand agentType={status?.agentType}>
         <StatusMark
           status={status}
           canceled={canceled}
           queued={queuedSince !== null}
           identity={row.shortName ?? row.id}
         />
-      </span>
+      </ZotzAgentWithBrand>
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{row.title}</span>
