@@ -81,7 +81,7 @@ export function ThreadAgentStateIndicator({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex size-4 shrink-0 items-center justify-center">
+        <span className="inline-flex shrink-0 items-center justify-center">
           <AgentStateDot state={state} size="md" title={null} />
         </span>
       </TooltipTrigger>
@@ -133,7 +133,7 @@ export function ActivityStatusGroupHeader({
         )}
       />
       {group.state ? (
-        <span className="inline-flex size-4 shrink-0 items-center justify-center">
+        <span className="inline-flex shrink-0 items-center justify-center">
           <AgentStateDot state={group.state} size="sm" />
         </span>
       ) : null}

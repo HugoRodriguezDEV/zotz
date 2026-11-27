@@ -225,7 +225,7 @@ export function WorktreeCardStatusSlot({
     </span>
   ) : newCardStyle && showStatus ? (
     <>
-      <span className={cn('inline-flex size-5 items-center justify-center', className)}>
+      <span className={cn('inline-flex items-center justify-center', className)}>
         <StatusIndicator status={status} aria-hidden="true" tooltipSide="right" />
       </span>
       <span className="sr-only">{passiveStatusAnnouncement}</span>

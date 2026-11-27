@@ -1,21 +1,21 @@
 import { HostRowIcon } from '@/components/host-row-icon'
 import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
 import React from 'react'
-import { Ban, GitPullRequest, Hourglass, Link2 } from 'lucide-react'
+import { GitPullRequest, Link2 } from 'lucide-react'
 import { useNow } from '@/hooks/use-now'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { activateAndRevealWorkspace } from '@/lib/workspace/activation/worktree-activation'
-import { AgentStateDot } from '@/components/AgentStateDot'
+import { AgentStateDot, agentStateLabel } from '@/components/AgentStateDot'
 import { formatRelativeTime } from '@/components/activity/activity-thread-presentation'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import type {
   ZotzConversationRow as Row,
   ZotzConversationStatus
 } from './zotz-project-conversations'
-import { ZotzWorkingBars } from './ZotzWorkingBars'
-import { ZotzBackgroundSonar } from './ZotzBackgroundSonar'
+import { ZotzAgentSprite } from '../agent-sprite/ZotzAgentSprite'
+import { ZotzAgentWithBrand } from '../agent-sprite/ZotzAgentWithBrand'
 import { useZotzWorktreePr } from '../pr-status/use-zotz-worktree-pr'
 import { ZOTZ_PR_TONE_TEXT, zotzPrStatusLabel, zotzPrTone } from '../pr-status/zotz-pr-status'
 import { ZotzPrStatusIcon } from '../pr-status/ZotzPrStatusIcon'
@@ -28,43 +28,46 @@ import { formatZotzRepoSlug, useZotzRepoGitHubSlug } from '../repo-github/use-zo
 function StatusMark({
   status,
   canceled,
-  queued
+  queued,
+  identity
 }: {
   status: ZotzConversationStatus | null
   canceled: boolean
   queued: boolean
+  identity: string
 }): React.JSX.Element {
   const t = useTranslate()
   if (queued) {
     return (
-      <Hourglass
-        role="img"
-        aria-label={t('zotz.agentQueue.queuedMark', 'Queued')}
-        className="size-3 text-zotz-gh-pending"
+      <ZotzAgentSprite
+        state="queued"
+        identity={identity}
+        label={t('zotz.agentQueue.queuedMark', 'Queued')}
       />
     )
   }
-  if (status?.state === 'working') {
-    return <ZotzWorkingBars />
-  }
-  if (status?.state === 'monitoring') {
-    return <ZotzBackgroundSonar />
-  }
   if (status) {
     return (
-      <AgentStateDot state={status.state} unread={status.unread} size="md" tooltipSide="right" />
+      <AgentStateDot
+        state={status.state}
+        unread={status.unread}
+        identity={identity}
+        agentType={status.agentType}
+        size="md"
+        tooltipSide="right"
+      />
     )
   }
   if (canceled) {
     return (
-      <Ban
-        role="img"
-        aria-label={t('zotz.agentQueue.canceledMark', 'Canceled')}
-        className="size-3 text-muted-foreground"
+      <ZotzAgentSprite
+        state="canceled"
+        identity={identity}
+        label={t('zotz.agentQueue.canceledMark', 'Canceled')}
       />
     )
   }
-  return <span aria-hidden className="size-1.5 rounded-full bg-worktree-sidebar-foreground/25" />
+  return <ZotzAgentSprite state="idle" identity={identity} label={agentStateLabel('idle')} />
 }
 
 /** `+371 −28` against the branch base, once Source Control has measured it. */
@@ -142,9 +145,14 @@ export function ZotzConversationRow({
           : 'text-worktree-sidebar-foreground/80 hover:bg-worktree-sidebar-foreground/8'
       )}
     >
-      <span className="mt-1 flex h-3 w-5 shrink-0 items-center justify-center">
-        <StatusMark status={status} canceled={canceled} queued={queuedSince !== null} />
-      </span>
+      <ZotzAgentWithBrand agentType={status?.agentType}>
+        <StatusMark
+          status={status}
+          canceled={canceled}
+          queued={queuedSince !== null}
+          identity={row.shortName ?? row.id}
+        />
+      </ZotzAgentWithBrand>
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{row.title}</span>

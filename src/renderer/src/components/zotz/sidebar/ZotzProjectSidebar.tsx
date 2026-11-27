@@ -3,6 +3,7 @@ import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import type { AgentDotState } from '@/components/AgentStateDot'
+import type { AgentType } from '../../../../../shared/agent-status/contracts/agent-status-types'
 import { activityThreadStatusId } from '@/components/activity/activity-thread-presentation'
 import { useAllAgentPaneThreads } from '@/components/activity/use-agent-pane-threads'
 import {
@@ -53,10 +54,17 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
   const activeWorktreeId = useAppStore((s) => s.activeWorktreeId)
   const { allThreads } = useAllAgentPaneThreads()
   const statusByWorkspace = useMemo(() => {
-    const threadsByWorkspace = new Map<string, { state: AgentDotState; unread: boolean }[]>()
+    const threadsByWorkspace = new Map<
+      string,
+      { state: AgentDotState; unread: boolean; agentType: AgentType }[]
+    >()
     for (const thread of allThreads) {
       const list = threadsByWorkspace.get(thread.worktree.id) ?? []
-      list.push({ state: activityThreadStatusId(thread), unread: thread.unread })
+      list.push({
+        state: activityThreadStatusId(thread),
+        unread: thread.unread,
+        agentType: thread.agentType
+      })
       threadsByWorkspace.set(thread.worktree.id, list)
     }
     const result = new Map<string, ZotzConversationStatus>()
