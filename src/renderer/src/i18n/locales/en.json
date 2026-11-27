@@ -26527,6 +26527,9 @@
     "dictation": {
       "languageUpgrade": "Dictation now uses {{model}}, which understands every language you speak."
     },
+    "prFiles": {
+      "open": "Files changed"
+    },
     "repoGitHub": {
       "open": "Open {{repo}} on GitHub"
     }
