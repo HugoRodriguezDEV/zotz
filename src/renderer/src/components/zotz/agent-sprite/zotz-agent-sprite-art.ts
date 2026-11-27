@@ -102,10 +102,8 @@ export const SPRITE_INK = {
 
 export type AgentBodyColor = { body: string; light: string; shade: string }
 
-// Fixed pixel-art hues: they read on light and dark backgrounds alike.
+// Fixed pixel-art hues for chats whose model has no color; none clash with the model colors.
 export const AGENT_BODY_COLORS: readonly AgentBodyColor[] = [
-  { body: '#5b8def', light: '#9dbcf7', shade: '#3c66c2' },
-  { body: '#e07a5f', light: '#f2ab96', shade: '#b3573f' },
   { body: '#4fae84', light: '#8ad3b1', shade: '#347f5e' },
   { body: '#a57be0', light: '#c9adf0', shade: '#7b55b6' },
   { body: '#d9a53f', light: '#ecc777', shade: '#a97c25' },
