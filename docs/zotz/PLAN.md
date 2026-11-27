@@ -950,3 +950,10 @@ Sección B de la spec de monitor y remotos.
 
 - **Zotz Contraluz** (app + terminal) en el plugin incluido `zotz.zotz-night` (v1.1.0): base oscura de alto contraste para trabajar con reflejos o contra la luz. Texto casi blanco (`#f5f7ff` sobre `#0b0c12`, 18:1), texto secundario y pestañas inactivas ≥10:1, acentos más claros y saturados ≥9:1, bordes y divisores ≥3:1, selección azul sólida con texto blanco, comentarios sin itálica.
 - No cambia el default: se elige en Ajustes → Apariencia (tema) y Ajustes → Terminal.
+
+### 2026-11-26 — Dictado en vivo dentro del campo (`zotz-dictado-en-vivo`)
+
+- **Problema:** con un modelo sin streaming (Parakeet TDT v3) la frase solo se decodificaba al hacer una pausa de 0.6 s, y el texto solo entraba al campo cada 20 s de audio o al terminar; mientras hablabas solo se veía en la barra de arriba.
+- **Motor (`stt-open-phrase-decode.ts`):** la frase que se está diciendo se decodifica otra vez cada 0.5 s más de audio y sale como texto parcial; la decodificación de la frase ya cortada lo reemplaza. Si una decodificación tarda más de la mitad del paso, ese dictado deja de hacerlas (máquinas lentas, Whisper). `performanceCoreThreads` pasó a su propio archivo por el límite de líneas del reconocedor.
+- **Vista previa (`ZotzDictationLivePreview`):** las palabras aún no escritas se dibujan en gris en el cursor del campo donde van a caer (textarea, editor contentEditable, composer del chat y terminal), con la fuente del campo y envolviendo como texto tecleado; al escribirse de verdad desaparecen. No se escribe nada en el campo antes, así que deshacer y teclear al mismo tiempo siguen igual. La barra de arriba se queda. Páginas del navegador: solo la barra.
+- Verificado: audio real de 11 s sin pausas (voz Eddy es-MX) alimentado en tiempo real en una instancia dev: texto nuevo cada ~0.5 s desde el segundo 1.6 y el final exacto; capturas de la vista previa en textarea y contentEditable (fixtures, claro y oscuro); en la terminal la posición cae en la celda del cursor (textarea auxiliar de xterm). **Sin probar de punta a punta:** el flujo con micrófono real (la prueba usa la API del motor y fixtures).
