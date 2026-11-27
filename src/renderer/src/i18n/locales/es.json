@@ -24900,6 +24900,9 @@
     },
     "prFiles": {
       "open": "Archivos cambiados"
+    },
+    "repoGitHub": {
+      "open": "Abrir {{repo}} en GitHub"
     }
   }
 }

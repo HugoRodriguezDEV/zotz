@@ -43,6 +43,11 @@ export class OfflineAudioChunker {
     return ready
   }
 
+  /** A copy of the audio held so far, which stays held. */
+  peek(): Float32Array | null {
+    return this.bufferedSamples === 0 ? null : this.combineBuffered().slice()
+  }
+
   /** Return the remaining audio, below the chunk limit. */
   flush(): Float32Array | null {
     if (this.bufferedSamples === 0) {
