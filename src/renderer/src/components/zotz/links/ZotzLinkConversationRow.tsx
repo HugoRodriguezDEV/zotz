@@ -7,17 +7,16 @@ import type {
   ZotzConversationEntry,
   ZotzConversationState
 } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
-import { ZotzWorkingBars } from '../sidebar/ZotzWorkingBars'
 
 export function ZotzConversationStateMark({
-  state
+  state,
+  identity
 }: {
   state: ZotzConversationState | null
+  /** Stable conversation key so its pixel agent keeps one color. */
+  identity?: string
 }): React.JSX.Element {
-  if (state === 'working') {
-    return <ZotzWorkingBars />
-  }
-  return <AgentStateDot state={state ?? 'idle'} size="md" />
+  return <AgentStateDot state={state ?? 'idle'} identity={identity} size="md" />
 }
 
 /** One conversation in the links panel: state, short name, title, agent and, when asked, its machine. */
@@ -47,8 +46,8 @@ export function ZotzLinkConversationRow({
         onClick={onOpen}
         className="flex min-w-0 flex-1 items-center gap-2 text-left"
       >
-        <span className="flex h-3 w-5 shrink-0 items-center justify-center">
-          <ZotzConversationStateMark state={entry.state} />
+        <span className="flex shrink-0 items-center justify-center">
+          <ZotzConversationStateMark state={entry.state} identity={entry.shortName} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-foreground">{entry.title}</span>
