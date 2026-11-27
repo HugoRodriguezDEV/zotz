@@ -158,7 +158,7 @@ export const linkedGroup = defineFixture({
   width: 340,
   ...linkedGroupSetup,
   render: () => (
-    <div className="flex h-[640px] flex-col bg-sidebar">
+    <div className="flex h-[880px] flex-col bg-sidebar">
       <ZotzLinksPanel />
     </div>
   )
