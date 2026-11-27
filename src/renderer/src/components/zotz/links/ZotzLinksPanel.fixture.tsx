@@ -62,10 +62,10 @@ const OTHERS: [string, string, string, ZotzConversationEntry['state']][] = [
   ['marlin', 'Migrar sesiones a Redis', 'claude', 'working'],
   ['puffin', 'Revisar permisos del bucket', 'codex', 'waiting'],
   ['otter', 'Arreglar el login con Google', 'claude', 'working'],
-  ['gecko', 'Limpiar dependencias viejas', 'codex', 'idle'],
+  ['gecko', 'Limpiar dependencias viejas', 'antigravity', 'idle'],
   ['lynx', 'Documentar la API de citas', 'claude', 'done'],
   ['wren', 'Bajar el tiempo del build', 'claude', 'idle'],
-  ['koala', 'Reintentos en webhooks de pago', 'codex', 'done'],
+  ['koala', 'Reintentos en webhooks de pago', 'antigravity', 'done'],
   ['ibis', 'Notificaciones por correo', 'claude', 'idle'],
   ['tapir', 'Ajustar zona horaria en reportes', 'claude', 'done']
 ]
