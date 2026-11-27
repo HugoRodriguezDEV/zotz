@@ -16,6 +16,7 @@ import type {
 } from './zotz-project-conversations'
 import { ZotzAgentSprite } from '../agent-sprite/ZotzAgentSprite'
 import { ZotzAgentWithBrand } from '../agent-sprite/ZotzAgentWithBrand'
+import { ZOTZ_WATCHING_RADAR } from '../agent-sprite/zotz-process-sprite-spec'
 import { useZotzWorktreePr } from '../pr-status/use-zotz-worktree-pr'
 import { ZOTZ_PR_TONE_TEXT, zotzPrStatusLabel, zotzPrTone } from '../pr-status/zotz-pr-status'
 import { ZotzPrStatusIcon } from '../pr-status/ZotzPrStatusIcon'
@@ -55,6 +56,7 @@ function StatusMark({
         agentType={status.agentType}
         size="md"
         tooltipSide="right"
+        zotzProcess={status.state === 'monitoring' ? ZOTZ_WATCHING_RADAR : null}
       />
     )
   }
