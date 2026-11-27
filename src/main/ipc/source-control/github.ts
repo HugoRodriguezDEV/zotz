@@ -9,6 +9,7 @@ import { registerGitHubPRRefreshHandlers } from './github-pr-refresh-handlers'
 import { registerGitHubPRReviewHandlers } from './github-pr-review-handlers'
 import { registerGitHubProjectViewHandlers } from './github-project-view-handlers'
 import { registerGitHubWorkItemHandlers } from './github-work-item-handlers'
+import { registerZotzPrReviewHandlers } from '../../zotz/github/zotz-pr-review-ipc'
 
 export function registerGitHubHandlers(
   store: Store,
@@ -20,6 +21,7 @@ export function registerGitHubHandlers(
   registerGitHubPRReadHandlers(store)
   registerGitHubPRReviewHandlers(store)
   registerGitHubPRMutationHandlers(store)
+  registerZotzPrReviewHandlers(store)
   registerGitHubIssueMutationHandlers(store)
   registerGitHubAccountHandlers(store)
   registerGitHubProjectViewHandlers()

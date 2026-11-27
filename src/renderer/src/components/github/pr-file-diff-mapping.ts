@@ -119,4 +119,6 @@ export type PRFilesCombinedDiffViewerProps = {
   pendingViewedPaths: ReadonlySet<string>
   onCommentAdded: (comment: PRComment) => void
   onViewedChange: (path: string, viewed: boolean) => Promise<boolean>
+  /** Zotz: the review button, shown in the files toolbar like GitHub's "Review changes". */
+  reviewAction?: React.ReactNode
 }

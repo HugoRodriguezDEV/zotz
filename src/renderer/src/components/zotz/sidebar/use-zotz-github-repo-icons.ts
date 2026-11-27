@@ -4,8 +4,7 @@ import {
   buildRepositoryGitHubAvatarUpdate,
   resolveRepositoryGitHubAvatar
 } from '@/runtime/repository-github/repository-icon-github'
-import { runtimeTargetForOwnerEnvironment } from '@/runtime/rpc/targets/runtime-client-target'
-import { getRepoExecutionHostId, parseExecutionHostId } from '../../../../../shared/execution-host'
+import { zotzRepoRuntimeTarget } from '../repo-github/use-zotz-repo-github-slug'
 import { isFolderRepo } from '../../../../../shared/repository/repo-kind'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 
@@ -13,11 +12,7 @@ import type { Repo } from '../../../../../shared/repository/repo-types'
 const attempted = new Set<string>()
 
 async function applyGitHubAvatar(repo: Repo): Promise<void> {
-  const host = parseExecutionHostId(getRepoExecutionHostId(repo))
-  const target = runtimeTargetForOwnerEnvironment(
-    host?.kind === 'runtime' ? host.environmentId : null
-  )
-  const resolution = await resolveRepositoryGitHubAvatar(target, repo)
+  const resolution = await resolveRepositoryGitHubAvatar(zotzRepoRuntimeTarget(repo), repo)
   const latest = useAppStore.getState().repos.find((candidate) => candidate.id === repo.id)
   // The user may have picked an icon while this resolved.
   if (!resolution.repoIcon || !latest || latest.repoIcon) {

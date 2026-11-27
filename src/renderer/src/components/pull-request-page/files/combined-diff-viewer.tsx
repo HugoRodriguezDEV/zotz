@@ -49,7 +49,8 @@ export function PRFilesCombinedDiffViewer({
   baseSha,
   pendingViewedPaths,
   onCommentAdded,
-  onViewedChange
+  onViewedChange,
+  reviewAction
 }: PRFilesCombinedDiffViewerProps): React.JSX.Element {
   const t = useTranslate()
   const isDark = useDocumentDarkTheme()
@@ -320,6 +321,7 @@ export function PRFilesCombinedDiffViewer({
         onShowFileTree={() => setFileTreeCollapsed(false)}
         onToggleAllCollapsed={() => setAllSectionsCollapsed(!allSectionsCollapsed)}
         onToggleSideBySide={() => setSideBySide((prev) => !prev)}
+        reviewAction={reviewAction}
       />
       <div className="flex min-h-0 flex-1">
         <CombinedDiffFileTree

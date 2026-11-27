@@ -314,6 +314,7 @@ import {
   RemovePrReviewers,
   RequestPrReviewers,
   SetPrAutoMerge,
+  SubmitPrReview,
   UpdatePr,
   UpdatePrState,
   UpdatePrTitle
@@ -1247,6 +1248,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'github.setPRAutoMerge': SetPrAutoMerge,
   'github.setPRCommentReaction': PRCommentReaction,
   'github.setPRFileViewed': PullRequestFileViewed,
+  'github.submitPRReview': SubmitPrReview,
   'github.updateIssue': UpdateIssue,
   'github.updatePR': UpdatePr,
   'github.updatePRState': UpdatePrState,

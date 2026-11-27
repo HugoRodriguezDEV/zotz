@@ -8,6 +8,7 @@ import {
   RemovePrReviewers,
   RequestPrReviewers,
   SetPrAutoMerge,
+  SubmitPrReview,
   UpdatePr,
   UpdatePrState,
   UpdatePrTitle
@@ -73,6 +74,19 @@ export const GITHUB_PULL_REQUEST_UPDATE_METHODS = [
     params: MarkPrDraft,
     handler: async (params, { runtime }) =>
       runtime.markRepoPRDraft(params.repo, params.prNumber, params.prRepo ?? null)
+  }),
+  defineMethod({
+    name: 'github.submitPRReview',
+    permission: 'workspace',
+    params: SubmitPrReview,
+    handler: async (params, { runtime }) =>
+      runtime.submitRepoPRReview(
+        params.repo,
+        params.prNumber,
+        params.event,
+        params.body,
+        params.prRepo ?? null
+      )
   }),
   defineMethod({
     name: 'github.requestPRReviewers',

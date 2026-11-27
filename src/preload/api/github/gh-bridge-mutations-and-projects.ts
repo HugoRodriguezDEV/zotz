@@ -1,4 +1,5 @@
 import type { GhAccountBinding } from '../../../shared/github/accounts/account-binding'
+import type { ZotzPrReviewEvent } from '../../../shared/zotz/zotz-pr-review'
 import { ipcRenderer } from 'electron'
 import type { GitHubCommentResult } from '../../../shared/github/comments/comment-types'
 import type { GitHubAssignableUser } from '../../../shared/github/pull-requests/pull-request-types'
@@ -71,6 +72,24 @@ export const ghMutationsAndProjectsApi = {
     prRepo?: GitHubOwnerRepo | null
   }): Promise<{ ok: true } | { ok: false; error: string }> =>
     ipcRenderer.invoke('gh:markPRReadyForReview', args),
+  markPRDraft: (args: {
+    repoPath: string
+    repoId?: string | null
+    sourceContext?: TaskSourceContext | null
+    prNumber: number
+    prRepo?: GitHubOwnerRepo | null
+  }): Promise<{ ok: true } | { ok: false; error: string }> =>
+    ipcRenderer.invoke('gh:markPRDraft', args),
+  submitPRReview: (args: {
+    repoPath: string
+    repoId?: string | null
+    sourceContext?: TaskSourceContext | null
+    prNumber: number
+    prRepo?: GitHubOwnerRepo | null
+    event: ZotzPrReviewEvent
+    body: string
+  }): Promise<{ ok: true } | { ok: false; error: string }> =>
+    ipcRenderer.invoke('gh:submitPRReview', args),
   requestPRReviewers: (args: {
     repoPath: string
     repoId?: string | null

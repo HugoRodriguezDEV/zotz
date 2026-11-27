@@ -1,4 +1,5 @@
 import React from 'react'
+import { ZotzPrReviewButton } from '../../zotz/source-control/ZotzPrReviewButton'
 import { FileText, ListChecks, LoaderCircle, MessageSquare, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -221,6 +222,20 @@ export function PullRequestPageTabs({
               pendingViewedPaths={pendingViewedPaths}
               onCommentAdded={appendOptimisticComment}
               onViewedChange={handlePRFileViewedChange}
+              reviewAction={
+                <ZotzPrReviewButton
+                  pr={{
+                    repoPath,
+                    repoId: effectiveRepoId,
+                    sourceContext,
+                    prNumber: workItem.number,
+                    prRepo: resolvePullRequestRepo(workItem, projectOrigin)
+                  }}
+                  state={localState}
+                  onStateChange={setLocalState}
+                  onMutated={invalidateCurrentDetailsCache}
+                />
+              }
             />
           )}
         </TabsContent>

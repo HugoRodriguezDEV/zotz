@@ -21,6 +21,7 @@ import { SkillUpdateStatusSegment } from './updates/SkillUpdateStatusSegment'
 import { NativeChatResumeStatusSegment } from './NativeChatResumeStatusSegment'
 import { CaffeinateStatusSegment } from './CaffeinateStatusSegment'
 import { ZotzAgentQueueStatusSegment } from '../zotz/agent-queue/ZotzAgentQueueStatusSegment'
+import { ZotzRepoGitHubStatusSegment } from '../zotz/repo-github/ZotzRepoGitHubStatusSegment'
 import { PluginsStatusSegment } from './plugins/PluginsStatusSegment'
 import { PluginStatusBarItems } from './plugins/PluginStatusBarItems'
 import { RemoteServerUpdateStatusSegment } from './updates/RemoteServerUpdateStatusSegment'
@@ -326,6 +327,7 @@ export function StatusBarSurface({
           <SkillUpdateStatusSegment iconOnly={segmentsIconOnly} />
           <NativeChatResumeStatusSegment iconOnly={segmentsIconOnly} />
           <UpdateStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
+          <ZotzRepoGitHubStatusSegment iconOnly={segmentsIconOnly} />
           <ZotzAgentQueueStatusSegment iconOnly={segmentsIconOnly} />
           <React.Suspense fallback={null}>
             {petEnabled ? <PetStatusSegment /> : null}

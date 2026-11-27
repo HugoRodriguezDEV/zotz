@@ -46,7 +46,7 @@ export function resolveRepositoryUpstreamLive(
   )
 }
 
-function resolveRepositorySlugLive(
+export function resolveRepositorySlugLive(
   runtimeTarget: RuntimeClientTarget,
   repo: Repo
 ): Promise<GitHubRepositoryIdentity | null> {
