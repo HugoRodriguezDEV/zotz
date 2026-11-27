@@ -5,11 +5,11 @@ import type { AgentListStatus } from '../../../../../shared/agent-status/present
 export type ZotzRoomAgent = {
   /** Stable id (e.g. `host\npath`); keys links, mail, selection and the saved spot. */
   key: string
-  /** Short name on its tag; also picks its robot color, like the rows do. */
+  /** Short name on its tag; picks its robot color, like the rows do, when its model has none. */
   label: string
   /** Null reads as idle. */
   state: AgentListStatus | null
-  /** Agent running in its chat (claude, codex…); its logo sits in the tag. Null shows none. */
+  /** Agent running in its chat (claude, codex…): colors the robot and puts its logo in the tag. */
   agent?: AgentType | null
   /** Belongs to a linked group: a small link mark at the end of its tag. */
   inGroup?: boolean

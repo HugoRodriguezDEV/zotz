@@ -92,7 +92,7 @@ export function buildZotzRoomScene({
       branded: Boolean(agent.agent),
       grouped: agent.inGroup ?? false,
       state: agent.state ?? 'idle',
-      color: agentBodyColorFor(agent.label),
+      color: agentBodyColorFor(agent.label, agent.agent),
       seed: agentAnimationSeed(agent.label),
       at,
       lift: hop + (carried === agent.key ? 6 : 0),
