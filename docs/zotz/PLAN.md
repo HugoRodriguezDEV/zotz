@@ -54,7 +54,7 @@ Archivos clave:
 - [x] `grep -rn "'Orca'\|\"Orca\"" src/main src/renderer src/cli` para encontrar strings visibles que se hayan escapado. Cambiar solo las visibles.
 - [x] Verificar que `zotz --help` y `zotz serve --help` muestran "zotz".
 
-**Fase 1b — Logo:** crear `resources/icon-source/zotz-bat.svg` (murciélago minimalista, legible a 16px, que funcione en monocromo para la bandeja del sistema) y regenerar los íconos con el script que ya usa `resources/icon-source/` (buscarlo antes de escribir uno nuevo).
+**Fase 1b — Logo:** murciélago pixelado frente a la luna. Las cuadrículas viven en `resources/icon-source/zotz-bat-pixel.mjs` y `pnpm build:icons` (`generate.sh` → `render-zotz-icons.mjs` + `iconutil`) regenera todos los íconos pixel exactos.
 
 **Listo cuando:** un build de Windows instala como "Zotz", con ícono de murciélago, convive con Orca instalado y guarda datos en su propia carpeta.
 
@@ -985,3 +985,15 @@ Sección B de la spec de monitor y remotos.
 - **Motor (`stt-open-phrase-decode.ts`):** la frase que se está diciendo se decodifica otra vez cada 0.5 s más de audio y sale como texto parcial; la decodificación de la frase ya cortada lo reemplaza. Si una decodificación tarda más de la mitad del paso, ese dictado deja de hacerlas (máquinas lentas, Whisper). `performanceCoreThreads` pasó a su propio archivo por el límite de líneas del reconocedor.
 - **Vista previa (`ZotzDictationLivePreview`):** las palabras aún no escritas se dibujan en gris en el cursor del campo donde van a caer (textarea, editor contentEditable, composer del chat y terminal), con la fuente del campo y envolviendo como texto tecleado; al escribirse de verdad desaparecen. No se escribe nada en el campo antes, así que deshacer y teclear al mismo tiempo siguen igual. La barra de arriba se queda. Páginas del navegador: solo la barra.
 - Verificado: audio real de 11 s sin pausas (voz Eddy es-MX) alimentado en tiempo real en una instancia dev: texto nuevo cada ~0.5 s desde el segundo 1.6 y el final exacto; capturas de la vista previa en textarea y contentEditable (fixtures, claro y oscuro); en la terminal la posición cae en la celda del cursor (textarea auxiliar de xterm). **Sin probar de punta a punta:** el flujo con micrófono real (la prueba usa la API del motor y fixtures).
+
+### 2026-11-27 — Logo luna pixelada (`zotz-logo-luna-pixel`)
+
+- Fuente nueva: `resources/icon-source/zotz-bat-pixel.mjs` (murciélago 16×16 con alas arriba/abajo y luna 32×32). `render-zotz-icons.mjs` pinta cada tamaño a escala entera por celda; solo las esquinas del cuadro llevan suavizado.
+- `generate.sh` ya no usa Icon Composer (`actool`) ni ImageMagick: solo Node (`pngjs`) + `iconutil`. Se borraron `icon.icon/` y `zotz-bat.svg`.
+- Regenerados con los mismos nombres: `build/icon.{icns,png,ico}`, `icon.png`, `icon-dev.png`, `app-icons/*.png`, `tray/orca-menu-barTemplate*.png`, `logo.svg`. Nuevos: `logo-moon*.svg` (landing con aleteo, respeta `prefers-reduced-motion`) y `tray/zotz-tray-windows*.png`.
+- Luna desde que cabe a 1 px por celda (≥ 40 px en `.ico`, ≥ 64 px en `.icns`); debajo, el murciélago solo sobre el cuadro noche.
+
+**Sorpresas / pendientes**
+
+- Bandeja de Windows: Electron no expone si la barra de tareas es clara u oscura (es distinto del tema de apps), así que en lugar de silueta clara/oscura usa el murciélago sobre el cuadro noche (16/32 px), que se lee en ambas. Linux no tiene bandeja en esta app.
+- La insignia DEV de la barra de menú de macOS (`tray-dev-badge.ts`) se pinta encima del ala izquierda; solo afecta builds de desarrollo.
