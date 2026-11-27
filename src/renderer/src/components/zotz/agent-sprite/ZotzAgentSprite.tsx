@@ -13,6 +13,8 @@ type Props = Omit<React.ComponentProps<'canvas'>, 'children'> & {
   label: string
   /** Stable key of the conversation or agent, so it keeps its robot color everywhere. */
   identity?: string
+  /** The agent running in that chat; its model picks the robot's color. */
+  agentType?: string | null
 }
 
 /** A conversation's state as a small pixel robot: its face, pose and badge change with the state. */
@@ -20,6 +22,7 @@ export function ZotzAgentSprite({
   state,
   label,
   identity,
+  agentType,
   className,
   style,
   ref,
@@ -47,7 +50,7 @@ export function ZotzAgentSprite({
     canvas.width = ROW_SPRITE_WIDTH * scale
     canvas.height = ROW_SPRITE_HEIGHT * scale
     ctx.setTransform(scale, 0, 0, scale, 0, 0)
-    const color = agentBodyColorFor(identity)
+    const color = agentBodyColorFor(identity, agentType)
     const seed = agentAnimationSeed(identity)
     const draw = (now: number): void => {
       const theme = zotzSpriteTheme()
@@ -84,7 +87,7 @@ export function ZotzAgentSprite({
       stopClock?.()
       stopTheme()
     }
-  }, [state, identity, reduced])
+  }, [state, identity, agentType, reduced])
 
   return (
     <canvas

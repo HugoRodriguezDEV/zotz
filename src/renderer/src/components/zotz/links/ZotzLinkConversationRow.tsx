@@ -11,13 +11,17 @@ import type {
 
 export function ZotzConversationStateMark({
   state,
-  identity
+  identity,
+  agentType
 }: {
   state: ZotzConversationState | null
+  agentType?: string | null
   /** Stable conversation key so its pixel agent keeps one color. */
   identity?: string
 }): React.JSX.Element {
-  return <AgentStateDot state={state ?? 'idle'} identity={identity} size="md" />
+  return (
+    <AgentStateDot state={state ?? 'idle'} identity={identity} agentType={agentType} size="md" />
+  )
 }
 
 /** One conversation in the links panel: state, short name, title, agent and, when asked, its machine. */
@@ -48,7 +52,11 @@ export function ZotzLinkConversationRow({
         className="flex min-w-0 flex-1 items-center gap-2 text-left"
       >
         <ZotzAgentWithBrand agentType={entry.agent}>
-          <ZotzConversationStateMark state={entry.state} identity={entry.shortName} />
+          <ZotzConversationStateMark
+            state={entry.state}
+            identity={entry.shortName}
+            agentType={entry.agent}
+          />
         </ZotzAgentWithBrand>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-foreground">{entry.title}</span>

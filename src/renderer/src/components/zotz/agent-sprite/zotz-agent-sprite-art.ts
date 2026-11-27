@@ -121,8 +121,23 @@ function hashText(text: string): number {
   return hash
 }
 
-/** The same conversation always gets the same robot color. */
-export function agentBodyColorFor(identity: string | undefined): AgentBodyColor {
+// Brand-leaning bodies so the model reads at a glance: Claude's clay, Codex's white, Antigravity's blue.
+const MODEL_BODY_COLORS: Record<string, AgentBodyColor> = {
+  claude: { body: '#d97757', light: '#f0a98c', shade: '#ad5236' },
+  'claude-agent-teams': { body: '#d97757', light: '#f0a98c', shade: '#ad5236' },
+  codex: { body: '#d9dae0', light: '#ffffff', shade: '#9b9ca8' },
+  antigravity: { body: '#4f86f7', light: '#93b6ff', shade: '#2f5ccc' }
+}
+
+/** The robot takes its model's color; unknown models keep one stable color per conversation. */
+export function agentBodyColorFor(
+  identity: string | undefined,
+  agentType?: string | null
+): AgentBodyColor {
+  const modelColor = agentType ? MODEL_BODY_COLORS[agentType] : undefined
+  if (modelColor) {
+    return modelColor
+  }
   return identity
     ? AGENT_BODY_COLORS[hashText(identity) % AGENT_BODY_COLORS.length]
     : AGENT_BODY_COLORS[0]

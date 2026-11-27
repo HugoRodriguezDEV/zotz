@@ -63,6 +63,8 @@ type Props = {
   unread?: boolean
   /** Zotz: stable conversation key so its pixel agent keeps one color. */
   identity?: string
+  /** Zotz: the agent running in that chat, which colors its pixel agent. */
+  agentType?: string | null
 }
 
 type ProgressRing = { tone: AgentProgressRingTone; percent: number }
@@ -102,7 +104,8 @@ export const AgentStateDot = React.memo(function AgentStateDot({
   tooltipSide,
   progress,
   unread = false,
-  identity
+  identity,
+  agentType
 }: Props): React.JSX.Element {
   const t = useTranslate()
   const box = size === 'md' ? 'h-3 w-3' : 'h-2.5 w-2.5'
@@ -125,6 +128,7 @@ export const AgentStateDot = React.memo(function AgentStateDot({
           state={showUnreadDot ? 'unread' : state}
           label={label}
           identity={identity}
+          agentType={agentType}
           className={className}
         />
       </StateIndicatorTooltip>

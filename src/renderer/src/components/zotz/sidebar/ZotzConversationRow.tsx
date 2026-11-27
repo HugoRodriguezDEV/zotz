@@ -52,6 +52,7 @@ function StatusMark({
         state={status.state}
         unread={status.unread}
         identity={identity}
+        agentType={status.agentType}
         size="md"
         tooltipSide="right"
       />
