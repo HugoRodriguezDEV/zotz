@@ -951,6 +951,14 @@ Sección B de la spec de monitor y remotos.
 - **Zotz Contraluz** (app + terminal) en el plugin incluido `zotz.zotz-night` (v1.1.0): base oscura de alto contraste para trabajar con reflejos o contra la luz. Texto casi blanco (`#f5f7ff` sobre `#0b0c12`, 18:1), texto secundario y pestañas inactivas ≥10:1, acentos más claros y saturados ≥9:1, bordes y divisores ≥3:1, selección azul sólida con texto blanco, comentarios sin itálica.
 - No cambia el default: se elige en Ajustes → Apariencia (tema) y Ajustes → Terminal.
 
+### 2026-11-26 — Repo de GitHub visible en la barra lateral y la de estado (`zotz-repo-github-visible`)
+
+- **Problema:** en un grupo las filas decían el nombre de la carpeta del proyecto, que no siempre es el repo (la carpeta `avena-empresas` es `Avena-Health/avena-backoffice`), y todos los repos de una org llevan el mismo avatar. No había forma de saber en qué repo de GitHub estabas.
+- **Barra lateral:** en un grupo, la fila muestra el nombre del repo de GitHub (owner/repo en el tooltip). El encabezado del proyecto suma una segunda línea con el repo cuando no coincide con la carpeta, y el ícono de GitHub (ahora visible siempre que hay remoto de GitHub) nombra owner/repo y lo abre en el navegador.
+- **Barra de estado:** owner/repo del espacio activo, con clic para abrirlo en GitHub. Espacios de carpeta y repos sin remoto de GitHub no muestran nada.
+- El repo sale del remoto `origin` (`github.repoSlug`, también por RPC en servidores emparejados), no de `gitRemoteIdentity`, que en un fork apunta al upstream. Se consulta una vez por repo y arranque (`src/renderer/src/components/zotz/repo-github/`).
+- Verificado con fixtures (`zotz/sidebar/ZotzProjectSidebar:githubRepoInGroup`) en claro y oscuro. `server-hook-session-binding.test.ts` falla igual en `origin/main` en esta Mac; no es de este cambio.
+
 ### 2026-11-26 — Dictado en vivo dentro del campo (`zotz-dictado-en-vivo`)
 
 - **Problema:** con un modelo sin streaming (Parakeet TDT v3) la frase solo se decodificaba al hacer una pausa de 0.6 s, y el texto solo entraba al campo cada 20 s de audio o al terminar; mientras hablabas solo se veía en la barra de arriba.

@@ -23,6 +23,7 @@ import { minutesSince } from '../agent-queue/zotz-memory-format'
 import { normalizeZotzShortName } from '../../../../../shared/zotz/zotz-short-name'
 import { useZotzHostColor } from '../host-color/use-zotz-host-color'
 import { ZotzHostDot } from '../host-color/ZotzHostDot'
+import { formatZotzRepoSlug, useZotzRepoGitHubSlug } from '../repo-github/use-zotz-repo-github-slug'
 
 function StatusMark({
   status,
@@ -125,6 +126,7 @@ export function ZotzConversationRow({
     showHost ? selectExecutionHostDisplayLabel(s, row.hostId) : null
   )
   const hostColor = useZotzHostColor(hostLabel ? row.hostId : null)
+  const slug = useZotzRepoGitHubSlug(projectName ? repo : undefined)
   const hasLeading =
     showBranch || row.shortName !== null || hostLabel !== null || projectName !== null
   return (
@@ -174,7 +176,13 @@ export function ZotzConversationRow({
           {projectName ? (
             <>
               {row.shortName || hostLabel ? <span aria-hidden>·</span> : null}
-              <span className="max-w-[45%] shrink-0 truncate">{projectName}</span>
+              {/* In a group the GitHub repository says which project it is; the folder name may not. */}
+              <span
+                className="max-w-[45%] shrink-0 truncate"
+                title={slug ? formatZotzRepoSlug(slug) : undefined}
+              >
+                {slug?.repo ?? projectName}
+              </span>
             </>
           ) : null}
           {showBranch ? (
