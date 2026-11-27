@@ -140,6 +140,19 @@ const linkedGroupSetup: Pick<ComponentFixture, 'store' | 'setup'> = {
   }
 }
 
+async function robotButton(frame: HTMLElement, name: string): Promise<HTMLButtonElement | null> {
+  for (let tries = 0; tries < 50; tries++) {
+    const button = [...frame.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')].find(
+      (candidate) => candidate.getAttribute('aria-label')?.startsWith(name)
+    )
+    if (button) {
+      return button
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  }
+  return null
+}
+
 /** While the group works, each machine folds into one summary row. */
 export const linkedGroup = defineFixture({
   width: 340,
@@ -151,15 +164,35 @@ export const linkedGroup = defineFixture({
   )
 })
 
-/** The user opened the folded machine: its full list shows as before. */
+/** The user opened the folded machine: its conversations show as a room of robots. */
 export const linkedGroupMachineOpen = defineFixture({
   width: 340,
   ...linkedGroupSetup,
-  interact: (frame) => {
-    frame.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')?.click()
+  interact: async (frame) => {
+    const fold = frame.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')
+    fold?.click()
+    await robotButton(frame, 'tapir')
+    fold?.scrollIntoView({ block: 'start' })
   },
   render: () => (
-    <div className="flex h-[1100px] flex-col bg-sidebar">
+    <div className="flex h-[880px] flex-col bg-sidebar">
+      <ZotzLinksPanel />
+    </div>
+  )
+})
+
+/** A robot picked in the machine's room: its card below offers Link. */
+export const machineRobotPicked = defineFixture({
+  width: 340,
+  ...linkedGroupSetup,
+  interact: async (frame) => {
+    frame.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')?.click()
+    ;(await robotButton(frame, 'puffin'))?.click()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    frame.querySelector('[aria-live="polite"]')?.scrollIntoView({ block: 'end' })
+  },
+  render: () => (
+    <div className="flex h-[880px] flex-col bg-sidebar">
       <ZotzLinksPanel />
     </div>
   )
