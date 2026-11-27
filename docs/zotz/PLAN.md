@@ -951,6 +951,14 @@ Sección B de la spec de monitor y remotos.
 - **Zotz Contraluz** (app + terminal) en el plugin incluido `zotz.zotz-night` (v1.1.0): base oscura de alto contraste para trabajar con reflejos o contra la luz. Texto casi blanco (`#f5f7ff` sobre `#0b0c12`, 18:1), texto secundario y pestañas inactivas ≥10:1, acentos más claros y saturados ≥9:1, bordes y divisores ≥3:1, selección azul sólida con texto blanco, comentarios sin itálica.
 - No cambia el default: se elige en Ajustes → Apariencia (tema) y Ajustes → Terminal.
 
+### 2026-11-26 — Revisar, aprobar y pasar a draft desde Zotz (`zotz-pr-revision`)
+
+- **Página del PR:** botón **Review** en la barra de Files changed, junto a "Side by Side", como el "Review changes" de GitHub: comentario y Comentar / Aprobar / Pedir cambios, más **Pasar a draft** o **Listo para revisión**. Merge y cerrar ya existían en upstream.
+- **Panel del PR (lateral):** la misma caja de revisión y **Pasar a draft** para PRs abiertos; "Listo para revisión" de los drafts ya lo traía upstream.
+- **Backend:** `gh pr review` en `src/main/zotz/github/zotz-pr-review.ts`; IPC `gh:submitPRReview` y `gh:markPRDraft` (upstream solo tenía draft por RPC) en `zotz-pr-review-ipc.ts`; RPC `github.submitPRReview` para servidores emparejados y el cliente web.
+- GitHub no deja aprobar ni pedir cambios en tu propio PR; Zotz lo dice en vez de mostrar el error de GraphQL.
+- Verificado en una instancia dev por CDP con el PR #56: el botón Review abre la caja en Files changed y Aprobar llega a GitHub, que lo rechaza por ser propio, con el aviso claro (captura en `capturas/pr-revision/`). **Sin probar en vivo:** aprobar o pedir cambios en el PR de otra persona, pasar a draft (cambia un PR real) y el panel lateral, que no se pudo ligar a un PR abierto en el perfil de prueba.
+
 ### 2026-11-26 — Sin la pestaña de historial de sesiones (`zotz-quitar-historial`)
 
 - La pestaña **Agent Session History** (`vault`) del panel derecho se oculta: las conversaciones de la barra lateral ya cumplen ese papel. No se borra de upstream; se filtra en `use-right-sidebar-activity-items.ts`.

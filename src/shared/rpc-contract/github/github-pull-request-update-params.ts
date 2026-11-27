@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { RepoSelector, SlugRepo } from './github-repo-target-params'
 import { OptionalString, requiredString } from '../rpc-param-primitives'
+import { ZOTZ_PR_REVIEW_EVENTS } from '../../zotz/zotz-pr-review'
 
 export const UpdatePrTitle = RepoSelector.extend({
   prNumber: z.number().int().positive(),
@@ -46,6 +47,14 @@ export const MarkPrReadyForReview = RepoSelector.extend({
 export const MarkPrDraft = RepoSelector.extend({
   prNumber: z.number().int().positive(),
   prRepo: SlugRepo.nullable().optional()
+})
+
+// Zotz: approve, request changes or comment from the PR page.
+export const SubmitPrReview = RepoSelector.extend({
+  prNumber: z.number().int().positive(),
+  prRepo: SlugRepo.nullable().optional(),
+  event: z.enum(ZOTZ_PR_REVIEW_EVENTS),
+  body: z.string()
 })
 
 export const RequestPrReviewers = RepoSelector.extend({

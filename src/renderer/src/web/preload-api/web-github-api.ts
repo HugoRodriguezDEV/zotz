@@ -127,6 +127,10 @@ export function createGitHubApi(): WebGitHubApi {
         args
       )
     },
+    markPRDraft: (args) =>
+      route<WebGitHubResult<'markPRDraft'>>(GITHUB_WEB_RPC_METHODS.markPRDraft, args),
+    submitPRReview: (args) =>
+      route<WebGitHubResult<'submitPRReview'>>(GITHUB_WEB_RPC_METHODS.submitPRReview, args),
     setPRAutoMerge: (args) =>
       route<WebGitHubResult<'setPRAutoMerge'>>(GITHUB_WEB_RPC_METHODS.setPRAutoMerge, args),
     updatePRState: (args) =>

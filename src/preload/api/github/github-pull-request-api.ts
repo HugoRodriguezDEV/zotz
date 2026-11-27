@@ -1,4 +1,5 @@
 import type { GhAccountBinding } from '../../../shared/github/accounts/account-binding'
+import type { ZotzPrReviewEvent } from '../../../shared/zotz/zotz-pr-review'
 import type { AppStarSource } from '../../../shared/gh-star-source'
 import type { GhAuthDiagnostic } from '../../../shared/github/accounts/auth-types'
 import type { TaskSourceContext } from '../../../shared/work-items/task-source-context'
@@ -175,6 +176,20 @@ export type GithubPullRequestApi = {
     args: GitHubRepoSelectorArgs & {
       prNumber: number
       prRepo?: GitHubOwnerRepo | null
+    }
+  ) => Promise<{ ok: true } | { ok: false; error: string }>
+  markPRDraft: (
+    args: GitHubRepoSelectorArgs & {
+      prNumber: number
+      prRepo?: GitHubOwnerRepo | null
+    }
+  ) => Promise<{ ok: true } | { ok: false; error: string }>
+  submitPRReview: (
+    args: GitHubRepoSelectorArgs & {
+      prNumber: number
+      prRepo?: GitHubOwnerRepo | null
+      event: ZotzPrReviewEvent
+      body: string
     }
   ) => Promise<{ ok: true } | { ok: false; error: string }>
   requestPRReviewers: (

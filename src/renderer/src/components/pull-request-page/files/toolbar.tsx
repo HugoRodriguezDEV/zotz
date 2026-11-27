@@ -13,7 +13,8 @@ export function PRFilesDiffToolbar({
   sideBySide,
   onShowFileTree,
   onToggleAllCollapsed,
-  onToggleSideBySide
+  onToggleSideBySide,
+  reviewAction
 }: {
   files: GitHubPRFile[]
   fileTreeCollapsed: boolean
@@ -22,6 +23,7 @@ export function PRFilesDiffToolbar({
   onShowFileTree: () => void
   onToggleAllCollapsed: () => void
   onToggleSideBySide: () => void
+  reviewAction?: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
   return (
@@ -76,6 +78,7 @@ export function PRFilesDiffToolbar({
             ? t('auto.components.PullRequestPage.e5f4a24f78', 'Inline')
             : t('auto.components.PullRequestPage.1378d79e83', 'Side by Side')}
         </Button>
+        {reviewAction}
       </div>
     </div>
   )
