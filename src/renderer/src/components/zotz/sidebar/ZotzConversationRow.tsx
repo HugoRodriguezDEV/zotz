@@ -139,9 +139,9 @@ export function ZotzConversationRow({
       aria-current={active ? 'page' : undefined}
       onClick={() => activateAndRevealWorkspace(row.id)}
       className={cn(
-        'flex w-full min-w-0 items-start gap-2 rounded-md py-1.5 pr-2 pl-6 text-left transition-colors',
+        'flex w-full min-w-0 items-start gap-2 py-1.5 pr-2 pl-6 text-left transition-colors',
         active
-          ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+          ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground shadow-[inset_2px_0_0_currentColor]'
           : 'text-worktree-sidebar-foreground/80 hover:bg-worktree-sidebar-foreground/8'
       )}
     >
@@ -165,7 +165,7 @@ export function ZotzConversationRow({
           ) : null}
           {row.worktree ? <LineTotalBadge worktreeId={row.worktree.id} /> : null}
         </span>
-        <span className="flex min-w-0 items-center gap-1 text-2xs text-worktree-sidebar-foreground/50">
+        <span className="flex min-w-0 items-center gap-1 overflow-hidden font-zotz-data text-[13px] text-worktree-sidebar-foreground/50">
           {hostLabel ? (
             <span className="flex max-w-[45%] shrink-0 items-center gap-1 rounded border border-worktree-sidebar-border px-1 font-medium text-worktree-sidebar-foreground/70">
               {hostColor ? (
@@ -177,7 +177,7 @@ export function ZotzConversationRow({
             </span>
           ) : null}
           {row.shortName ? (
-            <span className="max-w-[45%] shrink-0 truncate font-medium text-worktree-sidebar-foreground/70">
+            <span className="min-w-8 max-w-[45%] truncate font-medium text-worktree-sidebar-foreground/70">
               {row.shortName}
             </span>
           ) : null}
@@ -186,7 +186,7 @@ export function ZotzConversationRow({
               {row.shortName || hostLabel ? <span aria-hidden>·</span> : null}
               {/* In a group the GitHub repository says which project it is; the folder name may not. */}
               <span
-                className="max-w-[45%] shrink-0 truncate"
+                className="min-w-8 max-w-[45%] truncate"
                 title={slug ? formatZotzRepoSlug(slug) : undefined}
               >
                 {slug?.repo ?? projectName}
@@ -196,7 +196,7 @@ export function ZotzConversationRow({
           {showBranch ? (
             <>
               {row.shortName || hostLabel || projectName ? <span aria-hidden>·</span> : null}
-              <span className="min-w-8 truncate font-mono">{row.branch}</span>
+              <span className="min-w-8 truncate">{row.branch}</span>
             </>
           ) : null}
           {queuedSince !== null ? (

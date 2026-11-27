@@ -360,3 +360,42 @@ export const githubRepoInGroup = defineFixture({
     </div>
   )
 })
+
+// Long group, project and branch names must truncate beside the pixel icons, not push them out.
+const longProject = repo('long', 'avena-health-backoffice-empresas-admin')
+export const longNames = defineFixture({
+  width: 300,
+  store: {
+    repos: [longProject],
+    worktreesByRepo: {
+      long: [
+        worktree(
+          'long',
+          'isai/op-318-exportar-facturas-por-empresa',
+          'Exportar facturas por empresa y periodo fiscal',
+          { lastActivityAt: Date.now() - 2 * 60_000 }
+        ),
+        worktree('long', 'op-142-fix-login', 'OP-142 login con Google', {
+          lastActivityAt: Date.now() - 60 * 60_000
+        })
+      ]
+    },
+    activeWorktreeId: 'long::isai/op-318-exportar-facturas-por-empresa',
+    settings: {
+      ...getDefaultSettings('/home/fixture'),
+      zotzConversationLinks: [
+        {
+          id: 'g-long',
+          name: 'Facturación electrónica multiempresa',
+          createdAt: 1,
+          members: [{ hostId: 'local', path: '/code/long/op-142-fix-login' }]
+        }
+      ]
+    }
+  },
+  render: () => (
+    <div className="flex h-[300px] flex-col bg-worktree-sidebar">
+      <ZotzProjectSidebar />
+    </div>
+  )
+})

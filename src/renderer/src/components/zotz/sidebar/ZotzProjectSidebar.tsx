@@ -297,7 +297,9 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
 
   const sectionHeader = (label: string, action: React.ReactNode): React.JSX.Element => (
     <div className="flex items-center justify-between px-2 pt-2 pb-1">
-      <span className="text-xs font-medium text-worktree-sidebar-foreground/60">{label}</span>
+      <span className="font-zotz-display text-sm font-extrabold tracking-[0.02em] text-worktree-sidebar-foreground/60">
+        {label}
+      </span>
       {action}
     </div>
   )
@@ -342,7 +344,7 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
         ))}
         {folders.length > 0 ? (
           <section className="mb-2">
-            <div className="px-2 py-1.5 text-sm font-semibold text-worktree-sidebar-foreground">
+            <div className="px-2 py-1.5 font-zotz-display text-sm font-extrabold tracking-[0.02em] text-worktree-sidebar-foreground/60">
               {t('zotz.sidebar.folders', 'Folders')}
             </div>
             {groupByMachine ? (

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Ellipsis, Layers, Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import type { ZotzLinkGroup } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
+import { ZotzPixelIcon } from '../pixel-icon/ZotzPixelIcon'
 
 export function zotzGroupName(group: ZotzLinkGroup, unnamed: string): string {
   return group.name?.trim() || unnamed
@@ -40,18 +41,20 @@ export function ZotzGroupSection({
   const name = zotzGroupName(group, t('zotz.groups.unnamed', 'Unnamed group'))
   return (
     <section
-      className={cn('mb-2 rounded-md', highlighted && 'bg-primary/10 ring-1 ring-primary')}
+      className={cn('mb-2', highlighted && 'bg-primary/10 ring-1 ring-primary')}
       data-zotz-group={group.id}
     >
       <div
         {...dragHandle}
-        className="group flex cursor-grab items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5 active:cursor-grabbing"
+        className="group flex cursor-grab items-center gap-2 px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5 active:cursor-grabbing"
       >
-        <Layers className="size-4 shrink-0 text-worktree-sidebar-foreground/60" />
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-worktree-sidebar-foreground">
+        <span className="flex w-5 shrink-0 justify-center text-worktree-sidebar-foreground">
+          <ZotzPixelIcon name="group" />
+        </span>
+        <span className="min-w-0 flex-1 truncate font-zotz-display text-[17px] font-extrabold text-worktree-sidebar-foreground">
           {name}
         </span>
-        <span className="shrink-0 text-xs text-worktree-sidebar-foreground/50 tabular-nums">
+        <span className="shrink-0 font-zotz-data text-[13px] text-worktree-sidebar-foreground/60">
           {count}
         </span>
         <DropdownMenu modal={false}>
@@ -62,7 +65,7 @@ export function ZotzGroupSection({
               type="button"
               aria-label={t('zotz.groups.actions', 'Group actions for {{name}}', { name })}
             >
-              <Ellipsis className="size-4" />
+              <ZotzPixelIcon name="more" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="bottom">
