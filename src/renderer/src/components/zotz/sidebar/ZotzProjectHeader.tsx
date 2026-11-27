@@ -69,17 +69,19 @@ export function ProjectHeader({
   const icon = repo.repoIcon
   const hasOwnIcon = !!icon && !(icon.type === 'lucide' && icon.name === 'Folder')
   return (
-    <div className="group flex items-center gap-2 px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
+    <div className="group flex items-start gap-2 px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
       {hasOwnIcon ? (
-        <RepoIconGlyph repoIcon={repo.repoIcon} className="size-5 shrink-0" />
+        <span className="flex h-6 shrink-0 items-center">
+          <RepoIconGlyph repoIcon={repo.repoIcon} className="size-5 shrink-0" />
+        </span>
       ) : (
-        <span className="flex w-5 shrink-0 justify-center text-worktree-sidebar-foreground">
+        <span className="flex h-6 w-5 shrink-0 items-center justify-center text-worktree-sidebar-foreground">
           <ZotzPixelIcon name="folder" />
         </span>
       )}
       <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <span className="min-w-0 truncate font-zotz-display text-[17px] font-extrabold text-worktree-sidebar-foreground">
+        <div className="flex h-6 min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate font-zotz-display text-[17px] font-extrabold text-worktree-sidebar-foreground leading-6 tracking-normal subpixel-antialiased">
             {repo.displayName}
           </span>
           {hostLabel && hostColor ? <ZotzHostDot color={hostColor} /> : null}
@@ -97,7 +99,7 @@ export function ProjectHeader({
         ) : null}
       </div>
       {slug ? (
-        <ZotzRepoGitHubLink slug={slug} className="text-worktree-sidebar-foreground/40" />
+        <ZotzRepoGitHubLink slug={slug} className="h-6 text-worktree-sidebar-foreground/40" />
       ) : null}
       <ZotzProjectMenu repo={repo} />
       <Tooltip>

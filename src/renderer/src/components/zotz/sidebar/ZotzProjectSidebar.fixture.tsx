@@ -336,8 +336,16 @@ export const githubRepoInGroup = defineFixture({
   store: {
     repos: [zotzOnGitHub, empresas],
     worktreesByRepo: {
-      zotz: [worktree('zotz', 'repo-visible', 'Mostrar el repo de GitHub')],
-      empresas: [worktree('empresas', 'op-200-facturas', 'OP-200 facturas')]
+      zotz: [
+        worktree('zotz', 'repo-visible', 'Mostrar el repo de GitHub', {
+          lastActivityAt: Date.now() - 5 * 60_000
+        })
+      ],
+      empresas: [
+        worktree('empresas', 'op-200-facturas', 'OP-200 facturas', {
+          lastActivityAt: Date.now() - 3 * 60 * 60_000
+        })
+      ]
     },
     settings: {
       ...getDefaultSettings('/home/fixture'),
@@ -355,7 +363,7 @@ export const githubRepoInGroup = defineFixture({
     }
   },
   render: () => (
-    <div className="flex h-[300px] flex-col bg-worktree-sidebar">
+    <div className="flex h-[380px] flex-col bg-worktree-sidebar">
       <ZotzProjectSidebar />
     </div>
   )

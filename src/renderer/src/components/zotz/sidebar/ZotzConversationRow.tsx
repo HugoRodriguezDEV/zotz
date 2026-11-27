@@ -8,7 +8,6 @@ import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { activateAndRevealWorkspace } from '@/lib/workspace/activation/worktree-activation'
 import { AgentStateDot, agentStateLabel } from '@/components/AgentStateDot'
-import { formatRelativeTime } from '@/components/activity/activity-thread-presentation'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import type {
   ZotzConversationRow as Row,
@@ -24,6 +23,7 @@ import { normalizeZotzShortName } from '../../../../../shared/zotz/zotz-short-na
 import { useZotzHostColor } from '../host-color/use-zotz-host-color'
 import { ZotzHostDot } from '../host-color/ZotzHostDot'
 import { formatZotzRepoSlug, useZotzRepoGitHubSlug } from '../repo-github/use-zotz-repo-github-slug'
+import { formatZotzCompactAgo } from './zotz-compact-time'
 
 function StatusMark({
   status,
@@ -165,7 +165,7 @@ export function ZotzConversationRow({
           ) : null}
           {row.worktree ? <LineTotalBadge worktreeId={row.worktree.id} /> : null}
         </span>
-        <span className="flex min-w-0 items-center gap-1 overflow-hidden font-zotz-data text-[13px] text-worktree-sidebar-foreground/50">
+        <span className="flex min-w-0 items-center gap-1 overflow-hidden font-zotz-data text-xs tracking-normal text-worktree-sidebar-foreground/50">
           {hostLabel ? (
             <span className="flex max-w-[45%] shrink-0 items-center gap-1 rounded border border-worktree-sidebar-border px-1 font-medium text-worktree-sidebar-foreground/70">
               {hostColor ? (
@@ -177,7 +177,7 @@ export function ZotzConversationRow({
             </span>
           ) : null}
           {row.shortName ? (
-            <span className="min-w-8 max-w-[45%] truncate font-medium text-worktree-sidebar-foreground/70">
+            <span className="max-w-[13ch] min-w-8 truncate font-medium text-worktree-sidebar-foreground/70">
               {row.shortName}
             </span>
           ) : null}
@@ -186,7 +186,7 @@ export function ZotzConversationRow({
               {row.shortName || hostLabel ? <span aria-hidden>·</span> : null}
               {/* In a group the GitHub repository says which project it is; the folder name may not. */}
               <span
-                className="min-w-8 max-w-[45%] truncate"
+                className="max-w-[45%] min-w-[3ch] shrink-[100] truncate"
                 title={slug ? formatZotzRepoSlug(slug) : undefined}
               >
                 {slug?.repo ?? projectName}
@@ -196,7 +196,7 @@ export function ZotzConversationRow({
           {showBranch ? (
             <>
               {row.shortName || hostLabel || projectName ? <span aria-hidden>·</span> : null}
-              <span className="min-w-8 truncate">{row.branch}</span>
+              <span className="min-w-[3ch] shrink-[100] truncate">{row.branch}</span>
             </>
           ) : null}
           {queuedSince !== null ? (
@@ -222,7 +222,7 @@ export function ZotzConversationRow({
           ) : lastActivity > 0 ? (
             <>
               {hasLeading ? <span aria-hidden>·</span> : null}
-              <span className="shrink-0">{formatRelativeTime(lastActivity)}</span>
+              <span className="shrink-0">{formatZotzCompactAgo(lastActivity)}</span>
             </>
           ) : null}
         </span>

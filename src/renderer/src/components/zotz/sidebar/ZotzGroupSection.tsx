@@ -51,7 +51,7 @@ export function ZotzGroupSection({
         <span className="flex w-5 shrink-0 justify-center text-worktree-sidebar-foreground">
           <ZotzPixelIcon name="group" />
         </span>
-        <span className="min-w-0 flex-1 truncate font-zotz-display text-[17px] font-extrabold text-worktree-sidebar-foreground">
+        <span className="min-w-0 flex-1 truncate font-zotz-display text-[17px] font-extrabold text-worktree-sidebar-foreground tracking-normal subpixel-antialiased">
           {name}
         </span>
         <span className="shrink-0 font-zotz-data text-[13px] text-worktree-sidebar-foreground/60">
