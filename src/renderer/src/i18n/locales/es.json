@@ -24897,6 +24897,12 @@
     },
     "dictation": {
       "languageUpgrade": "El dictado ahora usa {{model}}, que entiende todos los idiomas que hablas."
+    },
+    "prFiles": {
+      "open": "Archivos cambiados"
+    },
+    "repoGitHub": {
+      "open": "Abrir {{repo}} en GitHub"
     }
   }
 }

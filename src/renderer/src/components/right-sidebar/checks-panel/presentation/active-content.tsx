@@ -21,6 +21,7 @@ import { PRTriageStrip } from './triage-strip'
 import { ConflictingFilesSection, MergeConflictNotice } from './conflict-summary'
 import { ChecksList } from './checks-list'
 import { ZotzChecksAutofixToggle } from '../../../zotz/source-control/ZotzChecksAutofixToggle'
+import { ZotzPrFilesButton } from '../../../zotz/source-control/ZotzPrFilesButton'
 import { PRCommentsList } from '../comments/comments-list'
 import { openAnnotationLocation } from '@/components/editor/check-details/actions/check-annotation-open'
 import { useTranslate } from '@/i18n/use-translate'
@@ -209,6 +210,7 @@ export function ChecksPanelActiveContent({
             onRefreshReview={refreshHostedReviewAfterMutation}
           />
         )}
+        {repo ? <ZotzPrFilesButton review={activeReview} repo={repo} /> : null}
       </div>
 
       {shouldShowReviewTriageStrip && sourceControlAiActionsVisible && (
