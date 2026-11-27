@@ -26362,6 +26362,17 @@
       "link": "Link",
       "unlink": "Unlink",
       "leave": "Leave the group",
+      "hostSummary": {
+        "conversations_one": "{{count}} conversation",
+        "conversations_other": "{{count}} conversations",
+        "needsYou_one": "{{count}} needs you",
+        "needsYou_other": "{{count}} need you",
+        "none": "No conversations",
+        "outdated": "Needs an update",
+        "unreachable": "Not answering",
+        "working_one": "{{count}} working",
+        "working_other": "{{count}} working"
+      },
       "linkedMark": "Linked",
       "loading": "Loading…",
       "messages": "Messages between them",

@@ -1,5 +1,5 @@
 import { useAppStore } from '@/store/index'
-import { defineFixture } from '../../../component-fixtures/component-fixture'
+import { defineFixture, type ComponentFixture } from '../../../component-fixtures/component-fixture'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import type {
@@ -58,10 +58,25 @@ const entry = (
   address: `orca_session_id:${shortName}`
 })
 
+const OTHERS: [string, string, string, ZotzConversationEntry['state']][] = [
+  ['marlin', 'Migrar sesiones a Redis', 'claude', 'working'],
+  ['puffin', 'Revisar permisos del bucket', 'codex', 'waiting'],
+  ['otter', 'Arreglar el login con Google', 'claude', 'working'],
+  ['gecko', 'Limpiar dependencias viejas', 'codex', 'idle'],
+  ['lynx', 'Documentar la API de citas', 'claude', 'done'],
+  ['wren', 'Bajar el tiempo del build', 'claude', 'idle'],
+  ['koala', 'Reintentos en webhooks de pago', 'codex', 'done'],
+  ['ibis', 'Notificaciones por correo', 'claude', 'idle'],
+  ['tapir', 'Ajustar zona horaria en reportes', 'claude', 'done']
+]
+
 const CONVERSATIONS = [
   entry(sprint, 'salmon', 'claude', 'waiting'),
   entry(pagination, 'albatross', 'codex', 'working'),
-  entry(csv, 'heron', 'claude', 'done')
+  entry(csv, 'heron', 'claude', 'done'),
+  ...OTHERS.map(([branch, title, agent, state]) =>
+    entry(worktree(branch, title), branch, agent, state)
+  )
 ]
 
 const now = Date.now()
@@ -88,8 +103,7 @@ const MESSAGES: ZotzLinkMessage[] = [
   }
 ]
 
-export const linkedGroup = defineFixture({
-  width: 340,
+const linkedGroupSetup: Pick<ComponentFixture, 'store' | 'setup'> = {
   store: {
     repos: [api],
     worktreesByRepo: { api: [sprint, pagination, csv] },
@@ -123,9 +137,29 @@ export const linkedGroup = defineFixture({
         ]
       }
     }))
-  },
+  }
+}
+
+/** While the group works, each machine folds into one summary row. */
+export const linkedGroup = defineFixture({
+  width: 340,
+  ...linkedGroupSetup,
   render: () => (
     <div className="flex h-[640px] flex-col bg-sidebar">
+      <ZotzLinksPanel />
+    </div>
+  )
+})
+
+/** The user opened the folded machine: its full list shows as before. */
+export const linkedGroupMachineOpen = defineFixture({
+  width: 340,
+  ...linkedGroupSetup,
+  interact: (frame) => {
+    frame.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')?.click()
+  },
+  render: () => (
+    <div className="flex h-[1100px] flex-col bg-sidebar">
       <ZotzLinksPanel />
     </div>
   )

@@ -24729,6 +24729,17 @@
       "link": "Enlazar",
       "unlink": "Desenlazar",
       "leave": "Salir del grupo",
+      "hostSummary": {
+        "conversations_one": "{{count}} conversación",
+        "conversations_other": "{{count}} conversaciones",
+        "needsYou_one": "{{count}} te necesita",
+        "needsYou_other": "{{count}} te necesitan",
+        "none": "Sin conversaciones",
+        "outdated": "Necesita actualizarse",
+        "unreachable": "No responde",
+        "working_one": "{{count}} trabajando",
+        "working_other": "{{count}} trabajando"
+      },
       "linkedMark": "Enlazada",
       "loading": "Cargando…",
       "messages": "Mensajes entre ellas",
