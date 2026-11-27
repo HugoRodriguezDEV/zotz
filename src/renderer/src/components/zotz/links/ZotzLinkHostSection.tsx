@@ -35,16 +35,25 @@ function ZotzLinkHostSummary({
   return (
     <>
       <span>
-        {t('zotz.links.hostSummary.conversations', '{{count}} conversations', { count: total })}
+        {t('zotz.links.hostSummary.conversations', '{{count}} conversations', {
+          count: total,
+          defaultValue_one: '{{count}} conversation'
+        })}
       </span>
       {working > 0 ? (
         <span className="text-zotz-working-wave">
-          {t('zotz.links.hostSummary.working', '{{count}} working', { count: working })}
+          {t('zotz.links.hostSummary.working', '{{count}} working', {
+            count: working,
+            defaultValue_one: '{{count}} working'
+          })}
         </span>
       ) : null}
       {needsYou > 0 ? (
         <span className="font-semibold text-agent-question">
-          {t('zotz.links.hostSummary.needsYou', '{{count}} need you', { count: needsYou })}
+          {t('zotz.links.hostSummary.needsYou', '{{count}} need you', {
+            count: needsYou,
+            defaultValue_one: '{{count}} needs you'
+          })}
         </span>
       ) : null}
     </>

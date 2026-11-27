@@ -2812,6 +2812,16 @@
       "truncated_one": "… {{count}} more line",
       "truncated_other": "… {{count}} more lines"
     },
+    "links": {
+      "hostSummary": {
+        "conversations_one": "{{count}} conversation",
+        "conversations_other": "{{count}} conversations",
+        "needsYou_one": "{{count}} needs you",
+        "needsYou_other": "{{count}} need you",
+        "working_one": "{{count}} working",
+        "working_other": "{{count}} working"
+      }
+    },
     "removeProject": {
       "changesKept_one": "{{count}} uncommitted change",
       "changesKept_other": "{{count}} uncommitted changes",

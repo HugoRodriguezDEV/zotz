@@ -24732,13 +24732,16 @@
       "hostSummary": {
         "conversations_one": "{{count}} conversación",
         "conversations_other": "{{count}} conversaciones",
+        "conversations_many": "{{count}} conversaciones",
         "needsYou_one": "{{count}} te necesita",
         "needsYou_other": "{{count}} te necesitan",
+        "needsYou_many": "{{count}} te necesitan",
         "none": "Sin conversaciones",
         "outdated": "Necesita actualizarse",
         "unreachable": "No responde",
         "working_one": "{{count}} trabajando",
-        "working_other": "{{count}} trabajando"
+        "working_other": "{{count}} trabajando",
+        "working_many": "{{count}} trabajando"
       },
       "linkedMark": "Enlazada",
       "loading": "Cargando…",
