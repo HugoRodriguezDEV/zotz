@@ -53,6 +53,11 @@ export class VadPauseSegmenter {
     return this.inSpeech && (this.vadFailed || this.speechFrames >= this.minSpeechFrames)
   }
 
+  /** The phrase being spoken, still uncut, so live text can decode it early; null between phrases. */
+  openPhraseAudio(): Float32Array | null {
+    return this.inSpeech && !this.vadFailed ? this.phrase.peek() : null
+  }
+
   /** Return the phrases that ended (or reached the decode bound) within these samples. */
   async push(samples: Float32Array): Promise<Float32Array[]> {
     if (this.vadFailed) {

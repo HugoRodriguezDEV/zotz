@@ -1,4 +1,3 @@
-import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type * as TranscribeCpp from 'transcribe-cpp'
@@ -11,15 +10,10 @@ import {
   OFFLINE_DECODE_CHUNK_SECONDS
 } from './stt-offline-audio-chunker'
 import { LiveDecode, warmUpLiveDecode } from './stt-live-decode'
+import { openPhraseLiveText } from './stt-open-phrase-decode'
+import { performanceCoreThreads } from './stt-performance-core-threads'
 import { loadSileroVad, VadPauseSegmenter } from './stt-vad-pause-segmenter'
 import type { SttRecognizer, SttRecognizerInit, SttRecognizerPost } from './stt-recognizer'
-
-// Past ~8 threads decode slowed 2-4x under load in the 2026-11 benchmark; E-cores and SMT siblings
-// don't help. Half the logical CPUs is close to the performance cores on Apple silicon and SMT x86.
-function performanceCoreThreads(): number {
-  const logical = availableParallelism()
-  return Math.min(logical, 8, Math.max(4, Math.floor(logical / 2)))
-}
 
 // Totals, not the nominal rate ratio: per-feed resampling rounds, and the drift would replay decoded audio.
 type StreamCoverage = {
@@ -319,6 +313,10 @@ export async function createTranscribeCppRecognizer(
       // Only beside a live dictation, whose native stream each decode ends, so this one decodes only to commit.
       const phraseText = !model.capabilities.supportsStreaming
       await decode(streamId, stream, phrases, phraseText)
+      const early = phraseText && (await openPhraseLiveText(stream, modelRate, transcribeChunk))
+      if (early && !canceled.has(streamId)) {
+        post({ type: 'partial', streamId, text: early })
+      }
       const textless = !phraseText && stream.span.samples > 0
       notePendingSpeech(streamId, stream, !!stream.segmenter.phraseOpen || textless)
     },
