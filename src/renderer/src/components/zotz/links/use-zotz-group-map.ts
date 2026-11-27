@@ -1,9 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
-import { useAppStore } from '@/store/index'
+import { useEffect, useRef, useState } from 'react'
 import type {
   ZotzConversationEntry,
-  ZotzLinkGroup,
   ZotzLinkMessage
 } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
 import type { ZotzGroupMapNode } from './ZotzGroupMap'
@@ -15,9 +12,7 @@ import {
   type ZotzGroupMapMail
 } from './zotz-group-map-edges'
 import { sameZotzLinkMember, type ZotzLinkMember } from './zotz-link-groups'
-import type { Repo } from '../../../../../shared/repository/repo-types'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import { getRepoExecutionHostId } from '../../../../../shared/execution-host'
+import type { ZotzFamilyRole } from './zotz-link-family'
 
 export type ZotzGroupMapData = {
   nodes: ZotzGroupMapNode[]
@@ -28,16 +23,24 @@ export type ZotzGroupMapData = {
   memberIndexOf: (addressOrLabel: string) => number | null
 }
 
-/** Nodes, lines and recent activity of a group's map, from its members and their mail. */
+/**
+ * Nodes, lines and recent activity of a room of conversations (a group, plus the parents and
+ * workers of its members, or a conversation's own family), from its members and their mail.
+ */
 export function useZotzGroupMap(input: {
-  group: ZotzLinkGroup | null
+  /** The group's id or the family's; mail seen in another room is history here. */
+  roomId: string | null
+  members: readonly ZotzLinkMember[]
+  /** Set for parents and workers shown beside a group without being in it. */
+  roleOf: (member: ZotzLinkMember) => ZotzFamilyRole | null
+  /** Child → parent pairs among `members`, by position. */
+  parentEdges: { child: number; parent: number }[]
   active: ZotzLinkMember | null
   messages: readonly ZotzLinkMessage[]
   entryFor: (member: ZotzLinkMember) => ZotzConversationEntry | null
   machineName: (member: ZotzLinkMember) => string | null
 }): ZotzGroupMapData {
-  const { group, active, messages, entryFor, machineName } = input
-  const members = useMemo(() => group?.members ?? [], [group])
+  const { roomId, members, roleOf, parentEdges, active, messages, entryFor, machineName } = input
   const entries = members.map(entryFor)
   const addressKey = entries.map((entry) => entry?.address ?? '').join('\n')
   const memberIndexOf = (addressOrLabel: string): number | null =>
@@ -50,18 +53,15 @@ export function useZotzGroupMap(input: {
       machine: machineName(member),
       agent: entry?.agent ?? null,
       state: entry?.state ?? null,
+      kin: roleOf(member),
       current: active !== null && sameZotzLinkMember(member, active)
     }
   })
   const edges = buildZotzGroupMapEdges(messages, memberIndexOf)
 
-  const repos = useAppStore((store) => store.repos)
-  const worktreesByRepo = useAppStore(selectWorktreesByRepo)
-  const parentEdges = zotzGroupParentEdges(members, repos, worktreesByRepo)
-
   const [mail, setMail] = useState<readonly ZotzGroupMapMail[]>([])
   const seen = useRef<{ group: string; ids: Set<string>; openedAt: number } | null>(null)
-  const groupId = group?.id ?? ''
+  const groupId = roomId ?? ''
   useEffect(() => {
     const same = seen.current?.group === groupId ? seen.current : null
     const openedAt = same?.openedAt ?? Date.now()
@@ -96,34 +96,4 @@ function indexInAddresses(addressKey: string, addressOrLabel: string): number | 
     .split('\n')
     .findIndex((address) => address !== '' && addressOrLabel.includes(address))
   return index === -1 ? null : index
-}
-
-/** Dashed child → parent lines among a group's members (same machine only). */
-function zotzGroupParentEdges(
-  members: readonly ZotzLinkMember[],
-  repos: readonly Repo[],
-  worktreesByRepo: Readonly<Record<string, readonly Worktree[] | undefined>>
-): { child: number; parent: number }[] {
-  const worktreeOf = (member: ZotzLinkMember): Worktree | null => {
-    for (const repo of repos) {
-      if (getRepoExecutionHostId(repo) !== member.hostId) {
-        continue
-      }
-      const match = (worktreesByRepo[repo.id] ?? []).find((w) => w.path === member.path)
-      if (match) {
-        return match
-      }
-    }
-    return null
-  }
-  const worktrees = members.map(worktreeOf)
-  return members.flatMap((member, child) => {
-    const parentId = worktrees[child]?.cliProvenance?.zotzParentWorktreeId
-    const parent = parentId
-      ? worktrees.findIndex(
-          (candidate, i) => candidate?.id === parentId && members[i].hostId === member.hostId
-        )
-      : -1
-    return parent === -1 || parent === child ? [] : [{ child, parent }]
-  })
 }
