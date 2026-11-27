@@ -26541,6 +26541,12 @@
       "changesRequested": "Changes requested",
       "commented": "Review comment sent",
       "ownPr": "GitHub doesn't let you approve or request changes on your own pull request."
+    },
+    "prFiles": {
+      "open": "Files changed"
+    },
+    "repoGitHub": {
+      "open": "Open {{repo}} on GitHub"
     }
   }
 }

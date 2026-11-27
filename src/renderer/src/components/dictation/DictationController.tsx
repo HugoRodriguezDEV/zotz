@@ -33,6 +33,7 @@ import { useDictationSilenceStop } from './use-dictation-silence-stop'
 import { stopAfterSilenceSeconds } from '../../../../shared/speech/dictation/dictation-silence-stop'
 import { useDictationSpeechEvents } from './use-dictation-speech-events'
 import { useDictationSpeechModelSetup } from './use-dictation-speech-model-setup'
+import { setZotzDictationPreviewTarget } from '../zotz/dictation/zotz-dictation-preview-target'
 import { shouldHoldForCleanup, useDictationCleanup } from './use-dictation-cleanup'
 import { NO_DICTATION_LIVE_TEXT } from '@/store/slices/dictation/dictation'
 import {
@@ -98,6 +99,7 @@ export function DictationController() {
         setDictationState(next.phase)
         if (next.phase === 'idle') {
           setPillAnchor(null)
+          setZotzDictationPreviewTarget(null)
           keptRef.current = null
         }
         if (next.phase === 'idle' || next.phase === 'error') {
@@ -228,7 +230,8 @@ export function DictationController() {
     }
     const isCurrent = (): boolean => sessionRef.current.run === run
     const insertionTarget = captureInsertionTarget()
-    const deliver = createDictationTranscriptDelivery(shouldHoldForCleanup())
+    const holding = shouldHoldForCleanup()
+    const deliver = createDictationTranscriptDelivery(holding)
     deliverRef.current = (text) => deliver(text, insertionTarget)
     const context = captureDictationContext()
     const kept = createDictationKeptRecording(insertionTarget, deliver, context)
@@ -236,6 +239,7 @@ export function DictationController() {
     setRecordingKey((key) => key + 1)
     setCaptureLive(false)
     setPillAnchor(dictationPillAnchorFor(insertionTarget))
+    setZotzDictationPreviewTarget(insertionTarget && { target: insertionTarget, holding })
 
     // A stop that arrived while starting is still this run's stop.
     const stopQueued = (): boolean => isCurrent() && sessionRef.current.phase === 'stopping'

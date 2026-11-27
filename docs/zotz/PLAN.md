@@ -958,3 +958,30 @@ Sección B de la spec de monitor y remotos.
 - **Backend:** `gh pr review` en `src/main/zotz/github/zotz-pr-review.ts`; IPC `gh:submitPRReview` y `gh:markPRDraft` (upstream solo tenía draft por RPC) en `zotz-pr-review-ipc.ts`; RPC `github.submitPRReview` para servidores emparejados y el cliente web.
 - GitHub no deja aprobar ni pedir cambios en tu propio PR; Zotz lo dice en vez de mostrar el error de GraphQL.
 - Verificado en una instancia dev por CDP con el PR #56: el botón Review abre la caja en Files changed y Aprobar llega a GitHub, que lo rechaza por ser propio, con el aviso claro (captura en `capturas/pr-revision/`). **Sin probar en vivo:** aprobar o pedir cambios en el PR de otra persona, pasar a draft (cambia un PR real) y el panel lateral, que no se pudo ligar a un PR abierto en el perfil de prueba.
+
+### 2026-11-26 — Sin la pestaña de historial de sesiones (`zotz-quitar-historial`)
+
+- La pestaña **Agent Session History** (`vault`) del panel derecho se oculta: las conversaciones de la barra lateral ya cumplen ese papel. No se borra de upstream; se filtra en `use-right-sidebar-activity-items.ts`.
+- Si algo pide abrirla (por ejemplo `showAiVaultSearch` desde Ajustes), el panel cae en el Explorador con el respaldo que ya trae upstream para pestañas ocultas. El diálogo de historial para reanudar sesiones desde el chat no cambia.
+- Verificado en una instancia dev por CDP: la barra ya no muestra el ícono y `showAiVaultSearch` deja el panel en el Explorador (captura en `capturas/quitar-historial/`).
+
+### 2026-11-26 — Archivos cambiados del PR dentro de Zotz (`zotz-pr-archivos`)
+
+- **Problema:** para revisar el diff de un PR había que abrirlo en Chrome.
+- El panel del PR (pestaña Checks) suma el botón **Archivos cambiados**. Abre la página de PR que ya trae upstream (árbol de archivos, diff unificado o lado a lado, "Viewed", comentarios en línea) directo en esa pestaña, con `openTaskPage({ openGitHubInitialTab: 'files' })`. Solo GitHub.
+- Verificado en una instancia dev por CDP con el PR #47 de avena-argos: el botón abre la página y carga los 9 archivos (capturas en `capturas/pr-archivos/`).
+
+### 2026-11-26 — Repo de GitHub visible en la barra lateral y la de estado (`zotz-repo-github-visible`)
+
+- **Problema:** en un grupo las filas decían el nombre de la carpeta del proyecto, que no siempre es el repo (la carpeta `avena-empresas` es `Avena-Health/avena-backoffice`), y todos los repos de una org llevan el mismo avatar. No había forma de saber en qué repo de GitHub estabas.
+- **Barra lateral:** en un grupo, la fila muestra el nombre del repo de GitHub (owner/repo en el tooltip). El encabezado del proyecto suma una segunda línea con el repo cuando no coincide con la carpeta, y el ícono de GitHub (ahora visible siempre que hay remoto de GitHub) nombra owner/repo y lo abre en el navegador.
+- **Barra de estado:** owner/repo del espacio activo, con clic para abrirlo en GitHub. Espacios de carpeta y repos sin remoto de GitHub no muestran nada.
+- El repo sale del remoto `origin` (`github.repoSlug`, también por RPC en servidores emparejados), no de `gitRemoteIdentity`, que en un fork apunta al upstream. Se consulta una vez por repo y arranque (`src/renderer/src/components/zotz/repo-github/`).
+- Verificado con fixtures (`zotz/sidebar/ZotzProjectSidebar:githubRepoInGroup`) en claro y oscuro. `server-hook-session-binding.test.ts` falla igual en `origin/main` en esta Mac; no es de este cambio.
+
+### 2026-11-26 — Dictado en vivo dentro del campo (`zotz-dictado-en-vivo`)
+
+- **Problema:** con un modelo sin streaming (Parakeet TDT v3) la frase solo se decodificaba al hacer una pausa de 0.6 s, y el texto solo entraba al campo cada 20 s de audio o al terminar; mientras hablabas solo se veía en la barra de arriba.
+- **Motor (`stt-open-phrase-decode.ts`):** la frase que se está diciendo se decodifica otra vez cada 0.5 s más de audio y sale como texto parcial; la decodificación de la frase ya cortada lo reemplaza. Si una decodificación tarda más de la mitad del paso, ese dictado deja de hacerlas (máquinas lentas, Whisper). `performanceCoreThreads` pasó a su propio archivo por el límite de líneas del reconocedor.
+- **Vista previa (`ZotzDictationLivePreview`):** las palabras aún no escritas se dibujan en gris en el cursor del campo donde van a caer (textarea, editor contentEditable, composer del chat y terminal), con la fuente del campo y envolviendo como texto tecleado; al escribirse de verdad desaparecen. No se escribe nada en el campo antes, así que deshacer y teclear al mismo tiempo siguen igual. La barra de arriba se queda. Páginas del navegador: solo la barra.
+- Verificado: audio real de 11 s sin pausas (voz Eddy es-MX) alimentado en tiempo real en una instancia dev: texto nuevo cada ~0.5 s desde el segundo 1.6 y el final exacto; capturas de la vista previa en textarea y contentEditable (fixtures, claro y oscuro); en la terminal la posición cae en la celda del cursor (textarea auxiliar de xterm). **Sin probar de punta a punta:** el flujo con micrófono real (la prueba usa la API del motor y fixtures).

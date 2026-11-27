@@ -24912,6 +24912,12 @@
       "changesRequested": "Cambios pedidos",
       "commented": "Comentario de revisión enviado",
       "ownPr": "GitHub no deja aprobar ni pedir cambios en tu propio pull request."
+    },
+    "prFiles": {
+      "open": "Archivos cambiados"
+    },
+    "repoGitHub": {
+      "open": "Abrir {{repo}} en GitHub"
     }
   }
 }
