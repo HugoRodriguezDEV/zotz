@@ -1,4 +1,4 @@
-// Paints the group map's "room": dotted floor, pixel lines between members who wrote to each other,
+// Paints the agent room: dotted floor, pixel lines between agents who wrote to each other,
 // the full-body robots with their bubbles and name tags, and envelopes in flight.
 
 import { ENVELOPE, SPRITE_INK, type AgentBodyColor } from '../agent-sprite/zotz-agent-sprite-art'
@@ -7,18 +7,22 @@ import { zotzSpriteLook, type ZotzSpriteState } from '../agent-sprite/zotz-agent
 import { paintAgent, paintCells } from '../agent-sprite/zotz-agent-sprite-paint'
 import type { ZotzSpriteTheme } from '../agent-sprite/zotz-agent-sprite-theme'
 import {
-  ZOTZ_MAP_SPRITE_H,
-  ZOTZ_MAP_SPRITE_SCALE,
-  ZOTZ_MAP_SPRITE_W
-} from './zotz-group-map-layout'
-import type { ZotzGroupMapTheme } from './zotz-group-map-theme'
+  ZOTZ_ROOM_SPRITE_H,
+  ZOTZ_ROOM_SPRITE_SCALE,
+  ZOTZ_ROOM_SPRITE_W
+} from './zotz-agent-room-layout'
+import type { ZotzAgentRoomTheme } from './zotz-agent-room-theme'
 
 type Point = { x: number; y: number }
 
-export type ZotzStageAgent = {
+export type ZotzRoomAgentFrame = {
   label: string
   /** The conversation open in this window: bolder name. */
   current: boolean
+  /** Leaves room on the tag for the agent's logo, drawn in HTML over the canvas. */
+  branded: boolean
+  /** Leaves room at the tag's end for the group mark, also drawn in HTML. */
+  grouped: boolean
   state: ZotzSpriteState
   color: AgentBodyColor
   seed: number
@@ -31,7 +35,7 @@ export type ZotzStageAgent = {
   dimmed: boolean
 }
 
-export type ZotzStageEdge = {
+export type ZotzRoomEdgeFrame = {
   from: Point
   to: Point
   count: number
@@ -45,40 +49,49 @@ export type ZotzStageEdge = {
   bumped: boolean
 }
 
-export type ZotzStageScene = {
+export type ZotzRoomSceneFrame = {
   width: number
   height: number
-  agents: readonly ZotzStageAgent[]
-  edges: readonly ZotzStageEdge[]
-  parentEdges: readonly { from: Point; to: Point }[]
+  agents: readonly ZotzRoomAgentFrame[]
+  edges: readonly ZotzRoomEdgeFrame[]
+  guides: readonly { from: Point; to: Point }[]
   /** Envelopes in flight, `t` from 0 (sender) to 1 (receiver). */
   packets: readonly { from: Point; to: Point; t: number }[]
 }
 
 const TAG_HEIGHT = 17
+/** Marks inside the name tag (logo first, group link last): size, inset from the tag's edge and top. */
+export const ZOTZ_ROOM_TAG_MARK = { size: 11, inset: 5, top: 3, slot: 13 }
 const DOT_STEP = 7
 
-export function zotzMapChest(feet: Point): Point {
-  return { x: feet.x, y: feet.y - ZOTZ_MAP_SPRITE_H / 2 }
+export function zotzRoomChest(feet: Point): Point {
+  return { x: feet.x, y: feet.y - ZOTZ_ROOM_SPRITE_H / 2 }
 }
 
-export function zotzMapTagLabel(label: string): string {
+export function zotzRoomTagLabel(label: string): string {
   return label.length > 12 ? `${label.slice(0, 11)}…` : label
 }
 
-function tagFont(current: boolean, theme: ZotzGroupMapTheme): string {
+function tagFont(current: boolean, theme: ZotzAgentRoomTheme): string {
   return `${current ? 600 : 500} 11px ${theme.fontFamily}`
 }
 
 /** Width of an agent's name tag; the layout keeps tags from overlapping. */
-export function zotzMapTagWidth(
+export function zotzRoomTagWidth(
   ctx: CanvasRenderingContext2D,
   label: string,
   current: boolean,
-  theme: ZotzGroupMapTheme
+  marks: { branded: boolean; grouped: boolean },
+  theme: ZotzAgentRoomTheme
 ): number {
   ctx.font = tagFont(current, theme)
-  return Math.ceil(ctx.measureText(zotzMapTagLabel(label)).width) + 14
+  const text = Math.ceil(ctx.measureText(zotzRoomTagLabel(label)).width) + 14
+  return text + ZOTZ_ROOM_TAG_MARK.slot * (Number(marks.branded) + Number(marks.grouped))
+}
+
+/** Left edge of an agent's name tag, centered under its feet. */
+export function zotzRoomTagLeft(x: number, width: number): number {
+  return Math.round(x - width / 2)
 }
 
 function frame(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
@@ -92,17 +105,17 @@ const easeOut = (t: number): number => 1 - (1 - t) ** 3
 
 function paintEdge(
   ctx: CanvasRenderingContext2D,
-  edge: ZotzStageEdge,
+  edge: ZotzRoomEdgeFrame,
   theme: ZotzSpriteTheme,
-  mapTheme: ZotzGroupMapTheme,
+  mapTheme: ZotzAgentRoomTheme,
   now: number,
   reduced: boolean
 ): void {
-  const p = zotzMapChest(edge.from)
-  const q = zotzMapChest(edge.to)
+  const p = zotzRoomChest(edge.from)
+  const q = zotzRoomChest(edge.to)
   const length = Math.hypot(q.x - p.x, q.y - p.y)
   const size = edge.thick ? 3 : 2
-  const start = ZOTZ_MAP_SPRITE_W / 2 + 6
+  const start = ZOTZ_ROOM_SPRITE_W / 2 + 6
   const grown = easeOut(edge.grown)
   for (let d = start; d < length - start; d += DOT_STEP) {
     const u = d / length
@@ -142,16 +155,16 @@ function paintEdge(
   ctx.fillText(label, mx, my + 0.5)
 }
 
-function paintParentEdge(
+function paintGuide(
   ctx: CanvasRenderingContext2D,
   from: Point,
   to: Point,
   theme: ZotzSpriteTheme
 ): void {
-  const p = zotzMapChest(from)
-  const q = zotzMapChest(to)
+  const p = zotzRoomChest(from)
+  const q = zotzRoomChest(to)
   const length = Math.hypot(q.x - p.x, q.y - p.y)
-  const start = ZOTZ_MAP_SPRITE_W / 2 + 6
+  const start = ZOTZ_ROOM_SPRITE_W / 2 + 6
   ctx.globalAlpha = 0.3
   ctx.fillStyle = theme.muted
   // Short dashes, so a child → parent link never reads like mail.
@@ -166,9 +179,9 @@ function paintParentEdge(
 
 function paintAgentWithTag(
   ctx: CanvasRenderingContext2D,
-  agent: ZotzStageAgent,
+  agent: ZotzRoomAgentFrame,
   theme: ZotzSpriteTheme,
-  mapTheme: ZotzGroupMapTheme,
+  mapTheme: ZotzAgentRoomTheme,
   now: number,
   reduced: boolean
 ): void {
@@ -178,13 +191,13 @@ function paintAgentWithTag(
   const shadow = agent.lift > 3 ? 18 : 26
   ctx.fillRect(Math.round(x - shadow / 2), y - 1, shadow, 3)
   ctx.fillRect(Math.round(x - shadow / 2) + 3, y + 2, shadow - 6, 2)
-  const sx = Math.round(x - ZOTZ_MAP_SPRITE_W / 2)
-  const sy = Math.round(y - ZOTZ_MAP_SPRITE_H - agent.lift)
+  const sx = Math.round(x - ZOTZ_ROOM_SPRITE_W / 2)
+  const sy = Math.round(y - ZOTZ_ROOM_SPRITE_H - agent.lift)
   paintAgent(
     ctx,
     sx,
     sy,
-    ZOTZ_MAP_SPRITE_SCALE,
+    ZOTZ_ROOM_SPRITE_SCALE,
     look,
     agent.color,
     theme,
@@ -193,16 +206,16 @@ function paintAgentWithTag(
     reduced,
     false
   )
-  const bubbleTop = sy + look.offsetY * ZOTZ_MAP_SPRITE_SCALE - look.bubbleLift * 2
-  const bubbleX = x + look.offsetX * ZOTZ_MAP_SPRITE_SCALE + look.bubbleShiftX
+  const bubbleTop = sy + look.offsetY * ZOTZ_ROOM_SPRITE_SCALE - look.bubbleLift * 2
+  const bubbleX = x + look.offsetX * ZOTZ_ROOM_SPRITE_SCALE + look.bubbleShiftX
   const bubble = agent.mailBubble ? 'mail' : look.bubble
   if (bubble) {
     paintSpriteBubble(ctx, bubbleX, bubbleTop, bubble, look, theme, now, reduced)
   }
   // Name tag; its edge takes the state's color while the agent works or needs you.
-  const name = zotzMapTagLabel(agent.label)
-  const w = zotzMapTagWidth(ctx, agent.label, agent.current, mapTheme)
-  const tx = Math.round(x - w / 2)
+  const name = zotzRoomTagLabel(agent.label)
+  const w = zotzRoomTagWidth(ctx, agent.label, agent.current, agent, mapTheme)
+  const tx = zotzRoomTagLeft(x, w)
   const ty = y + 7
   ctx.fillStyle = mapTheme.card
   ctx.fillRect(tx, ty, w, TAG_HEIGHT)
@@ -217,14 +230,15 @@ function paintAgentWithTag(
   ctx.fillStyle = agent.dimmed ? theme.muted : theme.foreground
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(name, x, ty + 9)
+  const shift = (Number(agent.branded) - Number(agent.grouped)) * (ZOTZ_ROOM_TAG_MARK.slot / 2)
+  ctx.fillText(name, x + shift, ty + 9)
 }
 
-export function paintZotzGroupStage(
+export function paintZotzAgentRoom(
   ctx: CanvasRenderingContext2D,
-  scene: ZotzStageScene,
+  scene: ZotzRoomSceneFrame,
   theme: ZotzSpriteTheme,
-  mapTheme: ZotzGroupMapTheme,
+  mapTheme: ZotzAgentRoomTheme,
   now: number,
   reduced: boolean
 ): void {
@@ -237,15 +251,15 @@ export function paintZotzGroupStage(
     }
   }
   ctx.globalAlpha = 1
-  scene.parentEdges.forEach(({ from, to }) => paintParentEdge(ctx, from, to, theme))
+  scene.guides.forEach(({ from, to }) => paintGuide(ctx, from, to, theme))
   scene.edges.forEach((edge) => paintEdge(ctx, edge, theme, mapTheme, now, reduced))
   // Farther back first, so a robot in front covers the one behind.
   ;[...scene.agents]
     .sort((a, b) => a.at.y - b.at.y)
     .forEach((agent) => paintAgentWithTag(ctx, agent, theme, mapTheme, now, reduced))
   for (const packet of scene.packets) {
-    const p = zotzMapChest(packet.from)
-    const q = zotzMapChest(packet.to)
+    const p = zotzRoomChest(packet.from)
+    const q = zotzRoomChest(packet.to)
     const t = packet.t < 0.5 ? 2 * packet.t * packet.t : 1 - (-2 * packet.t + 2) ** 2 / 2
     const arc = Math.sin(Math.PI * t) * Math.min(26, Math.hypot(q.x - p.x, q.y - p.y) * 0.18)
     const x = Math.round(p.x + (q.x - p.x) * t - 7)

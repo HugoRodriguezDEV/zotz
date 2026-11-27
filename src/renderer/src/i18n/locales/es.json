@@ -24742,6 +24742,14 @@
       "updateServer": "Actualiza Zotz en {{host}} para enlazar sus conversaciones.",
       "workingTogether": "Trabajando juntas"
     },
+    "agentRoom": {
+      "agent": "{{name}}: {{state}}",
+      "agentRemote": "{{name}} en {{machine}}: {{state}}",
+      "help": "Las flechas lo mueven; Enter lo selecciona. Líneas: {{lines}}.",
+      "line": "{{a}} ↔ {{b}}: {{count}} mensajes",
+      "helpOpen": "Las flechas lo mueven; Espacio lo selecciona; Enter lo abre. Líneas: {{lines}}.",
+      "inGroup": "en un grupo"
+    },
     "groups": {
       "twoServers": "Dos servidores no pueden escribirse entre sí; un grupo junta esta máquina y como máximo un servidor.",
       "moveTo": "Mover a grupo",
@@ -24764,10 +24772,6 @@
       "mapTitle": "Quién habla con quién",
       "mapShowAll": "Ver todos los mensajes",
       "mapLabel": "Quién le escribe a quién en el grupo",
-      "mapEdge": "{{a}} ↔ {{b}}: {{count}} mensajes",
-      "mapAgent": "{{name}}: {{state}}",
-      "mapAgentRemote": "{{name}} en {{machine}}: {{state}}",
-      "mapHelp": "Las flechas lo mueven; Enter muestra solo sus mensajes. Líneas: {{lines}}.",
       "startLegend": "Opcional: arranca una conversación en cada proyecto con la misma tarea",
       "taskPlaceholder": "¿Qué deben construir juntos?",
       "createAndStart": "Crear y arrancar {{count}}",

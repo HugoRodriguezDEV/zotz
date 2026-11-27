@@ -1,8 +1,8 @@
-// Colors the group map needs beyond the robots' own, read from the app's CSS tokens.
+// Colors the agent room needs beyond the robots' own, read from the app's CSS tokens.
 
 import { subscribeZotzSpriteTheme } from '../agent-sprite/zotz-agent-sprite-theme'
 
-export type ZotzGroupMapTheme = {
+export type ZotzAgentRoomTheme = {
   card: string
   border: string
   /** Ground shadow under each robot. */
@@ -12,10 +12,10 @@ export type ZotzGroupMapTheme = {
   fontFamily: string
 }
 
-let cached: ZotzGroupMapTheme | null = null
+let cached: ZotzAgentRoomTheme | null = null
 let watching = false
 
-function readTheme(): ZotzGroupMapTheme {
+function readTheme(): ZotzAgentRoomTheme {
   const root = document.documentElement
   const styles = getComputedStyle(root)
   const token = (name: string, fallback: string): string =>
@@ -30,7 +30,7 @@ function readTheme(): ZotzGroupMapTheme {
   }
 }
 
-export function zotzGroupMapTheme(): ZotzGroupMapTheme {
+export function zotzAgentRoomTheme(): ZotzAgentRoomTheme {
   if (!watching) {
     watching = true
     subscribeZotzSpriteTheme(() => {

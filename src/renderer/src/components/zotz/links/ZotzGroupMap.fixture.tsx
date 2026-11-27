@@ -4,10 +4,11 @@ import { ZotzGroupMap, type ZotzGroupMapNode } from './ZotzGroupMap'
 import type { ZotzGroupMapEdge, ZotzGroupMapMail } from './zotz-group-map-edges'
 
 const NODES: ZotzGroupMapNode[] = [
-  { key: 'panel', label: 'palolo', machine: null, state: 'working', current: true },
-  { key: 'api', label: 'barracuda', machine: 'MSI', state: 'waiting', current: false },
-  { key: 'app', label: 'tautog', machine: null, state: 'done', current: false },
-  { key: 'child', label: 'marca-pagina', machine: null, state: 'idle', current: false }
+  { key: 'panel', label: 'palolo', agent: 'claude', state: 'working', current: true },
+  { key: 'api', label: 'barracuda', agent: 'codex', machine: 'MSI', state: 'waiting' },
+  { key: 'app', label: 'tautog', agent: 'antigravity', state: 'done' },
+  // No agent known: no logo.
+  { key: 'child', label: 'marca-pagina', agent: null, state: 'idle' }
 ]
 
 const EDGES: ZotzGroupMapEdge[] = [
@@ -22,6 +23,7 @@ export const busyGroup = defineFixture({
   render: () => (
     <div className="p-2">
       <ZotzGroupMap
+        groupId={null}
         nodes={NODES}
         edges={EDGES}
         parentEdges={[{ child: 3, parent: 2 }]}
@@ -39,6 +41,7 @@ export const agentSelected = defineFixture({
   render: () => (
     <div className="p-2">
       <ZotzGroupMap
+        groupId={null}
         nodes={NODES}
         edges={EDGES}
         parentEdges={[]}
@@ -70,6 +73,7 @@ function MailInFlight({
   return (
     <div className="p-2">
       <ZotzGroupMap
+        groupId={null}
         nodes={nodes}
         edges={arrived ? after : before}
         parentEdges={[]}
@@ -98,52 +102,13 @@ export const mailInFlight = defineFixture({
   interact: () => new Promise((resolve) => window.setTimeout(resolve, 250))
 })
 
-const EIGHT: ZotzGroupMapNode[] = [
-  'salmon',
-  'albatross',
-  'heron',
-  'tautog',
-  'palolo',
-  'barracuda',
-  'marlin',
-  'grouper'
-].map((label, index) => ({
-  key: label,
-  label,
-  machine: index === 5 ? 'MSI' : null,
-  state: (['working', 'done', 'idle', 'waiting'] as const)[index % 4],
-  current: index === 0
-}))
-
-// The most a group holds; two of them dropped on the same spot step apart on their own.
-export const eightMembers = defineFixture({
-  width: 340,
-  render: () => (
-    <div className="p-2">
-      <ZotzGroupMap
-        nodes={EIGHT}
-        edges={[
-          { a: 0, b: 1, count: 4, lastAt: 1 },
-          { a: 0, b: 7, count: 2, lastAt: 1 },
-          { a: 2, b: 5, count: 6, lastAt: 1 }
-        ]}
-        parentEdges={[]}
-        mail={[]}
-        positions={{ tautog: [0.5, 0.5], palolo: [0.5, 0.5] }}
-        selected={null}
-        onSelect={() => {}}
-      />
-    </div>
-  ),
-  interact: () => new Promise((resolve) => window.setTimeout(resolve, 1200))
-})
-
 // Keyboard: each robot takes focus; arrows moved barracuda down a step.
 export const keyboardFocus = defineFixture({
   width: 340,
   render: () => (
     <div className="p-2">
       <ZotzGroupMap
+        groupId={null}
         nodes={NODES.slice(0, 3)}
         edges={EDGES}
         parentEdges={[]}

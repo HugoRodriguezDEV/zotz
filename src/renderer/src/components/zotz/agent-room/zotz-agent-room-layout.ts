@@ -1,18 +1,18 @@
-// Where the robots stand on the group map: default spots, bounds and keeping name tags apart.
-// Positions are fractions of the stage so they survive a resized panel.
+// Where the robots stand in the room: default spots, bounds and keeping name tags apart.
+// Positions are fractions of the room so they survive a resized panel.
 
 /** Full-body robot at scale 3: 12×14 cells. */
-export const ZOTZ_MAP_SPRITE_SCALE = 3
-export const ZOTZ_MAP_SPRITE_W = 12 * ZOTZ_MAP_SPRITE_SCALE
-export const ZOTZ_MAP_SPRITE_H = 14 * ZOTZ_MAP_SPRITE_SCALE
+export const ZOTZ_ROOM_SPRITE_SCALE = 3
+export const ZOTZ_ROOM_SPRITE_W = 12 * ZOTZ_ROOM_SPRITE_SCALE
+export const ZOTZ_ROOM_SPRITE_H = 14 * ZOTZ_ROOM_SPRITE_SCALE
 
-export type ZotzMapSpot = { fx: number; fy: number }
+export type ZotzRoomSpot = { fx: number; fy: number }
 
 /** Box (around the feet) that grabs a robot, its bubble and its tag. */
-export const ZOTZ_MAP_HIT = { halfWidth: 28, above: ZOTZ_MAP_SPRITE_H + 10, below: 26 }
+export const ZOTZ_ROOM_HIT = { halfWidth: 28, above: ZOTZ_ROOM_SPRITE_H + 10, below: 26 }
 
 /** The robot under a point; the one in front wins. */
-export function hitZotzMapAgent(
+export function hitZotzRoomAgent(
   agents: readonly { key: string; at: { x: number; y: number } }[],
   x: number,
   y: number
@@ -21,9 +21,9 @@ export function hitZotzMapAgent(
   return (
     front.find(
       ({ at }) =>
-        Math.abs(x - at.x) <= ZOTZ_MAP_HIT.halfWidth &&
-        y >= at.y - ZOTZ_MAP_HIT.above &&
-        y <= at.y + ZOTZ_MAP_HIT.below
+        Math.abs(x - at.x) <= ZOTZ_ROOM_HIT.halfWidth &&
+        y >= at.y - ZOTZ_ROOM_HIT.above &&
+        y <= at.y + ZOTZ_ROOM_HIT.below
     )?.key ?? null
   )
 }
@@ -34,25 +34,30 @@ const ROW = 96
 const BOTTOM = 52
 const MIN_Y = 72
 
-function rowsFor(count: number): number {
-  return count <= 2 ? 1 : Math.ceil(count / 2)
+/** Robots per row: two in a narrow panel, more when it is wide. Up to three make their own shape. */
+export function zotzRoomColumns(count: number, width: number): number {
+  return count <= 3 ? 2 : Math.min(count, Math.max(2, Math.floor(width / 130)))
 }
 
-export function zotzGroupStageHeight(count: number): number {
-  return Math.max(200, TOP + (rowsFor(count) - 1) * ROW + BOTTOM)
+function rowsFor(count: number, columns: number): number {
+  return count <= 2 ? 1 : count === 3 ? 2 : Math.ceil(count / columns)
 }
 
-/** Feet bounds in pixels; keeps the head, bubble and name tag inside the stage. */
-export function zotzGroupStageBounds(
+export function zotzRoomHeight(count: number, columns: number): number {
+  return Math.max(200, TOP + (rowsFor(count, columns) - 1) * ROW + BOTTOM)
+}
+
+/** Feet bounds in pixels; keeps the head, bubble and name tag inside the room. */
+export function zotzRoomBounds(
   width: number,
   height: number
 ): { x0: number; x1: number; y0: number; y1: number } {
   return { x0: 44, x1: Math.max(44, width - 44), y0: 74, y1: Math.max(74, height - 28) }
 }
 
-/** Two per row; an odd last one stands centered. Three members make a triangle. */
-export function zotzDefaultMapSpot(index: number, count: number): ZotzMapSpot {
-  const height = zotzGroupStageHeight(count)
+/** Rows of `columns`, a short last row centered. Two stand side by side; three make a triangle. */
+export function zotzDefaultRoomSpot(index: number, count: number, columns: number): ZotzRoomSpot {
+  const height = zotzRoomHeight(count, columns)
   if (count <= 2) {
     return { fx: count === 1 ? 0.5 : index === 0 ? 0.27 : 0.73, fy: 0.62 }
   }
@@ -61,17 +66,18 @@ export function zotzDefaultMapSpot(index: number, count: number): ZotzMapSpot {
       ? { fx: 0.5, fy: TOP / height }
       : { fx: index === 1 ? 0.25 : 0.75, fy: (TOP + ROW) / height }
   }
-  const row = Math.floor(index / 2)
-  const alone = count % 2 === 1 && index === count - 1
-  return { fx: alone ? 0.5 : index % 2 === 0 ? 0.27 : 0.73, fy: (TOP + row * ROW) / height }
+  const row = Math.floor(index / columns)
+  const inRow = Math.min(columns, count - row * columns)
+  const column = (index % columns) + (columns - inRow) / 2
+  return { fx: 0.04 + (0.92 * (column + 0.5)) / columns, fy: (TOP + row * ROW) / height }
 }
 
 const clamp = (value: number, low: number, high: number): number =>
   Math.min(high, Math.max(low, value))
 
 /** Pulls a spot back inside the stage. */
-export function clampZotzMapSpot(spot: ZotzMapSpot, width: number, height: number): ZotzMapSpot {
-  const bounds = zotzGroupStageBounds(width, height)
+export function clampZotzRoomSpot(spot: ZotzRoomSpot, width: number, height: number): ZotzRoomSpot {
+  const bounds = zotzRoomBounds(width, height)
   return {
     fx: clamp(spot.fx * width, bounds.x0, bounds.x1) / width,
     fy: clamp(spot.fy * height, bounds.y0, bounds.y1) / height
@@ -82,8 +88,8 @@ export function clampZotzMapSpot(spot: ZotzMapSpot, width: number, height: numbe
  * One step of pushing apart robots whose name tags would overlap; `pinned` (the one being moved)
  * stays put. Mutates `spots` and returns the largest move in pixels, so callers know when it settled.
  */
-export function separateZotzMapSpots(
-  spots: ZotzMapSpot[],
+export function separateZotzRoomSpots(
+  spots: ZotzRoomSpot[],
   tagWidths: readonly number[],
   pinned: number | null,
   width: number,
@@ -128,14 +134,14 @@ export function separateZotzMapSpots(
     }
   }
   for (let index = 0; index < spots.length; index++) {
-    spots[index] = clampZotzMapSpot(spots[index], width, height)
+    spots[index] = clampZotzRoomSpot(spots[index], width, height)
   }
   return moved
 }
 
 /** A gentle step per frame, or every step at once without motion; true once nobody overlaps. */
-export function settleZotzMapSpots(
-  spots: ZotzMapSpot[],
+export function settleZotzRoomSpots(
+  spots: ZotzRoomSpot[],
   tagWidths: readonly number[],
   pinned: number,
   width: number,
@@ -144,10 +150,38 @@ export function settleZotzMapSpots(
 ): boolean {
   for (let round = 0; round < (instant ? 80 : 1); round++) {
     if (
-      separateZotzMapSpots(spots, tagWidths, pinned === -1 ? null : pinned, width, height) < 0.3
+      separateZotzRoomSpots(spots, tagWidths, pinned === -1 ? null : pinned, width, height) < 0.3
     ) {
       return true
     }
   }
   return false
+}
+
+/** Forgets agents that left and gives new ones their saved or default spot; true when any arrived. */
+export function placeZotzRoomAgents(
+  spots: Map<string, ZotzRoomSpot>,
+  agents: readonly { key: string }[],
+  saved: Readonly<Record<string, readonly [number, number]>> | undefined,
+  columns: number
+): boolean {
+  const keys = new Set(agents.map((agent) => agent.key))
+  for (const key of spots.keys()) {
+    if (!keys.has(key)) {
+      spots.delete(key)
+    }
+  }
+  let added = false
+  agents.forEach((agent, index) => {
+    if (spots.has(agent.key)) {
+      return
+    }
+    const spot = saved?.[agent.key]
+    spots.set(
+      agent.key,
+      spot ? { fx: spot[0], fy: spot[1] } : zotzDefaultRoomSpot(index, agents.length, columns)
+    )
+    added = true
+  })
+  return added
 }

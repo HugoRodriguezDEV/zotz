@@ -48,6 +48,7 @@ export function useZotzGroupMap(input: {
       key: `${member.hostId}\n${member.path}`,
       label: entry?.shortName || member.path.split(/[\\/]/).at(-1) || member.path,
       machine: machineName(member),
+      agent: entry?.agent ?? null,
       state: entry?.state ?? null,
       current: active !== null && sameZotzLinkMember(member, active)
     }

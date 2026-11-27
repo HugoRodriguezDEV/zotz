@@ -1,53 +1,60 @@
-// The group map's live "room" on a canvas: where each robot stands, dragging them, envelopes that
+// The agent room, live on a canvas: where each robot stands, dragging them, envelopes that
 // fly when mail arrives, and drawing it all on the shared sprite clock.
 
 import type React from 'react'
 import { subscribeZotzSpriteClock } from '../agent-sprite/zotz-agent-sprite-clock'
 import { zotzSpriteTheme } from '../agent-sprite/zotz-agent-sprite-theme'
-import type { ZotzGroupMapMail } from './zotz-group-map-edges'
 import {
-  clampZotzMapSpot,
-  hitZotzMapAgent,
-  settleZotzMapSpots,
-  zotzDefaultMapSpot,
-  type ZotzMapSpot
-} from './zotz-group-map-layout'
-import { paintZotzGroupStage, zotzMapTagWidth } from './zotz-group-map-paint'
+  clampZotzRoomSpot,
+  hitZotzRoomAgent,
+  settleZotzRoomSpots,
+  placeZotzRoomAgents,
+  type ZotzRoomSpot
+} from './zotz-agent-room-layout'
+import { paintZotzAgentRoom, zotzRoomTagLeft, zotzRoomTagWidth } from './zotz-agent-room-paint'
 import {
-  buildZotzStageScene,
+  buildZotzRoomScene,
+  deliverZotzRoomMail,
   GROW_MS,
   MAIL_BUBBLE_MS,
   NEVER,
-  scheduleZotzMail,
+  scheduleZotzRoomMail,
   type EdgeAnim,
   type Packet
-} from './zotz-group-map-scene'
-import { zotzGroupMapTheme } from './zotz-group-map-theme'
-import type { ZotzGroupMapStageCallbacks, ZotzGroupMapStageInput } from './zotz-group-map-types'
+} from './zotz-agent-room-scene'
+import { zotzAgentRoomTheme } from './zotz-agent-room-theme'
+import type {
+  ZotzAgentRoomStageCallbacks,
+  ZotzAgentRoomStageInput,
+  ZotzRoomAgent,
+  ZotzRoomMail
+} from './zotz-agent-room-types'
 
 type Point = { x: number; y: number }
 
 const DRAG_SLOP = 4
+const DOUBLE_CLICK_MS = 400
 const SAVE_DELAY_MS = 600
 
-export type ZotzGroupMapStage = ReturnType<typeof createZotzGroupMapStage>
+export type ZotzAgentRoomStage = ReturnType<typeof createZotzAgentRoomStage>
 
-export function createZotzGroupMapStage(
+export function createZotzAgentRoomStage(
   canvas: HTMLCanvasElement,
-  callbacks: () => ZotzGroupMapStageCallbacks
+  callbacks: () => ZotzAgentRoomStageCallbacks
 ) {
   const ctx = canvas.getContext('2d')
-  let input: ZotzGroupMapStageInput = {
-    nodes: [],
-    edges: [],
-    parentEdges: [],
+  let input: ZotzAgentRoomStageInput = {
+    agents: [],
+    links: [],
+    guides: [],
     selected: null,
     positions: undefined,
     reduced: false,
-    height: 200
+    height: 200,
+    columns: 0
   }
   let width = 0
-  const spots = new Map<string, ZotzMapSpot>()
+  const spots = new Map<string, ZotzRoomSpot>()
   const edgeAnims = new Map<string, EdgeAnim>()
   const hops = new Map<string, number>()
   let packets: Packet[] = []
@@ -56,6 +63,7 @@ export function createZotzGroupMapStage(
     null
   // Settling gives up after a couple of seconds, so a crowded stage can't spin forever.
   let settle: { pinned: string | null; frames: number } | null = null
+  let lastClick = { key: '', at: NEVER }
   let saveTimer = 0
   let fastFrame = 0
   let stopClock: (() => void) | null = null
@@ -73,43 +81,39 @@ export function createZotzGroupMapStage(
     return anim
   }
 
-  function placeNewMembers(): void {
-    const { nodes, positions } = input
-    const keys = new Set(nodes.map((node) => node.key))
-    for (const key of spots.keys()) {
-      if (!keys.has(key)) {
-        spots.delete(key)
-      }
-    }
-    let added = false
-    nodes.forEach((node, index) => {
-      if (spots.has(node.key)) {
-        return
-      }
-      const saved = positions?.[node.key]
-      spots.set(
-        node.key,
-        saved ? { fx: saved[0], fy: saved[1] } : zotzDefaultMapSpot(index, nodes.length)
-      )
-      added = true
-    })
-    if (added) {
+  const tagWidthOf = (agent: ZotzRoomAgent): number =>
+    ctx
+      ? zotzRoomTagWidth(
+          ctx,
+          agent.label,
+          agent.current ?? false,
+          { branded: Boolean(agent.agent), grouped: agent.inGroup ?? false },
+          zotzAgentRoomTheme()
+        )
+      : 0
+
+  /** New agents get their saved spot or a default one; waits for a width so rows fit the room. */
+  function placeNewAgents(): void {
+    // Columns come from the measured width; placing earlier would use the wrong rows.
+    if (
+      input.columns > 0 &&
+      placeZotzRoomAgents(spots, input.agents, input.positions, input.columns)
+    ) {
       settle = { pinned: settle?.pinned ?? null, frames: 0 }
     }
   }
 
   /** Pushes overlapping robots apart: a step per frame, or all at once without motion. */
   function settleStep(): void {
-    if (!settle || !ctx || width === 0) {
+    if (!settle || !ctx || width === 0 || input.columns === 0) {
       return
     }
-    const { nodes, reduced } = input
-    const mapTheme = zotzGroupMapTheme()
-    const tagWidths = nodes.map((node) => zotzMapTagWidth(ctx, node.label, node.current, mapTheme))
+    const { agents: nodes, reduced } = input
+    const tagWidths = nodes.map(tagWidthOf)
     const list = nodes.map((node) => ({ ...(spots.get(node.key) ?? { fx: 0.5, fy: 0.5 }) }))
     const pinnedKey = drag?.moved ? drag.key : settle.pinned
     const pinned = pinnedKey ? nodes.findIndex((node) => node.key === pinnedKey) : -1
-    const done = settleZotzMapSpots(list, tagWidths, pinned, width, input.height, reduced)
+    const done = settleZotzRoomSpots(list, tagWidths, pinned, width, input.height, reduced)
     nodes.forEach((node, index) => spots.set(node.key, list[index]))
     settle.frames += 1
     if ((done || settle.frames > 150) && !drag?.moved) {
@@ -120,7 +124,7 @@ export function createZotzGroupMapStage(
   function save(): void {
     saveTimer = 0
     const positions: Record<string, [number, number]> = {}
-    for (const node of input.nodes) {
+    for (const node of input.agents) {
       const spot = spots.get(node.key)
       if (spot) {
         positions[node.key] = [Math.round(spot.fx * 1000) / 1000, Math.round(spot.fy * 1000) / 1000]
@@ -135,26 +139,13 @@ export function createZotzGroupMapStage(
     saveTimer = window.setTimeout(save, SAVE_DELAY_MS)
   }
 
-  function deliver(now: number): void {
-    packets = packets.filter((packet) => {
-      if (now < packet.t0 + packet.dur) {
-        return true
-      }
-      const anim = edgeAnim(packet.pair)
-      anim.heatAt = now
-      anim.bumpAt = now
-      hops.set(packet.to, now)
-      return false
-    })
-  }
-
   function draw(now: number): void {
-    if (!ctx || width === 0) {
+    if (!ctx || width === 0 || input.columns === 0) {
       return
     }
     settleStep()
-    deliver(now)
-    const scene = buildZotzStageScene({
+    packets = deliverZotzRoomMail(packets, now, edgeAnim, hops)
+    const scene = buildZotzRoomScene({
       input,
       width,
       now,
@@ -164,13 +155,15 @@ export function createZotzGroupMapStage(
       packets,
       carried: drag?.moved ? drag.key : null
     })
-    scene.agents.forEach((agent, index) => {
-      const node = input.nodes[index]
-      if (node) {
-        callbacks().place(node.key, agent.at.x, agent.at.y)
-      }
+    input.agents.forEach((agent) => {
+      const at = pointOf(agent.key)
+      const tagWidth = tagWidthOf(agent)
+      callbacks().place(agent.key, at.x, at.y, {
+        left: zotzRoomTagLeft(at.x, tagWidth),
+        width: tagWidth
+      })
     })
-    paintZotzGroupStage(ctx, scene, zotzSpriteTheme(), zotzGroupMapTheme(), now, input.reduced)
+    paintZotzAgentRoom(ctx, scene, zotzSpriteTheme(), zotzAgentRoomTheme(), now, input.reduced)
   }
 
   const needsFastFrames = (now: number): boolean =>
@@ -193,8 +186,8 @@ export function createZotzGroupMapStage(
   }
 
   const hitTest = (x: number, y: number): string | null =>
-    hitZotzMapAgent(
-      input.nodes.map((node) => ({ key: node.key, at: pointOf(node.key) })),
+    hitZotzRoomAgent(
+      input.agents.map((agent) => ({ key: agent.key, at: pointOf(agent.key) })),
       x,
       y
     )
@@ -205,7 +198,7 @@ export function createZotzGroupMapStage(
   }
 
   function moveTo(key: string, x: number, y: number): void {
-    spots.set(key, clampZotzMapSpot({ fx: x / width, fy: y / input.height }, width, input.height))
+    spots.set(key, clampZotzRoomSpot({ fx: x / width, fy: y / input.height }, width, input.height))
     settle = { pinned: key, frames: 0 }
   }
 
@@ -216,15 +209,16 @@ export function createZotzGroupMapStage(
     canvas.height = input.height * scale
     ctx?.setTransform(scale, 0, 0, scale, 0, 0)
     settle = { pinned: null, frames: 0 }
+    placeNewAgents()
     draw(performance.now())
     kick()
   }
 
   return {
-    update(next: ZotzGroupMapStageInput): void {
+    update(next: ZotzAgentRoomStageInput): void {
       const heightChanged = next.height !== input.height
       input = next
-      placeNewMembers()
+      placeNewAgents()
       if (heightChanged && width > 0) {
         resize(width)
         return
@@ -245,17 +239,17 @@ export function createZotzGroupMapStage(
         stopClock = null
       }
     },
-    /** Mail that arrived before this map was on screen: no envelopes for it. */
-    skip(mail: readonly ZotzGroupMapMail[]): void {
+    /** Mail that arrived before this room was on screen: no envelopes for it. */
+    skip(mail: readonly ZotzRoomMail[]): void {
       mail.forEach((message) => seenMail.add(message.id))
     },
     /** Mail that just arrived: an envelope flies from writer to reader, or the line just lights up. */
-    receive(mail: readonly ZotzGroupMapMail[]): void {
+    receive(mail: readonly ZotzRoomMail[]): void {
       const fresh = mail.filter((message) => !seenMail.has(message.id))
       fresh.forEach((message) => seenMail.add(message.id))
       packets.push(
-        ...scheduleZotzMail(fresh, {
-          nodes: input.nodes,
+        ...scheduleZotzRoomMail(fresh, {
+          present: new Set(input.agents.map((agent) => agent.key)),
           reduced: input.reduced,
           now: performance.now(),
           pointOf,
@@ -302,7 +296,12 @@ export function createZotzGroupMapStage(
         settle = { pinned: key, frames: 0 }
         scheduleSave()
         kick()
+      } else if (key === lastClick.key && performance.now() - lastClick.at < DOUBLE_CLICK_MS) {
+        // Second click of a double click: open it and leave the selection from the first.
+        lastClick = { key: '', at: NEVER }
+        callbacks().onOpen(key)
       } else {
+        lastClick = { key, at: performance.now() }
         callbacks().onSelect(input.selected === key ? null : key)
       }
     },

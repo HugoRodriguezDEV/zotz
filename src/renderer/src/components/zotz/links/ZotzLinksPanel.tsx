@@ -32,7 +32,6 @@ import { ZotzLinkConversationRow } from './ZotzLinkConversationRow'
 import { ZotzLinkTimeline } from './ZotzLinkTimeline'
 import { ZotzGroupMap } from './ZotzGroupMap'
 import { useZotzGroupMap } from './use-zotz-group-map'
-import { useZotzGroupMapPositions } from './use-zotz-group-map-positions'
 import { isZotzMessageOfMember } from './zotz-group-map-edges'
 
 const NO_GROUPS: readonly ZotzLinkGroup[] = []
@@ -83,7 +82,6 @@ export default function ZotzLinksPanel(): React.JSX.Element {
     .join('\n')
   const messages = useZotzLinkMessages(hosts, addressKey, group !== null)
   const [focusedMember, setFocusedMember] = useState<string | null>(null)
-  const [mapPositions, saveMapPositions] = useZotzGroupMapPositions(group?.id ?? null)
   const map = useZotzGroupMap({
     group,
     active,
@@ -224,12 +222,11 @@ export default function ZotzLinksPanel(): React.JSX.Element {
               <Section title={t('zotz.groups.mapTitle', 'Who talks to whom')}>
                 <div className="px-1">
                   <ZotzGroupMap
+                    groupId={group.id}
                     nodes={map.nodes}
                     edges={map.edges}
                     parentEdges={map.parentEdges}
                     mail={map.mail}
-                    positions={mapPositions}
-                    onPositionsChange={saveMapPositions}
                     selected={focusedIndex === -1 ? null : focusedMember}
                     onSelect={setFocusedMember}
                   />
