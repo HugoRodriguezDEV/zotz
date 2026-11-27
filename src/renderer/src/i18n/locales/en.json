@@ -26362,6 +26362,7 @@
       "link": "Link",
       "unlink": "Unlink",
       "leave": "Leave the group",
+      "inGroup": "In the group",
       "hostSummary": {
         "conversations_one": "{{count}} conversation",
         "conversations_other": "{{count}} conversations",

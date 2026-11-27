@@ -24729,6 +24729,7 @@
       "link": "Enlazar",
       "unlink": "Desenlazar",
       "leave": "Salir del grupo",
+      "inGroup": "En el grupo",
       "hostSummary": {
         "conversations_one": "{{count}} conversación",
         "conversations_other": "{{count}} conversaciones",
