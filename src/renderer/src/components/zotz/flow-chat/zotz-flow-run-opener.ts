@@ -5,7 +5,7 @@ export type ZotzFlowRunAddress = { hostId: string; flowId: string; runId: string
 
 type Opener = (address: ZotzFlowRunAddress) => void
 
-// The Flows page (Fase 10, part 2) registers how it shows one run; until it does, cards offer no link.
+// The Flows page registers how it shows one run (zotz-flows-page-store); until then cards offer no link.
 let opener: Opener | null = null
 const listeners = new Set<() => void>()
 

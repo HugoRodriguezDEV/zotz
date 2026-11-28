@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Workflow } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import { ZotzFlowsList } from './ZotzFlowsList'
 import { ZotzFlowEditor } from './ZotzFlowEditor'
 import { ZotzFlowRunsList } from './ZotzFlowRunsList'
 import { ZotzFlowRunView } from './ZotzFlowRunView'
+import { takeZotzFlowsPendingRun, useZotzFlowsPendingRun } from './zotz-flows-page-store'
 
 type Open = { draft: ZotzFlowDraft; savedAt: number | null; key: number }
 type RunsState = { flowId: string; runs: ZotzFlowRun[]; loading: boolean; error: string | null }
@@ -77,6 +78,43 @@ export default function ZotzFlowsPage(): React.JSX.Element {
         }))
     )
   }, [])
+
+  const pendingRun = useZotzFlowsPendingRun()
+  useEffect(() => {
+    const host = pendingRun ? data.byHost[pendingRun.hostId] : undefined
+    if (!pendingRun || !host || host.loading) {
+      return
+    }
+    takeZotzFlowsPendingRun(pendingRun)
+    const { hostId, flowId, runId } = pendingRun
+    const flow = host.flows.find((item) => item.id === flowId)
+    if (!flow) {
+      return
+    }
+    const show = (shown: RunsState, shownRunId: string | null): void => {
+      setOpen({ draft: flow, savedAt: flow.updatedAt, key: Date.now() })
+      setTab('runs')
+      setRuns(shown)
+      setRunId(shownRunId)
+    }
+    // The run may be older than the runs page, so it is fetched on its own and kept in the list.
+    void Promise.all([zotzFlowsRpc.runGet(hostId, runId), zotzFlowsRpc.runs(hostId, flowId)]).then(
+      ([{ run }, page]) =>
+        show(
+          {
+            flowId,
+            runs:
+              run && !page.runs.some((item) => item.id === run.id)
+                ? [run, ...page.runs]
+                : page.runs,
+            loading: false,
+            error: null
+          },
+          run ? run.id : null
+        ),
+      (error: unknown) => show({ flowId, runs: [], loading: false, error: message(error) }, null)
+    )
+  }, [pendingRun, data.byHost])
 
   const openFlow = (draft: ZotzFlowDraft, savedAt: number | null): void => {
     setOpen({ draft, savedAt, key: Date.now() })
