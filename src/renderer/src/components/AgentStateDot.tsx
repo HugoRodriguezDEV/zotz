@@ -12,6 +12,8 @@ import {
 } from '@/components/AgentProgressRing'
 import { ZotzAgentSprite } from '@/components/zotz/agent-sprite/ZotzAgentSprite'
 import { ZOTZ_PIXEL_AGENT_STATES } from '@/components/zotz/agent-sprite/zotz-pixel-agent-states'
+import { ZotzProcessSprite } from '@/components/zotz/agent-sprite/ZotzProcessSprite'
+import type { ZotzProcessSpec } from '@/components/zotz/agent-sprite/zotz-process-sprite-spec'
 import {
   StateIndicatorTooltip,
   type StateIndicatorTooltipSide
@@ -65,6 +67,8 @@ type Props = {
   identity?: string
   /** Zotz: the agent running in that chat, which colors its pixel agent. */
   agentType?: string | null
+  /** Zotz: work that is not an agent (a command, a program) draws a device instead of a robot. */
+  zotzProcess?: ZotzProcessSpec | null
 }
 
 type ProgressRing = { tone: AgentProgressRingTone; percent: number }
@@ -105,7 +109,8 @@ export const AgentStateDot = React.memo(function AgentStateDot({
   progress,
   unread = false,
   identity,
-  agentType
+  agentType,
+  zotzProcess
 }: Props): React.JSX.Element {
   const t = useTranslate()
   const box = size === 'md' ? 'h-3 w-3' : 'h-2.5 w-2.5'
@@ -124,13 +129,17 @@ export const AgentStateDot = React.memo(function AgentStateDot({
   if (ZOTZ_PIXEL_AGENT_STATES) {
     return (
       <StateIndicatorTooltip label={tooltipLabel} side={tooltipSide}>
-        <ZotzAgentSprite
-          state={showUnreadDot ? 'unread' : state}
-          label={label}
-          identity={identity}
-          agentType={agentType}
-          className={className}
-        />
+        {zotzProcess ? (
+          <ZotzProcessSprite sprite={zotzProcess} label={label} className={className} />
+        ) : (
+          <ZotzAgentSprite
+            state={showUnreadDot ? 'unread' : state}
+            label={label}
+            identity={identity}
+            agentType={agentType}
+            className={className}
+          />
+        )}
       </StateIndicatorTooltip>
     )
   }

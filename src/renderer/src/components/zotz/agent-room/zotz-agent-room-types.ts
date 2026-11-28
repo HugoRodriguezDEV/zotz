@@ -13,6 +13,8 @@ export type ZotzRoomAgent = {
   agent?: AgentType | null
   /** Belongs to a linked group: a small link mark at the end of its tag. */
   inGroup?: boolean
+  /** Shown beside a group as a member's parent or worker: its mark takes the tag's end instead. */
+  kin?: 'parent' | 'worker' | null
   /** Machine name when it lives on another machine (read to screen readers). */
   machine?: string | null
   /** The conversation open in this window: bolder name. */
@@ -27,6 +29,11 @@ export type ZotzRoomMail = { id: string; from: string; to: string; firstOfPair: 
 
 /** A faint dashed line from a child conversation to the one that created it. */
 export type ZotzRoomGuide = { child: string; parent: string }
+
+/** Whether the tag's end holds a mark (the group link, or the parent/worker one). */
+export function zotzRoomAgentMarked(agent: Pick<ZotzRoomAgent, 'inGroup' | 'kin'>): boolean {
+  return Boolean(agent.inGroup || agent.kin)
+}
 
 /** Saved spots by agent key, as fractions of the room. */
 export type ZotzRoomPositions = Readonly<Record<string, readonly [number, number]>>

@@ -801,6 +801,19 @@ import {
   ZotzLinkMessagesParams,
   ZotzLinkSetPeersParams
 } from './zotz/zotz-conversation-links-params'
+import {
+  ZotzFlowsApproveParams,
+  ZotzFlowsCancelParams,
+  ZotzFlowsDeleteParams,
+  ZotzFlowsGetParams,
+  ZotzFlowsListParams,
+  ZotzFlowsRetryParams,
+  ZotzFlowsRunGetParams,
+  ZotzFlowsRunParams,
+  ZotzFlowsRunsParams,
+  ZotzFlowsSaveParams,
+  ZotzFlowsSubscribeParams
+} from './zotz/zotz-flows-params'
 import { ZotzShortNameSetParams, ZotzShortNamesListParams } from './zotz/zotz-short-name-params'
 import {
   ZotzSystemMonitorCloseProcessParams,
@@ -1727,6 +1740,17 @@ export const RPC_PARAMS_BY_METHOD = {
   'zotz.agentQueue.snapshot': ZotzAgentQueueSnapshotParams,
   'zotz.agentQueue.subscribe': ZotzAgentQueueSubscribeParams,
   'zotz.conversations.list': ZotzConversationsListParams,
+  'zotz.flows.approve': ZotzFlowsApproveParams,
+  'zotz.flows.cancel': ZotzFlowsCancelParams,
+  'zotz.flows.delete': ZotzFlowsDeleteParams,
+  'zotz.flows.get': ZotzFlowsGetParams,
+  'zotz.flows.list': ZotzFlowsListParams,
+  'zotz.flows.retry': ZotzFlowsRetryParams,
+  'zotz.flows.run': ZotzFlowsRunParams,
+  'zotz.flows.runGet': ZotzFlowsRunGetParams,
+  'zotz.flows.runs': ZotzFlowsRunsParams,
+  'zotz.flows.save': ZotzFlowsSaveParams,
+  'zotz.flows.subscribe': ZotzFlowsSubscribeParams,
   'zotz.links.messages': ZotzLinkMessagesParams,
   'zotz.links.setPeers': ZotzLinkSetPeersParams,
   'zotz.shortNames.list': ZotzShortNamesListParams,

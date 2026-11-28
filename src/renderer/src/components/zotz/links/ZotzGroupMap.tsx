@@ -8,11 +8,12 @@ export type ZotzGroupMapNode = ZotzRoomAgent
 
 /**
  * The group as a room of pixel robots: each member in its conversation's color and state, a dotted
- * line per pair that has written to each other, and an envelope that flies when new mail lands.
+ * line per pair that has written to each other, a fainter dashed one from each worker to its
+ * parent, and an envelope that flies when new mail (orchestration mail too) lands.
  * Clicking a robot filters the messages to it; where each one stands is saved per group.
  */
 export function ZotzGroupMap({
-  groupId,
+  roomKey,
   nodes,
   edges,
   parentEdges,
@@ -20,8 +21,8 @@ export function ZotzGroupMap({
   selected,
   onSelect
 }: {
-  /** Saves the robots' spots for this group; null keeps them for this view only. */
-  groupId: string | null
+  /** Saves the robots' spots under this key (`group:<id>`, `family:<root>`); null keeps them for this view only. */
+  roomKey: string | null
   nodes: readonly ZotzGroupMapNode[]
   edges: readonly ZotzGroupMapEdge[]
   parentEdges: readonly { child: number; parent: number }[]
@@ -48,7 +49,7 @@ export function ZotzGroupMap({
     <ZotzAgentRoom
       agents={nodes}
       label={t('zotz.groups.mapLabel', 'Who in the group writes to whom')}
-      roomKey={groupId ? `group:${groupId}` : null}
+      roomKey={roomKey}
       links={links}
       guides={guides}
       mail={roomMail}
