@@ -51,3 +51,18 @@ export async function pushZotzTasksDocument(
   }
   return result
 }
+
+/** Re-reads URL feeds with no board open, so flows hear column moves; false when not running. */
+export async function refreshZotzTaskFeeds(): Promise<boolean> {
+  if (!active) {
+    return false
+  }
+  const feeds = readZotzTaskConnectors(active.store.getSettings().zotzTaskConnectors).flatMap(
+    (connector) =>
+      connector.kind === 'url' && connector.url ? [{ id: connector.id, url: connector.url }] : []
+  )
+  if (feeds.length > 0) {
+    await active.service.refresh(feeds)
+  }
+  return true
+}
