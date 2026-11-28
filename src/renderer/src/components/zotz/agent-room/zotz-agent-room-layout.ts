@@ -28,11 +28,21 @@ export function hitZotzRoomAgent(
   )
 }
 
-// Feet of the top row leave room for the head and its bubble; rows clear a robot plus its tag.
-const TOP = 80
-const ROW = 96
+/**
+ * What a robot paints around its feet, in pixels: above them the head, the raised hand and the
+ * tallest bubble (a hop adds a moment more); beside it the laptop, padlock or thumb; below them
+ * the name tag. Robots keep all of it apart.
+ */
+const ABOVE_FEET = 70
+const BODY_HALF_WIDTH = 32
+const TAG_TOP = 7
+const TAG_BOTTOM = 24
+const GAP = 6
+
+// Feet of the top row leave room for the head and its bubble; rows clear the bubble, robot and tag.
+const TOP = ABOVE_FEET + 10
+const ROW = ABOVE_FEET + TAG_BOTTOM + GAP + 2
 const BOTTOM = 52
-const MIN_Y = 72
 
 /** Robots per row: two in a narrow panel, more when it is wide. Up to three make their own shape. */
 export function zotzRoomColumns(count: number, width: number): number {
@@ -52,7 +62,8 @@ export function zotzRoomBounds(
   width: number,
   height: number
 ): { x0: number; x1: number; y0: number; y1: number } {
-  return { x0: 44, x1: Math.max(44, width - 44), y0: 74, y1: Math.max(74, height - 28) }
+  const y0 = ABOVE_FEET + 4
+  return { x0: 44, x1: Math.max(44, width - 44), y0, y1: Math.max(y0, height - 28) }
 }
 
 /** Rows of `columns`, a short last row centered. Two stand side by side; three make a triangle. */
@@ -84,9 +95,53 @@ export function clampZotzRoomSpot(spot: ZotzRoomSpot, width: number, height: num
   }
 }
 
+type Box = { left: number; right: number; top: number; bottom: number }
+
+/** The robot with its bubble and raised hand, then its name tag. */
+function boxesAt(x: number, y: number, tagWidth: number): [Box, Box] {
+  return [
+    { left: x - BODY_HALF_WIDTH, right: x + BODY_HALF_WIDTH, top: y - ABOVE_FEET, bottom: y },
+    { left: x - tagWidth / 2, right: x + tagWidth / 2, top: y + TAG_TOP, bottom: y + TAG_BOTTOM }
+  ]
+}
+
 /**
- * One step of pushing apart robots whose name tags would overlap; `pinned` (the one being moved)
- * stays put. Mutates `spots` and returns the largest move in pixels, so callers know when it settled.
+ * How far `b`'s robot must move (along x or y, whichever is shorter) so none of its boxes touches
+ * `a`'s; 0 when they are already apart. `sx`/`sy` say which way `b` lies from `a`.
+ */
+function pushBetween(
+  a: readonly Box[],
+  b: readonly Box[],
+  sx: number,
+  sy: number,
+  sideways: boolean
+): { alongX: boolean; push: number } {
+  let best = { alongX: true, push: 0 }
+  for (const p of a) {
+    for (const q of b) {
+      const apart =
+        Math.min(p.right, q.right) - Math.max(p.left, q.left) + GAP <= 0 ||
+        Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top) + GAP <= 0
+      if (apart) {
+        continue
+      }
+      const needX = (sx > 0 ? p.right - q.left : q.right - p.left) + GAP
+      const needY = (sy > 0 ? p.bottom - q.top : q.bottom - p.top) + GAP
+      // Slide along the axis that needs the shorter push; ties go sideways.
+      const pair =
+        sideways || needX <= needY ? { alongX: true, push: needX } : { alongX: false, push: needY }
+      if (pair.push > best.push) {
+        best = pair
+      }
+    }
+  }
+  return best
+}
+
+/**
+ * One step of pushing apart robots whose bubble, body or name tag would touch another's; `pinned`
+ * (the one being moved) stays put. `sideways` pushes along x only, for a column too tall for the
+ * room. Mutates `spots` and returns the largest move in pixels, so callers know when it settled.
  */
 export function separateZotzRoomSpots(
   spots: ZotzRoomSpot[],
@@ -94,27 +149,34 @@ export function separateZotzRoomSpots(
   pinned: number | null,
   width: number,
   height: number,
+  sideways = false,
   strength = 0.25
 ): number {
   let moved = 0
   for (let i = 0; i < spots.length; i++) {
     for (let j = i + 1; j < spots.length; j++) {
-      const dx = (spots[j].fx - spots[i].fx) * width
-      const dy = (spots[j].fy - spots[i].fy) * height
-      const overlapX = (tagWidths[i] + tagWidths[j]) / 2 + 8 - Math.abs(dx)
-      const overlapY = MIN_Y - Math.abs(dy)
-      if (overlapX <= 0 || overlapY <= 0) {
+      const xi = spots[i].fx * width
+      const yi = spots[i].fy * height
+      const xj = spots[j].fx * width
+      const yj = spots[j].fy * height
+      // Exactly stacked: i goes one way, j the other.
+      const sx = Math.sign(xj - xi) || 1
+      const sy = Math.sign(yj - yi) || 1
+      const { alongX, push: need } = pushBetween(
+        boxesAt(xi, yi, tagWidths[i]),
+        boxesAt(xj, yj, tagWidths[j]),
+        sx,
+        sy,
+        sideways
+      )
+      if (need <= 0) {
         continue
       }
       const moveI = pinned !== i
       const moveJ = pinned !== j
       const share = moveI && moveJ ? 0.5 : 1
-      // Slide along the axis that needs the shorter push; ties go sideways.
-      const alongX = overlapX < overlapY
-      const push = (alongX ? overlapX : overlapY) * strength * share
-      // Exactly stacked: i goes one way, j the other.
-      const sign = Math.sign(alongX ? dx : dy) || 1
-      const step = sign * push
+      const push = need * strength * share
+      const step = (alongX ? sx : sy) * push
       if (alongX) {
         if (moveI) {
           spots[i].fx -= step / width
@@ -139,19 +201,37 @@ export function separateZotzRoomSpots(
   return moved
 }
 
-/** A gentle step per frame, or every step at once without motion; true once nobody overlaps. */
+const ROUNDS_PER_FRAME = 80
+/** Rounds of the shorter push before every other round also tries sideways. */
+const SIDEWAYS_AFTER = 40
+
+/**
+ * A gentle step per frame, or every step at once without motion; true once nobody overlaps.
+ * `frame` counts this settle's calls: robots that keep bumping into each other start stepping
+ * sideways too, since a crowded column can't make room by shuffling up and down.
+ */
 export function settleZotzRoomSpots(
   spots: ZotzRoomSpot[],
   tagWidths: readonly number[],
   pinned: number,
   width: number,
   height: number,
-  instant: boolean
+  instant: boolean,
+  frame = 0
 ): boolean {
-  for (let round = 0; round < (instant ? 80 : 1); round++) {
-    if (
-      separateZotzRoomSpots(spots, tagWidths, pinned === -1 ? null : pinned, width, height) < 0.3
-    ) {
+  const rounds = instant ? ROUNDS_PER_FRAME : 1
+  for (let round = 0; round < rounds; round++) {
+    const index = frame * rounds + round
+    const sideways = index >= SIDEWAYS_AFTER && index % 2 === 1
+    const moved = separateZotzRoomSpots(
+      spots,
+      tagWidths,
+      pinned === -1 ? null : pinned,
+      width,
+      height,
+      sideways
+    )
+    if (moved < 0.3 && !sideways) {
       return true
     }
   }

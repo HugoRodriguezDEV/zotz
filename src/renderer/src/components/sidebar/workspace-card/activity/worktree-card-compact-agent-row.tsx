@@ -28,6 +28,7 @@ import {
 } from '../../../../../../shared/program-status/presentation'
 import { resolveRowProgramStatus } from '@/lib/program-status/agent-row-presentation'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
+import { zotzProgramStatusProcess } from '@/components/zotz/agent-sprite/zotz-process-sprite-spec'
 
 function getCompactAgentPrimary(
   agent: DashboardAgentRowData,
@@ -242,6 +243,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
             tooltipSide="right"
             progress={presentation.progress}
             unread={isUnvisited}
+            zotzProcess={zotzProgramStatusProcess(agent)}
           />
           {!hideIcon && (
             <span className="inline-flex shrink-0" title={formatAgentTypeLabel(agent.agentType)}>

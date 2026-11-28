@@ -6,6 +6,7 @@ import type { NativeChatBackgroundTaskBlock } from '../../../../../../shared/nat
 import { nativeChatBackgroundTaskRun } from '../../../../../../shared/native-chat/transcript/turns/native-chat-background-task-run'
 import { sayBackgroundTaskTranslated } from './background-task-words-text'
 import { KIND_ICONS } from './NativeChatBackgroundTasksStatus'
+import { zotzProcessForTask } from '@/components/zotz/agent-sprite/zotz-process-sprite-spec'
 
 export function NativeChatBackgroundTaskRun({
   block
@@ -22,7 +23,12 @@ export function NativeChatBackgroundTaskRun({
     <div className="min-w-0 py-0.5 font-sans text-sm leading-relaxed text-chat-foreground-faint">
       <div className="flex min-h-6 min-w-0 items-center gap-1.5">
         <Icon aria-hidden="true" className="size-3.5 shrink-0 text-chat-foreground-faint" />
-        <AgentStateDot state={row.state} size="sm" title={null} />
+        <AgentStateDot
+          state={row.state}
+          size="sm"
+          title={null}
+          zotzProcess={zotzProcessForTask(row.kind, row.state, block.taskId)}
+        />
         <span className="min-w-0 truncate text-chat-foreground" title={row.label}>
           {row.label}
         </span>

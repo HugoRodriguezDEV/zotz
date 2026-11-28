@@ -47,7 +47,8 @@ export function paintGlyph(
   paintCells(ctx, rows, x, y, size, (cell) => (cell === '1' ? color : null))
 }
 
-function cell(
+/** One cell of a `size`-pixel grid whose top-left is (x, y). */
+export function paintCell(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -101,7 +102,7 @@ function paintEyes(
   theme: ZotzSpriteTheme
 ): void {
   const dot = (col: number, row: number, color: string = SPRITE_INK.eye): void =>
-    cell(ctx, x, y, col, row, color, size)
+    paintCell(ctx, x, y, col, row, color, size)
   switch (look.eyes) {
     case 'happy':
       for (const eye of [4, 7]) {
@@ -185,7 +186,7 @@ export function paintAgent(
       ]
       sparks.forEach(([col, row], index) => {
         if ((Math.floor(now / 70) + index) % 2) {
-          cell(ctx, x0, y0, col, row, theme.question, size)
+          paintCell(ctx, x0, y0, col, row, theme.question, size)
         }
       })
     }
@@ -194,7 +195,7 @@ export function paintAgent(
   const y = y0 + look.offsetY * size
   const put = (col: number, row: number, fill: string): void => {
     if (!headOnly || row < AGENT_HEAD_ROWS) {
-      cell(ctx, x, y, col, row, fill, size)
+      paintCell(ctx, x, y, col, row, fill, size)
     }
   }
   const handTop = -7 - look.handLift
@@ -241,7 +242,7 @@ export function paintAgent(
             [8, 0]
           ]
     sparks.forEach(([col, row], index) =>
-      cell(ctx, x, y, col, row, index % 2 ? theme.amber : theme.danger, size)
+      paintCell(ctx, x, y, col, row, index % 2 ? theme.amber : theme.danger, size)
     )
   }
   const paint = overlayPaint(color, theme)

@@ -2812,6 +2812,99 @@
       "truncated_one": "… {{count}} more line",
       "truncated_other": "… {{count}} more lines"
     },
+    "flows": {
+      "input": {
+        "boolean": "Yes / no",
+        "number": "Number",
+        "select": "Choice",
+        "text": "Text"
+      },
+      "kind": {
+        "agent": "Agent",
+        "parallel": "Parallel"
+      },
+      "onError": {
+        "continue": "Keep going",
+        "errorPort": "Leave by the Error output",
+        "stop": "Stop the flow"
+      },
+      "operator": {
+        "contains": "contains",
+        "equals": "is equal to",
+        "exists": "has a value",
+        "exitCodeZero": "exit code is 0",
+        "greaterThan": "is greater than",
+        "lessThan": "is less than",
+        "notContains": "does not contain",
+        "notEquals": "is not equal to",
+        "notExists": "is empty"
+      },
+      "port": {
+        "approved": "Approved",
+        "complete": "Complete",
+        "default": "Otherwise",
+        "false": "No",
+        "rejected": "Rejected",
+        "timeout": "Timed out",
+        "true": "Yes",
+        "withFailures": "With failures"
+      },
+      "problem": {
+        "chatContextNotRequested": "{template} is empty unless the chat command sends it.",
+        "chatWithoutTrigger": "This needs a chat command trigger.",
+        "cycle": "This step is part of a cycle.",
+        "disconnectedNode": "This step is not connected.",
+        "duplicateEdge": "Duplicate connection.",
+        "duplicateNodeId": "Two steps share the same id.",
+        "duplicateNodeName": "Another step is also named {name}.",
+        "duplicateSlug": "Another flow already uses this slug.",
+        "duplicateSwitchCase": "Output \"{port}\" is repeated or reserved.",
+        "edgeCrossesLoop": "Connections cannot cross a loop border.",
+        "edgeUnknownNode": "Connection to a step that does not exist.",
+        "edgeUnknownPort": "{name} has no \"{port}\" output.",
+        "forEachEmpty": "The loop has no steps inside.",
+        "forEachMultipleExits": "The loop body must end in a single step.",
+        "parentCycle": "Loops contain each other.",
+        "parentNotForEach": "A step can only sit inside a \"for each\" loop.",
+        "reservedNodeName": "{name} is reserved for templates.",
+        "templateInCommand": "Pass values to a command through its variables, not its text.",
+        "templateItemOutsideLoop": "{template} only works inside a \"for each\" loop.",
+        "templateNotBefore": "{template} reads a step that does not run before this one.",
+        "templateSyntax": "Invalid template {template}.",
+        "templateUnknownChatField": "{template} is not a chat field.",
+        "templateUnknownNode": "{template} names no step."
+      },
+      "status": {
+        "cancelled": "Cancelled",
+        "done": "Done",
+        "pending": "Pending",
+        "queued": "Queued",
+        "running": "Running",
+        "skipped": "Skipped",
+        "waitingApproval": "Waiting for approval"
+      },
+      "templates": {
+        "chat": "Chat",
+        "item": "Loop item",
+        "steps": "Earlier steps",
+        "trigger": "Trigger"
+      },
+      "trigger": {
+        "agentFinished": "Agent finished",
+        "chatCommand": "Chat command",
+        "flowCall": "Called by a flow",
+        "manual": "Manual",
+        "outcomeError": "Failed",
+        "outcomeInterrupted": "Interrupted",
+        "outcomeSuccess": "Succeeded",
+        "prMerged": "Merged",
+        "prOpened": "Opened",
+        "pullRequest": "Pull request",
+        "schedule": "Schedule",
+        "taskMoved": "Task moved",
+        "webhook": "Webhook"
+      }
+    },
     "links": {
       "hostSummary": {
         "conversations_one": "{{count}} conversation",

@@ -143,6 +143,7 @@ export async function listZotzHostConversations(
       // Same title the sidebar row shows.
       title: row.displayName || row.branch.replace(/^refs\/heads\//, '') || row.path,
       projectName: projectNames.get(row.repoId) ?? '',
+      parentWorktreeId: row.cliProvenance?.zotzParentWorktreeId ?? null,
       listed: isZotzUserConversation(row, chats.length > 0 ? new Set([row.id]) : new Set()),
       chats
     }

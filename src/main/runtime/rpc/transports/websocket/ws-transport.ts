@@ -22,6 +22,7 @@ import {
 import { UnauthenticatedSourceCap } from './source-admission/ws-unauthenticated-source-cap'
 import type { WebSocketSourceGuard } from './source-admission/ws-network-source-guard'
 import { reserveBrowserTunnelOrcaListenerPort } from '../../../../browser/network/tunnels/browser-network-tunnel-destination-policy'
+import { withZotzFlowWebhooks } from '../../../../zotz/flows/zotz-flow-webhook'
 
 export const WEBSOCKET_TRANSPORT_MAX_MESSAGE_BYTES = REMOTE_RUNTIME_MAX_INBOUND_FRAME_BYTES
 // Allow many remote-desktop streams so stale ones cannot starve control RPCs.
@@ -223,7 +224,9 @@ export class WebSocketTransport implements RpcTransport {
     await assertPortNotShadowingListener(this.host, port)
     // Without an HTTP request listener, plain HTTP hangs instead of receiving 404 (#30100).
     const httpServer = createHttpServer(
-      this.staticRoot ? createStaticWebClientHandler(this.staticRoot) : answerWithoutWebClient
+      withZotzFlowWebhooks(
+        this.staticRoot ? createStaticWebClientHandler(this.staticRoot) : answerWithoutWebClient
+      )
     )
 
     await new Promise<void>((resolve, reject) => {

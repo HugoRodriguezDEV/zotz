@@ -12,7 +12,11 @@ import {
   type ZotzFlowNode
 } from './zotz-flow-node-contract'
 import { zotzFlowError, zotzFlowWarning, type ZotzFlowProblem } from './zotz-flow-problems'
-import { checkZotzFlowChatOnlyNodes, checkZotzFlowTemplates } from './zotz-flow-template-validation'
+import {
+  checkZotzFlowChatOnlyNodes,
+  checkZotzFlowTemplates,
+  type ZotzFlowTemplateScope
+} from './zotz-flow-template-validation'
 
 export type ZotzFlowGraph = Pick<ZotzFlowDraft, 'triggers' | 'nodes' | 'edges'>
 
@@ -34,6 +38,24 @@ export function validateZotzFlow(flow: ZotzFlowGraph): ZotzFlowProblem[] {
   checkConnectivity(flow.nodes, graph, problems)
   checkLoopBodies(flow.nodes, graph, problems)
 
+  checkZotzFlowTemplates(flow, buildTemplateScope(loopChains, upstream), problems)
+  checkZotzFlowChatOnlyNodes(flow, problems)
+  return problems
+}
+
+/** What a node's templates may read, by the same rules validation applies; the canvas picker offers it. */
+export function createZotzFlowTemplateScope(flow: ZotzFlowGraph): ZotzFlowTemplateScope {
+  const ignored: ZotzFlowProblem[] = []
+  const nodesById = indexNodes(flow.nodes, ignored)
+  const loopChains = checkParents(flow.nodes, nodesById, ignored)
+  const graph = buildZotzFlowAdjacency(checkEdges(flow.edges, nodesById, ignored))
+  return buildTemplateScope(loopChains, createZotzFlowUpstreamIndex(graph))
+}
+
+function buildTemplateScope(
+  loopChains: Map<string, string[]>,
+  upstream: (nodeId: string) => ReadonlySet<string>
+): ZotzFlowTemplateScope {
   const loops = (nodeId: string): string[] => loopChains.get(nodeId) ?? []
   const beforeCache = new Map<string, Set<string>>()
   const before = (nodeId: string): ReadonlySet<string> => {
@@ -46,9 +68,7 @@ export function validateZotzFlow(flow: ZotzFlowGraph): ZotzFlowProblem[] {
     }
     return result
   }
-  checkZotzFlowTemplates(flow, { before, loops }, problems)
-  checkZotzFlowChatOnlyNodes(flow, problems)
-  return problems
+  return { before, loops }
 }
 
 function indexNodes(nodes: ZotzFlowNode[], problems: ZotzFlowProblem[]): Map<string, ZotzFlowNode> {
