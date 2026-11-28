@@ -56,7 +56,7 @@ export function ZotzFlowChatMenu({
             {t('zotz.flowChat.menuLoading', 'Reading flows…')}
           </div>
         ) : (
-          <CommandEmpty className="px-4 py-6 text-sm text-muted-foreground">
+          <CommandEmpty>
             {empty
               ? t(
                   'zotz.flowChat.menuNone',
@@ -73,19 +73,20 @@ export function ZotzFlowChatMenu({
                   key={`${group.hostId}:${entry.flow.id}`}
                   value={`${group.hostId} ${entry.flow.slug} ${entry.flow.name}`}
                   onSelect={() => onChoose(entry)}
-                  className="items-start gap-3"
                 >
-                  <Workflow className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-foreground">{entry.flow.name}</div>
-                    <div className="font-mono text-xs text-muted-foreground">
-                      /flow {entry.flow.slug}
-                    </div>
-                    {entry.flow.description ? (
-                      <div className="line-clamp-2 text-xs text-muted-foreground">
-                        {entry.flow.description}
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <Workflow className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-foreground">{entry.flow.name}</div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {`/flow ${entry.flow.slug}`}
                       </div>
-                    ) : null}
+                      {entry.flow.description ? (
+                        <div className="line-clamp-2 text-xs text-muted-foreground">
+                          {entry.flow.description}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </CommandItem>
               ))}

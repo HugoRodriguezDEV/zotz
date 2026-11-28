@@ -74,18 +74,26 @@ export function subscribeZotzFlowChatMachine(
       onEvent(response.result)
     }
   }
-  const request = machine.environmentId
-    ? subscribeRuntimeEnvironment(
-        {
-          selector: machine.environmentId,
-          method: 'zotz.flows.subscribe',
-          params: {},
-          timeoutMs: 15_000,
-          expectedEnvironmentPairingRevision: getRuntimeEnvironmentRevision(machine.environmentId)
-        },
-        { onResponse, onError: () => {}, onClose: () => {} }
-      )
-    : window.api.runtime.subscribe({ method: 'zotz.flows.subscribe', params: {} }, onResponse)
+  const open = () =>
+    machine.environmentId
+      ? subscribeRuntimeEnvironment(
+          {
+            selector: machine.environmentId,
+            method: 'zotz.flows.subscribe',
+            params: {},
+            timeoutMs: 15_000,
+            expectedEnvironmentPairingRevision: getRuntimeEnvironmentRevision(machine.environmentId)
+          },
+          { onResponse, onError: () => {}, onClose: () => {} }
+        )
+      : window.api.runtime.subscribe({ method: 'zotz.flows.subscribe', params: {} }, onResponse)
+  // A window without the runtime bridge (tests, the web client before pairing) has nothing to follow.
+  let request: ReturnType<typeof open>
+  try {
+    request = open()
+  } catch {
+    return () => {}
+  }
   request.then(
     (handle) => {
       if (disposed) {

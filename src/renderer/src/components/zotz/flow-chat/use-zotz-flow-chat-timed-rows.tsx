@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
+import { useTranslate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store/index'
 import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
 import type { NativeChatTimedRow } from '@/components/native-chat/conversation/slots/native-chat-timed-rows'
@@ -21,13 +21,11 @@ export function zotzFlowChatEnvironmentId(target: RuntimeClientTarget | undefine
   return target?.kind === 'environment' ? target.environmentId : null
 }
 
-/**
- * Flows this chat fired, each as a card at the time it started, with live step state (spec §6.3).
- * Returns a function that adds them to the transcript's other timed rows.
- */
+/** Flows this chat fired, each as a card at the time it started, with live step state (spec §6.3). */
 export function useZotzFlowChatTimedRows(
   chat: { sessionId: string; target?: RuntimeClientTarget } | undefined
-): (rows: readonly NativeChatTimedRow[]) => readonly NativeChatTimedRow[] {
+): readonly NativeChatTimedRow[] {
+  const t = useTranslate()
   const sessionId = chat?.sessionId ?? ''
   const environmentId = zotzFlowChatEnvironmentId(chat?.target)
   const enabled = chat !== undefined
@@ -67,7 +65,7 @@ export function useZotzFlowChatTimedRows(
             onCancel={() =>
               void zotzFlowChatRpc.cancel(machine, run.id).catch((error: unknown) =>
                 toast.error(
-                  translate('zotz.flowChat.cancelFailed', 'Could not stop the flow: {{error}}', {
+                  t('zotz.flowChat.cancelFailed', 'Could not stop the flow: {{error}}', {
                     error: error instanceof Error ? error.message : String(error)
                   })
                 )
@@ -76,20 +74,7 @@ export function useZotzFlowChatTimedRows(
           />
         )
       })),
-    [catalogs, openRun, remoteLabel, runs]
+    [catalogs, openRun, remoteLabel, runs, t]
   )
-  // Same rows in, same array out, so the transcript's placement memo holds between renders.
-  return useMemo(() => {
-    let last: { rows: readonly NativeChatTimedRow[]; all: readonly NativeChatTimedRow[] } | null =
-      null
-    return (rows) => {
-      if (flowRows.length === 0) {
-        return rows
-      }
-      if (last?.rows !== rows) {
-        last = { rows, all: [...rows, ...flowRows] }
-      }
-      return last.all
-    }
-  }, [flowRows])
+  return flowRows
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react'
 import { translate } from '@/i18n/i18n'
+import { useTranslate } from '@/i18n/use-translate'
 import type { NativeChatPickerItem } from '../../../../../shared/native-chat/input/composer/native-chat-picker-items'
 import type {
   NativeChatSessionSkill,
@@ -52,6 +53,7 @@ export function useZotzFlowChatRows(
     () => (environmentId === undefined ? [] : zotzFlowChatMachines(environmentId)),
     [environmentId]
   )
+  const t = useTranslate()
   const catalog = useZotzFlowChatCatalogs()
   useEffect(() => {
     void loadZotzFlowChatCatalog(machines)
@@ -64,17 +66,17 @@ export function useZotzFlowChatRows(
       ...commands.filter((command) => !command.orcaOwned).map((command) => command.name),
       ...(skills ?? []).map((skill) => skill.name)
     ])
-    const text = translate('zotz.flowChat.argumentHint', '[text]')
+    const text = t('zotz.flowChat.argumentHint', '[text]')
     const rows: SlashCommandSuggestion[] = [
       {
         name: ZOTZ_FLOW_CHAT_COMMAND,
-        description: translate('zotz.flowChat.commandDescription', 'Run a Zotz flow'),
-        argumentHint: translate('zotz.flowChat.flowArgumentHint', '[flow] [text]'),
+        description: t('zotz.flowChat.commandDescription', 'Run a Zotz flow'),
+        argumentHint: t('zotz.flowChat.flowArgumentHint', '[flow] [text]'),
         orcaOwned: true
       },
       ...[...shortcuts].map(([name, entry]): SlashCommandSuggestion => ({
         name,
-        description: translate('zotz.flowChat.shortcutDescription', 'Flow: {{flow}}', {
+        description: t('zotz.flowChat.shortcutDescription', 'Flow: {{flow}}', {
           flow: entry.flow.name
         }),
         argumentHint: text,
@@ -86,7 +88,7 @@ export function useZotzFlowChatRows(
       commands: [...commands.filter((command) => command.name !== ZOTZ_FLOW_CHAT_COMMAND), ...rows],
       shortcuts
     }
-  }, [catalog, commands, machines, skills])
+  }, [catalog, commands, machines, skills, t])
 }
 
 function resolveEntry(

@@ -230,15 +230,17 @@ export function NativeChatWorkerApprovalTimeline({
   children: (timedRows: readonly NativeChatTimedRow[]) => React.ReactNode
 }): React.ReactNode {
   const receipts = useNativeChatWorkerApprovalReceipts(party)
-  const withZotzFlowRows = useZotzFlowChatTimedRows(chat)
+  const zotzFlowRows = useZotzFlowChatTimedRows(chat)
   const timedRows = useMemo(
-    () =>
-      receipts.map((entry) => ({
+    () => [
+      ...receipts.map((entry) => ({
         key: `worker-approval:${entry.approval.approvalId}`,
         at: Date.parse(entry.askedAt ?? entry.at),
         node: <NativeChatWorkerApprovalReceipt entry={entry} />
       })),
-    [receipts]
+      ...zotzFlowRows
+    ],
+    [receipts, zotzFlowRows]
   )
-  return children(withZotzFlowRows(timedRows))
+  return children(timedRows)
 }
