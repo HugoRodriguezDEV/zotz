@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react'
-import { FolderPlus, Plus } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
@@ -20,6 +19,7 @@ import { ZotzHostDot } from '../host-color/ZotzHostDot'
 import { ZotzProjectMenu } from './ZotzProjectMenu'
 import { formatZotzRepoSlug, useZotzRepoGitHubSlug } from '../repo-github/use-zotz-repo-github-slug'
 import { ZotzRepoGitHubLink } from '../repo-github/ZotzRepoGitHubLink'
+import { ZotzPixelIcon } from '../pixel-icon/ZotzPixelIcon'
 
 export function AddProjectButton(): React.JSX.Element {
   const t = useTranslate()
@@ -37,7 +37,7 @@ export function AddProjectButton(): React.JSX.Element {
       onOpenEntryRequest={openEntryRequest}
     >
       <Button variant="ghost" size="icon-xs" type="button" aria-label={label}>
-        <FolderPlus className="size-3.5" />
+        <ZotzPixelIcon name="newFolder" />
       </Button>
     </AddProjectMenu>
   )
@@ -65,12 +65,23 @@ export function ProjectHeader({
   const slug = useZotzRepoGitHubSlug(repo)
   // The folder name alone hides the repository when they differ (a clone renamed on disk).
   const showSlug = slug !== null && slug.repo.toLowerCase() !== repo.displayName.toLowerCase()
+  // The default folder glyph becomes the pixel folder; a chosen icon or GitHub avatar stays.
+  const icon = repo.repoIcon
+  const hasOwnIcon = !!icon && !(icon.type === 'lucide' && icon.name === 'Folder')
   return (
-    <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
-      <RepoIconGlyph repoIcon={repo.repoIcon} className="size-5 shrink-0" />
+    <div className="group flex items-start gap-2 px-2 py-1.5 hover:bg-worktree-sidebar-foreground/5">
+      {hasOwnIcon ? (
+        <span className="flex h-6 shrink-0 items-center">
+          <RepoIconGlyph repoIcon={repo.repoIcon} className="size-5 shrink-0" />
+        </span>
+      ) : (
+        <span className="flex h-6 w-5 shrink-0 items-center justify-center text-worktree-sidebar-foreground">
+          <ZotzPixelIcon name="folder" />
+        </span>
+      )}
       <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <span className="min-w-0 truncate text-sm font-semibold text-worktree-sidebar-foreground">
+        <div className="flex h-6 min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate font-zotz-display text-[17px] font-extrabold text-worktree-sidebar-foreground leading-6 tracking-normal subpixel-antialiased">
             {repo.displayName}
           </span>
           {hostLabel && hostColor ? <ZotzHostDot color={hostColor} /> : null}
@@ -88,7 +99,7 @@ export function ProjectHeader({
         ) : null}
       </div>
       {slug ? (
-        <ZotzRepoGitHubLink slug={slug} className="text-worktree-sidebar-foreground/40" />
+        <ZotzRepoGitHubLink slug={slug} className="h-6 text-worktree-sidebar-foreground/40" />
       ) : null}
       <ZotzProjectMenu repo={repo} />
       <Tooltip>
@@ -101,7 +112,7 @@ export function ProjectHeader({
             data-contextual-tour-target="zotz-project-new-conversation"
             onClick={() => openHeaderCreateComposer(repo, { pinHost: !multiHost })}
           >
-            <Plus className="size-4" />
+            <ZotzPixelIcon name="plus" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="top" sideOffset={4}>

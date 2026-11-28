@@ -26386,7 +26386,10 @@
       "twoServers": "Two servers can't write to each other. Link each one with a conversation on this machine.",
       "unreachable": "{{host}} isn't answering.",
       "updateServer": "Update Zotz on {{host}} to link its conversations.",
-      "workingTogether": "Working together"
+      "workingTogether": "Working together",
+      "workingWithWorkers": "Working with its workers",
+      "legendParent": "Started a member; not in the group",
+      "legendWorker": "A member's worker; not in the group"
     },
     "agentRoom": {
       "agent": "{{name}}: {{state}}",
@@ -26394,7 +26397,10 @@
       "help": "Arrow keys move it; Enter selects it. Lines: {{lines}}.",
       "line": "{{a}} ↔ {{b}}: {{count}} messages",
       "helpOpen": "Arrow keys move it; Space selects it; Enter opens it. Lines: {{lines}}.",
-      "inGroup": "in a group"
+      "inGroup": "in a group",
+      "guide": "{{child}} is a worker of {{parent}}",
+      "kinParent": "parent of a member",
+      "kinWorker": "worker of a member"
     },
     "groups": {
       "twoServers": "Two servers can't write to each other, so a group holds this machine and at most one server.",

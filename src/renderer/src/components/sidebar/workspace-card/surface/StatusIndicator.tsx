@@ -9,11 +9,8 @@ import {
   type StateIndicatorTooltipSide
 } from '@/components/StateIndicatorTooltip'
 import { getWorktreeStatusLabel } from '@/lib/workspace/activity/worktree-status'
-import { ZotzAgentSprite } from '@/components/zotz/agent-sprite/ZotzAgentSprite'
-import {
-  ZOTZ_PIXEL_AGENT_STATES,
-  zotzSpriteStateForWorktree
-} from '@/components/zotz/agent-sprite/zotz-pixel-agent-states'
+import { ZotzWorktreeStatusSprite } from '@/components/zotz/agent-sprite/ZotzWorktreeStatusSprite'
+import { ZOTZ_PIXEL_AGENT_STATES } from '@/components/zotz/agent-sprite/zotz-pixel-agent-states'
 import type { WorktreeStatus } from '../../../../../../shared/worktree/row-display/worktree-status-rollup'
 
 export type Status = WorktreeStatus
@@ -44,15 +41,12 @@ const StatusIndicator = React.memo(function StatusIndicator({
   const tooltipLabel =
     showTooltip && AGENT_STATUS_TOOLTIP_STATUSES.has(status) ? getWorktreeStatusLabel(status) : null
 
-  // Zotz: the workspace's rolled-up state as a pixel agent.
+  // Zotz: the workspace's rolled-up state as a pixel agent, or a device when no agent leads it.
   if (ZOTZ_PIXEL_AGENT_STATES) {
     return (
       <StateIndicatorTooltip label={tooltipLabel} side={tooltipSide}>
         <span className={cn('inline-flex shrink-0', className)} {...rest}>
-          <ZotzAgentSprite
-            state={zotzSpriteStateForWorktree(status)}
-            label={getWorktreeStatusLabel(status)}
-          />
+          <ZotzWorktreeStatusSprite status={status} label={getWorktreeStatusLabel(status)} />
         </span>
       </StateIndicatorTooltip>
     )

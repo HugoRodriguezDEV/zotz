@@ -23,11 +23,12 @@ import {
   type Packet
 } from './zotz-agent-room-scene'
 import { zotzAgentRoomTheme } from './zotz-agent-room-theme'
-import type {
-  ZotzAgentRoomStageCallbacks,
-  ZotzAgentRoomStageInput,
-  ZotzRoomAgent,
-  ZotzRoomMail
+import {
+  zotzRoomAgentMarked,
+  type ZotzAgentRoomStageCallbacks,
+  type ZotzAgentRoomStageInput,
+  type ZotzRoomAgent,
+  type ZotzRoomMail
 } from './zotz-agent-room-types'
 
 type Point = { x: number; y: number }
@@ -61,8 +62,9 @@ export function createZotzAgentRoomStage(
   const seenMail = new Set<string>()
   let drag: { key: string; dx: number; dy: number; sx: number; sy: number; moved: boolean } | null =
     null
-  // Settling gives up after a couple of seconds, so a crowded stage can't spin forever.
-  let settle: { pinned: string | null; frames: number } | null = null
+  // Settling gives up after a couple of seconds, so a crowded stage can't spin forever. Spots that
+  // arrive (saved or default) or a resized room settle at once; a robot being moved nudges gently.
+  let settle: { pinned: string | null; frames: number; instant: boolean } | null = null
   let lastClick = { key: '', at: NEVER }
   let saveTimer = 0
   let fastFrame = 0
@@ -87,7 +89,7 @@ export function createZotzAgentRoomStage(
           ctx,
           agent.label,
           agent.current ?? false,
-          { branded: Boolean(agent.agent), grouped: agent.inGroup ?? false },
+          { branded: Boolean(agent.agent), grouped: zotzRoomAgentMarked(agent) },
           zotzAgentRoomTheme()
         )
       : 0
@@ -99,7 +101,7 @@ export function createZotzAgentRoomStage(
       input.columns > 0 &&
       placeZotzRoomAgents(spots, input.agents, input.positions, input.columns)
     ) {
-      settle = { pinned: settle?.pinned ?? null, frames: 0 }
+      settle = { pinned: settle?.pinned ?? null, frames: 0, instant: true }
     }
   }
 
@@ -108,12 +110,13 @@ export function createZotzAgentRoomStage(
     if (!settle || !ctx || width === 0 || input.columns === 0) {
       return
     }
-    const { agents: nodes, reduced } = input
+    const { agents: nodes, reduced, height } = input
     const tagWidths = nodes.map(tagWidthOf)
     const list = nodes.map((node) => ({ ...(spots.get(node.key) ?? { fx: 0.5, fy: 0.5 }) }))
     const pinnedKey = drag?.moved ? drag.key : settle.pinned
     const pinned = pinnedKey ? nodes.findIndex((node) => node.key === pinnedKey) : -1
-    const done = settleZotzRoomSpots(list, tagWidths, pinned, width, input.height, reduced)
+    const instant = reduced || settle.instant
+    const done = settleZotzRoomSpots(list, tagWidths, pinned, width, height, instant, settle.frames)
     nodes.forEach((node, index) => spots.set(node.key, list[index]))
     settle.frames += 1
     if ((done || settle.frames > 150) && !drag?.moved) {
@@ -199,7 +202,7 @@ export function createZotzAgentRoomStage(
 
   function moveTo(key: string, x: number, y: number): void {
     spots.set(key, clampZotzRoomSpot({ fx: x / width, fy: y / input.height }, width, input.height))
-    settle = { pinned: key, frames: 0 }
+    settle = { pinned: key, frames: 0, instant: false }
   }
 
   function resize(nextWidth: number): void {
@@ -208,7 +211,7 @@ export function createZotzAgentRoomStage(
     canvas.width = width * scale
     canvas.height = input.height * scale
     ctx?.setTransform(scale, 0, 0, scale, 0, 0)
-    settle = { pinned: null, frames: 0 }
+    settle = { pinned: null, frames: 0, instant: true }
     placeNewAgents()
     draw(performance.now())
     kick()
@@ -293,7 +296,7 @@ export function createZotzAgentRoomStage(
       drag = null
       canvas.style.cursor = 'grab'
       if (moved) {
-        settle = { pinned: key, frames: 0 }
+        settle = { pinned: key, frames: 0, instant: false }
         scheduleSave()
         kick()
       } else if (key === lastClick.key && performance.now() - lastClick.at < DOUBLE_CLICK_MS) {

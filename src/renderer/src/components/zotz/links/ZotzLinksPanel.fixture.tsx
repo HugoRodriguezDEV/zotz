@@ -197,3 +197,134 @@ export const machineRobotPicked = defineFixture({
     </div>
   )
 })
+
+const otter = worktree('otter', 'Arreglar el login con Google')
+const marlin = worktree('marlin', 'Migrar sesiones a Redis')
+
+function serve(
+  conversations: ZotzConversationEntry[],
+  messages: ZotzLinkMessage[],
+  links: { id: string; createdAt: number; members: { hostId: 'local'; path: string }[] }[]
+): () => void {
+  return () => {
+    Object.assign(window.api.runtime, {
+      call: async ({ method }: { method: string }) => ({
+        ok: true,
+        id: 'fixture',
+        result:
+          method === 'zotz.conversations.list'
+            ? { conversations }
+            : method === 'zotz.links.messages'
+              ? { messages }
+              : { ok: true }
+      })
+    })
+    useAppStore.setState((state) => ({
+      settings: state.settings && { ...state.settings, zotzConversationLinks: links }
+    }))
+  }
+}
+
+const mail = (
+  id: string,
+  from: string,
+  to: string,
+  type: string,
+  subject: string,
+  body: string,
+  minutesAgo: number
+): ZotzLinkMessage => ({
+  id,
+  from: `orca_session_id:${from}`,
+  to: `orca_session_id:${to}`,
+  fromLabel: null,
+  subject,
+  body,
+  type,
+  createdAt: now - minutesAgo * 60_000
+})
+
+const childOf = (child: ZotzConversationEntry, parent: Worktree): ZotzConversationEntry => ({
+  ...child,
+  parentWorktreeId: parent.id
+})
+
+/** A conversation that started two workers (one started its own), in no group. */
+export const parentWithWorkers = defineFixture({
+  width: 340,
+  store: {
+    repos: [api],
+    worktreesByRepo: { api: [sprint, pagination, csv, marlin] },
+    activeWorktreeId: sprint.id
+  },
+  setup: serve(
+    CONVERSATIONS.map((conversation) =>
+      conversation.path === pagination.path || conversation.path === csv.path
+        ? childOf(conversation, sprint)
+        : conversation.path === marlin.path
+          ? childOf(conversation, csv)
+          : conversation
+    ),
+    [
+      mail('b1', 'salmon', 'albatross', 'dispatch', 'Paginar pacientes', 'Usa cursor.', 20),
+      mail('b2', 'salmon', 'heron', 'dispatch', 'Exportar a CSV', 'Columnas del reporte.', 19),
+      mail('b3', 'heron', 'marlin', 'dispatch', 'Sesiones en Redis', 'Para el export.', 15),
+      mail('q1', 'albatross', 'salmon', 'question', 'Question', '¿Cursor u offset?', 10),
+      mail('r1', 'salmon', 'albatross', 'status', 'Re: Question', 'Cursor.', 9),
+      mail('d1', 'heron', 'salmon', 'worker_done', 'CSV listo', 'PR abierto.', 2)
+    ],
+    []
+  ),
+  render: () => (
+    <div className="flex h-[1100px] flex-col bg-sidebar">
+      <ZotzLinksPanel />
+    </div>
+  )
+})
+
+/** A group of two; one member started a worker that is not in the group. */
+export const groupWithWorker = defineFixture({
+  width: 340,
+  store: {
+    repos: [api],
+    worktreesByRepo: { api: [sprint, pagination, csv, otter] },
+    activeWorktreeId: sprint.id
+  },
+  setup: serve(
+    CONVERSATIONS.map((conversation) =>
+      conversation.path === otter.path ? childOf(conversation, pagination) : conversation
+    ),
+    [
+      ...MESSAGES,
+      mail('b1', 'albatross', 'otter', 'dispatch', 'Login con Google', 'Revisa el callback.', 8),
+      mail('d1', 'otter', 'albatross', 'worker_done', 'Login listo', 'Faltaba el scope.', 1)
+    ],
+    [
+      {
+        id: 'g1',
+        createdAt: 1,
+        members: [
+          { hostId: 'local', path: sprint.path },
+          { hostId: 'local', path: pagination.path }
+        ]
+      }
+    ]
+  ),
+  render: () => (
+    <div className="flex h-[1000px] flex-col bg-sidebar">
+      <ZotzLinksPanel />
+    </div>
+  )
+})
+
+/** The same family with the machine open: its room joins each worker to its parent too. */
+export const parentWithWorkersMachineOpen = defineFixture({
+  ...parentWithWorkers,
+  interact: async (frame) => {
+    const fold = frame.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')
+    fold?.click()
+    await robotButton(frame, 'tapir')
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    fold?.scrollIntoView({ block: 'start' })
+  }
+})
