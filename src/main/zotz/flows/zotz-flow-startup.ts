@@ -5,6 +5,7 @@ import { automationSystemSettled } from '../../automations/dispatch/automation-w
 import { createZotzFlowAgentDriver, type ZotzFlowPreviousSession } from './zotz-flow-agent-driver'
 import { startZotzFlowEventTriggers } from './zotz-flow-event-triggers'
 import { zotzFlowBranchName } from './zotz-flow-agent-finished-source'
+import { createZotzFlowChatDriver } from './zotz-flow-chat-driver'
 import { runZotzFlowCommand } from './zotz-flow-command-runner'
 import { fetchZotzFlowHttp } from './zotz-flow-http-client'
 import { notifyZotzFlow } from './zotz-flow-notifier'
@@ -41,16 +42,18 @@ export async function startZotzFlows(input: {
           : []
       )
     )
+  const agents = createZotzFlowAgentDriver({
+    runtime: input.runtime,
+    store: input.store,
+    allowRemoteHostScheduling: input.allowRemoteHostScheduling,
+    previousSessions
+  })
   const service = new ZotzFlowService(
     flowStore,
     {
       now: Date.now,
-      agents: createZotzFlowAgentDriver({
-        runtime: input.runtime,
-        store: input.store,
-        allowRemoteHostScheduling: input.allowRemoteHostScheduling,
-        previousSessions
-      }),
+      agents,
+      chat: createZotzFlowChatDriver({ runtime: input.runtime, agents }),
       runCommand: runZotzFlowCommand,
       fetch: fetchZotzFlowHttp,
       notify: ({ title, body, run }) =>

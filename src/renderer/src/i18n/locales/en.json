@@ -26917,6 +26917,53 @@
       },
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out"
+    },
+    "flowChat": {
+      "argumentHint": "[text]",
+      "attachmentsPending": "Attachments are still uploading. Send the command again once they finish.",
+      "cancelFailed": "Could not stop the flow: {{error}}",
+      "cancelRun": "Stop flow",
+      "cardLabel": "Flow {{flow}}",
+      "commandDescription": "Run a Zotz flow",
+      "deletedFlow": "Deleted flow",
+      "flowArgumentHint": "[flow] [text]",
+      "formCancel": "Cancel",
+      "formDescription": "This flow asks for a few values first.",
+      "formMissing": "Fill this in to run the flow.",
+      "formRequired": "{{label}} (required)",
+      "formRun": "Run flow",
+      "formText": "Text",
+      "formTitle": "Run {{flow}}",
+      "loopProgress": "{{done}}/{{total}}",
+      "loopProgressFailed": "{{done}}/{{total}} · {{failed}} failed",
+      "menuDescription": "Flows with a chat command trigger, with this chat as their context.",
+      "menuLoading": "Reading flows…",
+      "menuNoMatch": "No flow matches.",
+      "menuNone": "No flow runs from the chat yet. Add a chat command trigger to a flow in Flows.",
+      "menuSearch": "Search flows",
+      "menuTitle": "Run a flow",
+      "notFound": "No flow \"{{name}}\" runs from this chat.",
+      "openRun": "View run",
+      "runFailed": "Could not run {{flow}}: {{error}}",
+      "runNumber": "Run #{{number}}",
+      "runOn": "Run #{{number}} on {{machine}}",
+      "shortcutDescription": "Flow: {{flow}}",
+      "status": {
+        "cancelled": "Cancelled",
+        "done": "Done",
+        "failed": "Failed",
+        "queued": "Waiting to start",
+        "running": "Running",
+        "skipped": "Not run",
+        "waitingApproval": "Waiting for approval"
+      },
+      "step": {
+        "notReached": "Not reached",
+        "pending": "Pending",
+        "queued": "In the agent queue",
+        "skipped": "Skipped"
+      },
+      "thisMachine": "This machine"
     }
   }
 }

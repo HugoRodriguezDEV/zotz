@@ -218,6 +218,30 @@ async function runSubflow(
   return { output: child.output }
 }
 
+/** A note is the step's output, which the chat's flow card shows; a message also goes to the agent (spec §6.3). */
+async function runChatReply(
+  ctx: ZotzFlowStepContext,
+  node: ZotzFlowNodeOf<'chat_reply'>
+): Promise<ZotzFlowStepResult> {
+  const content = ctx.resolve(node.content)
+  ctx.nodeRun.inputs = { content }
+  if (node.mode === 'agent_message') {
+    const sessionId = ctx.run.chat?.sessionId
+    if (!sessionId) {
+      throw new ZotzFlowStepError('The chat did not say which conversation it is.', 'no_chat')
+    }
+    if (content.trim() === '') {
+      throw new ZotzFlowStepError('There is nothing to send to the agent.', 'empty_message')
+    }
+    await ctx.deps.chat.send({
+      sessionId,
+      text: content,
+      operationId: `zotz-flow:${ctx.run.id}:${node.id}:${ctx.path.join('.')}:${ctx.attempt.attempt}`
+    })
+  }
+  return { output: { markdown: content, json: null, truncated: false, capturedAt: ctx.deps.now() } }
+}
+
 /** Runs one attempt of a step; throws ZotzFlowStepError (or the abort reason) on failure. */
 export async function runZotzFlowStep(ctx: ZotzFlowStepContext): Promise<ZotzFlowStepResult> {
   const { node } = ctx
@@ -268,7 +292,6 @@ export async function runZotzFlowStep(ctx: ZotzFlowStepContext): Promise<ZotzFlo
     case 'join':
       return {}
     case 'chat_reply':
-      // The executor skips it before reaching here; replying in a chat arrives with part 4.
-      throw new ZotzFlowStepError('Replying in a chat is not available yet.', 'chat_reply_pending')
+      return runChatReply(ctx, node)
   }
 }

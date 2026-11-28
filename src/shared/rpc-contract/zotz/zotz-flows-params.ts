@@ -66,6 +66,12 @@ export const ZotzFlowsApproveParams = z.object({
   note: z.string().max(10_000).optional()
 })
 
+/** Runs a chat fired on this host, newest first: the chat draws a card for each (spec §6.3). */
+export const ZotzFlowsChatRunsParams = z.object({
+  chatSessionId: Id,
+  limit: z.number().int().min(1).max(200).optional()
+})
+
 /** Omitting both streams every flow and run change on the host. */
 export const ZotzFlowsSubscribeParams = z.object({
   flowId: Id.optional(),
@@ -85,6 +91,7 @@ export type ZotzFlowsRetryResult = { run: ZotzFlowRun }
 export type ZotzFlowsCancelResult = { run: ZotzFlowRun | null }
 export type ZotzFlowsRunsResult = ZotzFlowRunsPage
 export type ZotzFlowsRunGetResult = { run: ZotzFlowRun | null }
+export type ZotzFlowsChatRunsResult = { runs: ZotzFlowRun[] }
 export type ZotzFlowsApproveResult = { run: ZotzFlowRun }
 export type ZotzFlowsStreamEvent =
   | { type: 'flow'; flow: ZotzFlow }
