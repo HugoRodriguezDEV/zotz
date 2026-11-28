@@ -41,7 +41,15 @@ export const LAYOUT_ORACLE_KNOWN_ON_MAIN: readonly KnownOnMain[] = [
     step: 'move',
     detail: /^group \S+ selects /,
     cause: 'headless move-to-group keeps the target group selection'
-  }))
+  })),
+  // Zotz: sleeping the workspace from the sidebar leaves no active workspace, so the window shows
+  // the landing page instead of the slept tabs. Fails the same on the contract branch without Flows.
+  {
+    scenario: 'sleep-quit-resume',
+    check: 'view',
+    detail: /^the window draws no tab strip$/,
+    cause: 'Zotz: sleeping a workspace leaves no active workspace (pre-existing)'
+  }
 ]
 
 function covers(
