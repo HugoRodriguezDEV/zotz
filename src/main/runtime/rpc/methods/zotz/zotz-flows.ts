@@ -2,6 +2,7 @@ import { defineMethod, defineStreamingMethod, InvalidArgumentError } from '../..
 import {
   ZotzFlowsApproveParams,
   ZotzFlowsCancelParams,
+  ZotzFlowsChatRunsParams,
   ZotzFlowsDeleteParams,
   ZotzFlowsGetParams,
   ZotzFlowsListParams,
@@ -13,6 +14,7 @@ import {
   ZotzFlowsSubscribeParams,
   type ZotzFlowsApproveResult,
   type ZotzFlowsCancelResult,
+  type ZotzFlowsChatRunsResult,
   type ZotzFlowsDeleteResult,
   type ZotzFlowsGetResult,
   type ZotzFlowsListResult,
@@ -115,6 +117,18 @@ export const ZOTZ_FLOWS_METHODS = [
     params: ZotzFlowsRunGetParams,
     handler: async ({ runId }): Promise<ZotzFlowsRunGetResult> => ({
       run: flows().store.getRun(runId)
+    })
+  }),
+  defineMethod({
+    name: 'zotz.flows.chatRuns',
+    permission: 'workspace',
+    params: ZotzFlowsChatRunsParams,
+    handler: async ({ chatSessionId, limit }): Promise<ZotzFlowsChatRunsResult> => ({
+      runs: flows()
+        .store.listAllRuns()
+        .filter((run) => run.chat?.sessionId === chatSessionId)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit ?? 50)
     })
   }),
   defineMethod({

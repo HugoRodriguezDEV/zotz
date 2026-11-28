@@ -185,8 +185,13 @@ export function createZotzFlowAgentDriver(input: {
       }
       return { release: queue.grantPass(agent) }
     },
-    start: ({ flow, node, prompt, turn, signal }) => {
-      const automation = buildZotzFlowStepAutomation(flow, node, prompt, node.workspaceId ?? null)
+    start: ({ flow, node, prompt, turn, signal, workspaceId }) => {
+      const automation = buildZotzFlowStepAutomation(
+        flow,
+        node,
+        prompt,
+        workspaceId ?? node.workspaceId ?? null
+      )
       const runs = buildZotzFlowPreviousRuns(automation, input.previousSessions(flow.id, node.id))
       return launch(automation, node, turn, runs, signal)
     },

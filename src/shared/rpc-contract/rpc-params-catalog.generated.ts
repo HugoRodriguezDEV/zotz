@@ -804,6 +804,7 @@ import {
 import {
   ZotzFlowsApproveParams,
   ZotzFlowsCancelParams,
+  ZotzFlowsChatRunsParams,
   ZotzFlowsDeleteParams,
   ZotzFlowsGetParams,
   ZotzFlowsListParams,
@@ -1742,6 +1743,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'zotz.conversations.list': ZotzConversationsListParams,
   'zotz.flows.approve': ZotzFlowsApproveParams,
   'zotz.flows.cancel': ZotzFlowsCancelParams,
+  'zotz.flows.chatRuns': ZotzFlowsChatRunsParams,
   'zotz.flows.delete': ZotzFlowsDeleteParams,
   'zotz.flows.get': ZotzFlowsGetParams,
   'zotz.flows.list': ZotzFlowsListParams,

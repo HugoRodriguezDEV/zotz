@@ -33,6 +33,10 @@ async function untilReply(
   reply: Promise<ZotzFlowAgentReply>
 ): Promise<ZotzFlowAgentReply> {
   const stop = (): void => {
+    // The chat that fired the flow is the user's: cancelling the run never closes it.
+    if (ctx.node.kind === 'agent' && ctx.node.runInChatSession) {
+      return
+    }
     void ctx.deps.agents.stop(link).catch((error: unknown) => {
       console.warn('[zotz-flows] could not stop an agent:', error)
     })
@@ -58,15 +62,55 @@ function replyOutput(ctx: ZotzFlowStepContext, reply: ZotzFlowAgentReply): ZotzF
   }
 }
 
+/** The chat session id; a step that needs the chat fails when the run did not come from one. */
+function chatOf(ctx: ZotzFlowStepContext): NonNullable<ZotzFlowStepContext['run']['chat']> {
+  const chat = ctx.run.chat
+  if (ctx.run.trigger.kind !== 'chat_command' || !chat) {
+    throw new ZotzFlowStepError(
+      'This step works only when a chat command fires the flow.',
+      'no_chat'
+    )
+  }
+  return chat
+}
+
+/** `runInChatSession`: the prompt goes to the chat that fired the flow (spec §6.2). */
+async function promptChat(
+  ctx: ZotzFlowStepContext,
+  node: AgentNode,
+  prompt: string
+): Promise<ZotzFlowAgentReply> {
+  const sessionId = chatOf(ctx).sessionId
+  if (!sessionId) {
+    throw new ZotzFlowStepError('The chat did not say which conversation it is.', 'no_chat')
+  }
+  // No memory queue: the chat's agent is already running.
+  ctx.markStarted()
+  const started = await ctx.deps.chat.prompt({
+    node,
+    sessionId,
+    prompt,
+    turn: turnKey(ctx, ''),
+    signal: ctx.signal
+  })
+  ctx.nodeRun.agentSession = started.link
+  ctx.changed()
+  return untilReply(ctx, started.link, started.reply)
+}
+
 async function launch(
   ctx: ZotzFlowStepContext,
   node: AgentNode,
   prompt: string
 ): Promise<ZotzFlowAgentReply> {
   const { nodeRun, deps } = ctx
+  nodeRun.jsonCorrectionRequested = undefined
+  if (node.runInChatSession) {
+    return promptChat(ctx, node, prompt)
+  }
+  const workspaceId = node.workspaceSource === 'chat' ? chatWorkspaceId(ctx) : undefined
   nodeRun.status = 'queued'
   nodeRun.queuedAt = deps.now()
-  nodeRun.jsonCorrectionRequested = undefined
   ctx.changed()
   const admitted = await deps.agents.admit({
     agent: node.agentId,
@@ -88,7 +132,8 @@ async function launch(
       node,
       prompt,
       turn: turnKey(ctx, ''),
-      signal: ctx.signal
+      signal: ctx.signal,
+      workspaceId
     })
     .finally(admitted.release)
   nodeRun.agentSession = started.link
@@ -96,11 +141,25 @@ async function launch(
   return untilReply(ctx, started.link, started.reply)
 }
 
+function chatWorkspaceId(ctx: ZotzFlowStepContext): string {
+  const id = chatOf(ctx).workspace?.id
+  if (!id) {
+    throw new ZotzFlowStepError('The chat did not say which workspace it is in.', 'no_chat')
+  }
+  return id
+}
+
+/** A step in the chat that fired the flow speaks through that chat's own agent. */
+function sessionAgent(node: AgentNode, ctx: ZotzFlowStepContext): AgentNode {
+  const link = ctx.nodeRun.agentSession
+  return node.runInChatSession && link ? { ...node, agentId: link.agentId } : node
+}
+
 function reattach(ctx: ZotzFlowStepContext, node: AgentNode): Promise<ZotzFlowAgentReply> {
   const link = ctx.nodeRun.agentSession
   const pending = link
     ? ctx.deps.agents.reattach({
-        node,
+        node: sessionAgent(node, ctx),
         link,
         turn: turnKey(ctx, ctx.nodeRun.jsonCorrectionRequested ? ':fix' : ''),
         signal: ctx.signal
@@ -118,12 +177,6 @@ export async function runZotzFlowAgentStep(
   ctx: ZotzFlowStepContext,
   node: AgentNode
 ): Promise<ZotzFlowStepResult> {
-  if (node.runInChatSession || node.workspaceSource === 'chat') {
-    throw new ZotzFlowStepError(
-      'Running in the chat that fired the flow is not available yet.',
-      'chat_session_pending'
-    )
-  }
   const { nodeRun, deps } = ctx
   const userPrompt = ctx.resolve(node.prompt)
   nodeRun.inputs = { prompt: userPrompt }
@@ -142,7 +195,7 @@ export async function runZotzFlowAgentStep(
     nodeRun.output = replyOutput(ctx, reply)
     ctx.changed()
     const fix = await deps.agents.followUp({
-      node,
+      node: sessionAgent(node, ctx),
       link: nodeRun.agentSession,
       prompt: zotzFlowJsonCorrectionPrompt(format, checked.error),
       turn: turnKey(ctx, ':fix'),

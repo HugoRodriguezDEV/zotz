@@ -39,11 +39,15 @@ function callerFlowIds(run: ZotzFlowRun, runs: ReadonlyMap<string, ZotzFlowRun>)
   return ids
 }
 
+// The chat's own reply to a flow prompt can end a moment after the step records it.
+const BORROWED_CHAT_GRACE_MS = 60_000
+
 /** The flow step behind an agent or workspace, if a flow launched or created it. */
 export function findZotzFlowOriginMark(
   getFlow: (id: string) => Pick<ZotzFlow, 'nodes'> | null,
   runs: readonly ZotzFlowRun[],
-  target: ZotzFlowOriginTarget
+  target: ZotzFlowOriginTarget,
+  now: number = Date.now()
 ): ZotzFlowOriginMark | null {
   const byId = new Map(runs.map((run) => [run.id, run]))
   const newestFirst = [...runs].sort((a, b) => b.createdAt - a.createdAt)
@@ -54,12 +58,21 @@ export function findZotzFlowOriginMark(
       if (!link) {
         continue
       }
+      const node = flow?.nodes.find((entry) => entry.id === nodeRun.nodeId)
+      // The chat that fired the flow stays the user's: only the turn the step sent is the flow's.
+      const borrowed = node?.kind === 'agent' && node.runInChatSession
+      if (
+        borrowed &&
+        nodeRun.finishedAt !== null &&
+        now - nodeRun.finishedAt > BORROWED_CHAT_GRACE_MS
+      ) {
+        continue
+      }
       const sameAgent =
         (target.chatSessionId && link.chatSessionId === target.chatSessionId) ||
         (target.terminalPaneKey && link.terminalPaneKey === target.terminalPaneKey) ||
         (target.terminalPtyId && link.terminalPtyId === target.terminalPtyId)
       // Only a workspace the step created belongs to the flow; an existing one is the user's too.
-      const node = flow?.nodes.find((entry) => entry.id === nodeRun.nodeId)
       const ownWorkspace =
         target.workspaceId &&
         link.workspaceId === target.workspaceId &&

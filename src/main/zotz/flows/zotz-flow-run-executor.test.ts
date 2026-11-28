@@ -75,6 +75,14 @@ function deps(overrides: Partial<ZotzFlowExecutorDeps> = {}): ZotzFlowExecutorDe
     now: () => (clock += 1),
     save: () => {},
     agents: scriptedAgents({}),
+    chat: {
+      prompt: async () => {
+        throw new Error('no chat here')
+      },
+      send: async () => {
+        throw new Error('no chat here')
+      }
+    },
     runCommand: async () => ({
       exitCode: 0,
       stdout: '',
@@ -196,6 +204,108 @@ describe('ZotzFlowRunExecutor', () => {
     expect(statusOf(run, 'review', [2])?.output?.markdown).toBe('still wrong')
     expect(statusOf(run, 'summary')?.status).toBe('done')
     expect(run.status).toBe('done')
+  })
+
+  it('prompts the chat that fired the flow, then leaves a note and messages its agent', async () => {
+    const prompts: { sessionId: string; prompt: string }[] = []
+    const sent: { sessionId: string; text: string }[] = []
+    const flow = flowOf(
+      [
+        {
+          id: 'ask',
+          name: 'ask',
+          kind: 'agent',
+          agentId: 'codex',
+          prompt: 'Review: {{trigger.text}} after {{chat.lastAnswer}}',
+          workspaceSource: 'existing',
+          workspaceId: 'repo::/tmp/w',
+          runContext: null,
+          runInChatSession: true,
+          output: { mode: 'markdown' },
+          position: AT
+        },
+        {
+          id: 'note',
+          name: 'note',
+          kind: 'chat_reply',
+          mode: 'note',
+          content: 'Risk: {{ask.output}}',
+          position: AT
+        },
+        {
+          id: 'tell',
+          name: 'tell',
+          kind: 'chat_reply',
+          mode: 'agent_message',
+          content: 'Go on with {{ask.output}}',
+          position: AT
+        }
+      ],
+      [
+        ['ask', 'note'],
+        ['note', 'tell']
+      ]
+    )
+    const chatRun: ZotzFlowRun = {
+      ...newRun(),
+      trigger: { triggerId: 't', kind: 'chat_command', inputs: {}, text: 'focus on security' },
+      chat: { text: 'focus on security', lastAnswer: 'Plan ready', sessionId: 'chat-7' }
+    }
+    const run = await new ZotzFlowRunExecutor(
+      flow,
+      chatRun,
+      deps({
+        agents: {
+          ...scriptedAgents({}),
+          start: async () => {
+            throw new Error('a new session was opened')
+          }
+        },
+        chat: {
+          prompt: async ({ sessionId, prompt }) => {
+            prompts.push({ sessionId, prompt })
+            return {
+              link: {
+                agentId: 'claude',
+                sessionKind: 'chat',
+                workspaceId: 'repo::/tmp/w',
+                chatSessionId: sessionId,
+                terminalSessionId: null,
+                terminalPaneKey: null,
+                terminalPtyId: null
+              },
+              reply: Promise.resolve({ text: 'low', truncated: false })
+            }
+          },
+          send: async ({ sessionId, text }) => {
+            sent.push({ sessionId, text })
+          }
+        }
+      }),
+      { resuming: false }
+    ).execute()
+    expect(run.status).toBe('done')
+    expect(prompts).toEqual([
+      { sessionId: 'chat-7', prompt: 'Review: focus on security after Plan ready' }
+    ])
+    expect(statusOf(run, 'note')?.output?.markdown).toBe('Risk: low')
+    expect(sent).toEqual([{ sessionId: 'chat-7', text: 'Go on with low' }])
+
+    const manual = await new ZotzFlowRunExecutor(
+      flowOf(
+        [
+          template('first', 'x'),
+          { id: 'note', name: 'note', kind: 'chat_reply', mode: 'note', content: 'x', position: AT }
+        ],
+        [['first', 'note']]
+      ),
+      newRun(),
+      deps(),
+      { resuming: false }
+    ).execute()
+    expect(manual.status).toBe('done')
+    expect(statusOf(manual, 'note')?.status).toBe('skipped')
+    expect(statusOf(manual, 'note')?.errorCode).toBe('chat_reply_no_chat')
   })
 
   it('fails a loop over its item cap before running any iteration', async () => {

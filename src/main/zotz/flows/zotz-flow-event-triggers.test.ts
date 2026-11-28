@@ -150,6 +150,12 @@ async function start(dir: string, triggers: unknown[]): Promise<Harness> {
         reattach: () => null,
         stop: async () => {}
       },
+      chat: {
+        prompt: async () => {
+          throw new Error('no chats in this test')
+        },
+        send: async () => {}
+      },
       runCommand: async () => {
         throw new Error('no commands in this test')
       },

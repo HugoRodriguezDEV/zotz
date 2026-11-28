@@ -98,12 +98,12 @@ export async function executeZotzFlowNode(
 ): Promise<ZotzFlowNodeOutcome> {
   const { deps } = engine
   const nodeRun = engine.nodeRun(node, path)
-  if (node.kind === 'chat_reply') {
-    // Replying in a chat arrives with part 4; until then the step is skipped with a note.
-    console.info(`[zotz-flows] skipped chat reply "${node.name}": not available yet`)
+  if (node.kind === 'chat_reply' && engine.run.trigger.kind !== 'chat_command') {
+    // Another trigger fired the flow: there is no chat to reply in (spec §4.3).
+    console.info(`[zotz-flows] skipped chat reply "${node.name}": no chat fired this run`)
     engine.markUnreached(node, path, 'skipped', {
-      error: 'Replying in a chat is not available yet.',
-      errorCode: 'chat_reply_pending'
+      error: 'Skipped: only a chat command can reply in a chat.',
+      errorCode: 'chat_reply_no_chat'
     })
     return { port: null, stop: null }
   }
