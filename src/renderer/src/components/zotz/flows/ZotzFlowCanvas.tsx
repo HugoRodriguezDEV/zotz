@@ -25,11 +25,13 @@ import {
 import { ZOTZ_FLOW_NODE_TYPES } from './ZotzFlowCanvasNodes'
 import { ZOTZ_FLOW_PALETTE_KINDS } from './zotz-flow-node-catalog'
 import { pickZotzFlowOption } from './zotz-flow-form-values'
+import { zotzFlowOpeningViewport } from './zotz-flow-canvas-viewport'
+import { ZotzFlowZoomControls } from './ZotzFlowZoomControls'
 import type { ZotzFlowSelection } from './use-zotz-flow-editor-state'
 
 export const ZOTZ_FLOW_DRAG_MIME = 'application/x-zotz-flow-node-kind'
-// Whole graph in view; small flows stay at 100% instead of being blown up.
-const FIT_OPTIONS = { padding: 0.1, maxZoom: 1 }
+// The explicit "fit" control frames everything, even below the readable zoom.
+const FIT_ALL = { padding: 0.1, maxZoom: 1 }
 
 export type ZotzFlowCanvasEditing = {
   onMove: (positions: Map<string, { x: number; y: number }>, dragging: boolean) => void
@@ -67,6 +69,8 @@ function CanvasInner({
   const containerRef = useRef<HTMLDivElement>(null)
   const initialized = useNodesInitialized()
   const fittedFor = useRef<number | null>(null)
+  // Counts applied framings so following the selection runs after them, not before.
+  const [framings, setFramings] = useState(0)
   // Fits once nodes are measured (open, run view) and again whenever `fitRequest` changes.
   useEffect(() => {
     if (!initialized || fittedFor.current === fitRequest) {
@@ -74,8 +78,14 @@ function CanvasInner({
     }
     // Next frame: React Flow has adopted the new positions (auto-layout) by then.
     const frame = requestAnimationFrame(() => {
+      const box = containerRef.current?.getBoundingClientRect()
+      if (!box) {
+        return
+      }
       fittedFor.current = fitRequest
-      void flow.fitView(FIT_OPTIONS)
+      void flow
+        .setViewport(zotzFlowOpeningViewport(flow.getNodesBounds(flow.getNodes()), box))
+        .then(() => setFramings((count) => count + 1))
     })
     return () => cancelAnimationFrame(frame)
   }, [initialized, fitRequest, flow])
@@ -84,7 +94,7 @@ function CanvasInner({
   useEffect(() => {
     const node = selectedNodeId ? flow.getInternalNode(selectedNodeId) : undefined
     const box = containerRef.current?.getBoundingClientRect()
-    if (!node || !box || !initialized) {
+    if (!node || !box || framings === 0) {
       return
     }
     const { x, y, zoom } = flow.getViewport()
@@ -104,7 +114,7 @@ function CanvasInner({
         }
       )
     }
-  }, [selectedNodeId, flow, initialized])
+  }, [selectedNodeId, flow, framings])
   const onSelectTrigger = useCallback(
     (triggerId: string) => onSelect({ kind: 'triggers', triggerId }),
     [onSelect]
@@ -245,6 +255,7 @@ function CanvasInner({
         }}
       >
         <Background gap={20} size={1.5} />
+        <ZotzFlowZoomControls onFitAll={() => void flow.fitView(FIT_ALL)} />
         <MiniMap
           pannable
           zoomable

@@ -10,6 +10,8 @@ import {
 } from '../../../../../shared/zotz/flows/zotz-flow-run-contract'
 import { formatAutomationDateTime } from '../../automations/automation-page-parts'
 import { ZotzFlowCanvas } from './ZotzFlowCanvas'
+import { ZotzFlowPanelToggle } from './ZotzFlowPanelToggle'
+import { useZotzFlowPanelOpen } from './use-zotz-flow-panel-open'
 import { runZotzFlowBusyAction } from './zotz-flow-busy-action'
 import { indexZotzFlowNodes, zotzFlowParentChain } from './zotz-flow-canvas-geometry'
 import { ZotzFlowRunNodeDetail } from './ZotzFlowRunNodeDetail'
@@ -47,6 +49,7 @@ export function ZotzFlowRunView({
   const [selection, setSelection] = useState<ZotzFlowSelection>(null)
   const [choice, setChoice] = useState<ZotzFlowIterationChoice>({})
   const [busy, setBusy] = useState(false)
+  const [inspectorOpen, toggleInspector] = useZotzFlowPanelOpen('inspector')
   const [error, setError] = useState<string | null>(null)
   const act = useCallback(async (action: () => Promise<void>) => {
     setError(null)
@@ -151,6 +154,16 @@ export function ZotzFlowRunView({
               {t('zotz.flows.run.retry', 'Retry')}
             </Button>
           ) : null}
+          <ZotzFlowPanelToggle
+            side="right"
+            open={inspectorOpen}
+            label={
+              inspectorOpen
+                ? t('zotz.flows.hideInspector', 'Hide inspector')
+                : t('zotz.flows.showInspector', 'Show inspector')
+            }
+            onToggle={toggleInspector}
+          />
         </div>
       </div>
       {run.error ? (
@@ -166,63 +179,67 @@ export function ZotzFlowRunView({
             ariaLabel={t('zotz.flows.run.canvas', 'Run canvas')}
           />
         </div>
-        <aside
-          aria-label={t('zotz.flows.run.detail', 'Step detail')}
-          className="flex w-[340px] shrink-0 flex-col overflow-y-auto border-l border-border bg-card scrollbar-sleek"
-        >
-          {selectedNode ? (
-            <ZotzFlowRunNodeDetail
-              node={selectedNode}
-              nodeRun={findZotzFlowNodeRun(run, selectedNode, flow.nodes, choice)}
-              busy={busy}
-              onApprove={(decision) =>
-                void act(() =>
-                  actions.approve(
-                    selectedNode.id,
-                    zotzFlowIterationPath(selectedNode, flow.nodes, choice),
-                    decision
-                  )
-                )
-              }
-              onRetry={() => void act(() => actions.retry(selectedNode.id))}
-            />
-          ) : (
-            <div className="flex flex-col gap-2 p-4 text-sm text-muted-foreground">
-              <p>
-                {t(
-                  'zotz.flows.run.pickStep',
-                  'Select a step to see what went in and what came out.'
-                )}
-              </p>
-              {failedNode ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="self-start"
-                  onClick={() => {
-                    const node = flow.nodes.find((candidate) => candidate.id === failedNode.nodeId)
-                    const loops = node
-                      ? zotzFlowParentChain(node, indexZotzFlowNodes(flow.nodes)).toReversed()
-                      : []
-                    setChoice((current) =>
-                      loops.reduce(
-                        (next, loop, depth) => ({
-                          ...next,
-                          [loop.id]: failedNode.iteration[depth] ?? 0
-                        }),
-                        current
-                      )
+        {inspectorOpen ? (
+          <aside
+            aria-label={t('zotz.flows.run.detail', 'Step detail')}
+            className="flex w-[340px] shrink-0 flex-col overflow-y-auto border-l border-border bg-card scrollbar-sleek"
+          >
+            {selectedNode ? (
+              <ZotzFlowRunNodeDetail
+                node={selectedNode}
+                nodeRun={findZotzFlowNodeRun(run, selectedNode, flow.nodes, choice)}
+                busy={busy}
+                onApprove={(decision) =>
+                  void act(() =>
+                    actions.approve(
+                      selectedNode.id,
+                      zotzFlowIterationPath(selectedNode, flow.nodes, choice),
+                      decision
                     )
-                    setSelection({ kind: 'node', id: failedNode.nodeId })
-                  }}
-                >
-                  {t('zotz.flows.run.showFailed', 'Show the step that failed')}
-                </Button>
-              ) : null}
-            </div>
-          )}
-        </aside>
+                  )
+                }
+                onRetry={() => void act(() => actions.retry(selectedNode.id))}
+              />
+            ) : (
+              <div className="flex flex-col gap-2 p-4 text-sm text-muted-foreground">
+                <p>
+                  {t(
+                    'zotz.flows.run.pickStep',
+                    'Select a step to see what went in and what came out.'
+                  )}
+                </p>
+                {failedNode ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => {
+                      const node = flow.nodes.find(
+                        (candidate) => candidate.id === failedNode.nodeId
+                      )
+                      const loops = node
+                        ? zotzFlowParentChain(node, indexZotzFlowNodes(flow.nodes)).toReversed()
+                        : []
+                      setChoice((current) =>
+                        loops.reduce(
+                          (next, loop, depth) => ({
+                            ...next,
+                            [loop.id]: failedNode.iteration[depth] ?? 0
+                          }),
+                          current
+                        )
+                      )
+                      setSelection({ kind: 'node', id: failedNode.nodeId })
+                    }}
+                  >
+                    {t('zotz.flows.run.showFailed', 'Show the step that failed')}
+                  </Button>
+                ) : null}
+              </div>
+            )}
+          </aside>
+        ) : null}
       </div>
     </div>
   )

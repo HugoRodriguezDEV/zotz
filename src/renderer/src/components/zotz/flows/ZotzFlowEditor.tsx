@@ -12,6 +12,8 @@ import { autoLayoutZotzFlow } from './zotz-flow-auto-layout'
 import { removeZotzFlowElements } from './zotz-flow-graph-edits'
 import { zotzFlowSlugFromName } from './zotz-flow-slug'
 import { ZotzFlowCanvas } from './ZotzFlowCanvas'
+import { ZotzFlowPanelToggle } from './ZotzFlowPanelToggle'
+import { useZotzFlowPanelOpen } from './use-zotz-flow-panel-open'
 import { runZotzFlowBusyAction } from './zotz-flow-busy-action'
 import { ZotzFlowEditorTopBar } from './ZotzFlowEditorTopBar'
 import { ZotzFlowNodePalette } from './ZotzFlowNodePalette'
@@ -60,6 +62,8 @@ export function ZotzFlowEditor({
   const [savedAt, setSavedAt] = useState(initialSavedAt)
   const [saving, setSaving] = useState(false)
   const [fitRequest, setFitRequest] = useState(0)
+  const [paletteOpen, togglePalette] = useZotzFlowPanelOpen('palette')
+  const [inspectorOpen, toggleInspector] = useZotzFlowPanelOpen('inspector')
   const [running, setRunning] = useState(false)
   const [notice, setNotice] = useState<{ text: string; current?: ZotzFlow } | null>(null)
   const problems = useMemo(() => collectZotzFlowProblems(draft), [draft])
@@ -179,6 +183,30 @@ export function ZotzFlowEditor({
         running={running}
         onSave={() => void save()}
         onRun={() => void run()}
+        leading={
+          <ZotzFlowPanelToggle
+            side="left"
+            open={paletteOpen}
+            label={
+              paletteOpen
+                ? t('zotz.flows.hideSteps', 'Hide steps')
+                : t('zotz.flows.showSteps', 'Show steps')
+            }
+            onToggle={togglePalette}
+          />
+        }
+        trailing={
+          <ZotzFlowPanelToggle
+            side="right"
+            open={inspectorOpen}
+            label={
+              inspectorOpen
+                ? t('zotz.flows.hideInspector', 'Hide inspector')
+                : t('zotz.flows.showInspector', 'Show inspector')
+            }
+            onToggle={toggleInspector}
+          />
+        }
       />
       {notice ? (
         <div
@@ -205,7 +233,7 @@ export function ZotzFlowEditor({
         </div>
       ) : null}
       <div className="flex min-h-0 flex-1">
-        <ZotzFlowNodePalette onAdd={actions.addKind} onBack={onBack} />
+        {paletteOpen ? <ZotzFlowNodePalette onAdd={actions.addKind} onBack={onBack} /> : null}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1">
             <ZotzFlowCanvas
@@ -220,49 +248,51 @@ export function ZotzFlowEditor({
           </div>
           <ZotzFlowProblemsPanel draft={draft} problems={problems} onSelect={editor.select} />
         </div>
-        <aside
-          aria-label={t('zotz.flows.inspector', 'Inspector')}
-          className="flex w-[340px] shrink-0 flex-col overflow-y-auto border-l border-border bg-card scrollbar-sleek"
-        >
-          {selectedNode ? (
-            <ZotzFlowNodeInspector
-              node={selectedNode}
-              draft={draft}
-              problems={problems}
-              flows={flows.filter((flow) => flow.id !== draft.id)}
-              actions={actions.inspector}
-            />
-          ) : selectedEdge ? (
-            <div className="flex flex-col gap-3 p-4">
-              <p className="text-sm">
-                <span className="font-mono">{names.get(selectedEdge.from.nodeId)}</span>
-                {' → '}
-                <span className="font-mono">{names.get(selectedEdge.to.nodeId)}</span>
-              </p>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                className="self-start"
-                onClick={() =>
-                  editor.edit(
-                    (current) => removeZotzFlowElements(current, [], [selectedEdge.id]),
-                    null
-                  )
-                }
-              >
-                {t('zotz.flows.deleteConnection', 'Delete connection')}
-              </Button>
-            </div>
-          ) : (
-            <ZotzFlowTriggerInspector
-              triggers={draft.triggers}
-              selectedId={selection?.kind === 'triggers' ? selection.triggerId : null}
-              onSelect={(triggerId) => editor.select({ kind: 'triggers', triggerId })}
-              onChange={(triggers) => editor.edit((current) => ({ ...current, triggers }))}
-            />
-          )}
-        </aside>
+        {inspectorOpen ? (
+          <aside
+            aria-label={t('zotz.flows.inspector', 'Inspector')}
+            className="flex w-[340px] shrink-0 flex-col overflow-y-auto border-l border-border bg-card scrollbar-sleek"
+          >
+            {selectedNode ? (
+              <ZotzFlowNodeInspector
+                node={selectedNode}
+                draft={draft}
+                problems={problems}
+                flows={flows.filter((flow) => flow.id !== draft.id)}
+                actions={actions.inspector}
+              />
+            ) : selectedEdge ? (
+              <div className="flex flex-col gap-3 p-4">
+                <p className="text-sm">
+                  <span className="font-mono">{names.get(selectedEdge.from.nodeId)}</span>
+                  {' → '}
+                  <span className="font-mono">{names.get(selectedEdge.to.nodeId)}</span>
+                </p>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="self-start"
+                  onClick={() =>
+                    editor.edit(
+                      (current) => removeZotzFlowElements(current, [], [selectedEdge.id]),
+                      null
+                    )
+                  }
+                >
+                  {t('zotz.flows.deleteConnection', 'Delete connection')}
+                </Button>
+              </div>
+            ) : (
+              <ZotzFlowTriggerInspector
+                triggers={draft.triggers}
+                selectedId={selection?.kind === 'triggers' ? selection.triggerId : null}
+                onSelect={(triggerId) => editor.select({ kind: 'triggers', triggerId })}
+                onChange={(triggers) => editor.edit((current) => ({ ...current, triggers }))}
+              />
+            )}
+          </aside>
+        ) : null}
       </div>
     </div>
   )

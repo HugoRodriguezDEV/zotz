@@ -1051,5 +1051,5 @@ Sección B de la spec de monitor y remotos.
 
 - Los disparadores de evento y de chat muestran "Zotz todavía no escucha esto"; hay que quitar ese aviso cuando lleguen las partes 3 y 4.
 - Cambiar la máquina de un flow ya guardado está bloqueado: moverlo entre máquinas necesita borrar y guardar en otra, que no está en el contrato.
-- El lienzo encuadra el grafo completo al abrir, en la vista de corrida y después de Acomodar (sin pasar de 100 % en flows chicos); en pantallas angostas un flow ancho se ve pequeño y se acerca con zoom o al seleccionar un paso.
+- Legibilidad primero: al abrir, en la vista de corrida y después de Acomodar, el flow se encuadra entero solo si cabe entre 80 % y 100 %; si no, queda a 80 % desde su esquina superior izquierda (los disparadores) y el resto se ve moviendo el lienzo. A 80 % el texto de los nodos mide lo mismo que el del inspector. "Ajustar a la vista" (abajo a la izquierda, junto a acercar y alejar) sí encuadra todo sin mínimo. Los paneles de pasos e inspector se pliegan y se recuerdan por usuario (`localStorage`).
 - `AutomationWorkspaceField` ofrece "Nueva corrida" también en carpetas sin git; queda como en automatizaciones.

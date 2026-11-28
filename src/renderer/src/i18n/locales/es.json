@@ -25000,6 +25000,7 @@
       "empty": "Todavía no hay flows",
       "enabled": "Encendido",
       "errors": "Si falla",
+      "fitView": "Ajustar a la vista",
       "flowName": "Nombre del flow",
       "forEach": {
         "items": "Lista",
@@ -25009,6 +25010,8 @@
         "parallel": "Todas a la vez",
         "sequential": "Una por una"
       },
+      "hideInspector": "Ocultar inspector",
+      "hideSteps": "Ocultar pasos",
       "http": {
         "addHeader": "Agregar header",
         "body": "Cuerpo",
@@ -25184,6 +25187,8 @@
       "schedule": {
         "timezone": "Zona horaria: {zone}"
       },
+      "showInspector": "Mostrar inspector",
+      "showSteps": "Mostrar pasos",
       "status": {
         "cancelled": "Cancelado",
         "done": "Listo",
@@ -25283,7 +25288,9 @@
         "seconds": "Segundos",
         "time": "Hora",
         "untilTime": "Hasta una hora"
-      }
+      },
+      "zoomIn": "Acercar",
+      "zoomOut": "Alejar"
     }
   }
 }

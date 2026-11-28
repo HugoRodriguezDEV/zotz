@@ -3,12 +3,12 @@ import type { ZotzFlowNode } from '../../../../../shared/zotz/flows/zotz-flow-no
 type Point = { x: number; y: number }
 type Size = { width: number; height: number }
 
-export const ZOTZ_FLOW_NODE_SIZE: Size = { width: 220, height: 96 }
+export const ZOTZ_FLOW_NODE_SIZE: Size = { width: 280, height: 112 }
 export const ZOTZ_FLOW_LOOP_PADDING = 24
-export const ZOTZ_FLOW_LOOP_HEADER = 84
+export const ZOTZ_FLOW_LOOP_HEADER = 100
 /** Room under the body for the loop's output ports. */
-const LOOP_FOOTER = 56
-const LOOP_MIN: Size = { width: 300, height: 220 }
+const LOOP_FOOTER = 64
+const LOOP_MIN: Size = { width: 360, height: 260 }
 
 export function indexZotzFlowNodes(nodes: readonly ZotzFlowNode[]): Map<string, ZotzFlowNode> {
   return new Map(nodes.map((node) => [node.id, node]))

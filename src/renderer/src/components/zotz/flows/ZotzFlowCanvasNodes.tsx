@@ -56,7 +56,7 @@ function StatusChip({ data }: { data: ZotzFlowStepData }): React.JSX.Element | n
   return (
     <span
       className={cn(
-        'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+        'shrink-0 rounded-full px-2 py-0.5 text-sm font-medium',
         ZOTZ_FLOW_STATUS_CLASS[data.run.status].chip
       )}
     >
@@ -80,7 +80,7 @@ function OutputHandles({
         const label = zotzFlowPortLabel(data.node, port, t)
         return (
           <div key={port} className="relative flex min-h-5 items-center pr-3">
-            {label ? <span className="text-[13px] text-muted-foreground">{label}</span> : null}
+            {label ? <span className="text-base text-muted-foreground">{label}</span> : null}
             <Handle
               type="source"
               id={port}
@@ -121,7 +121,7 @@ export function ZotzFlowStepNode({
   return (
     <div
       className={cn(
-        'relative w-[220px] rounded-lg border-2 bg-card text-card-foreground shadow-xs',
+        'relative w-[280px] rounded-lg border-2 bg-card text-card-foreground shadow-xs',
         borderClass(data, selected),
         selected && 'ring-2 ring-ring ring-offset-2 ring-offset-background'
       )}
@@ -136,14 +136,14 @@ export function ZotzFlowStepNode({
       <div className="flex items-start gap-2 px-3 pt-2.5">
         <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <div className="min-w-0 flex-1">
-          <div className="truncate font-mono text-[15px] font-medium">{data.node.name}</div>
-          <div className="text-[13px] text-muted-foreground">{t(...kind.copy)}</div>
+          <div className="truncate font-mono text-lg font-medium">{data.node.name}</div>
+          <div className="text-base text-muted-foreground">{t(...kind.copy)}</div>
         </div>
         <MarkIcon mark={data.mark} />
         <StatusChip data={data} />
       </div>
       <div className="flex items-end justify-between gap-2 pb-2 pl-3">
-        <p className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{summary}</p>
+        <p className="min-w-0 flex-1 truncate text-base text-muted-foreground">{summary}</p>
         <OutputHandles data={data} editable={isConnectable} />
       </div>
     </div>
@@ -172,13 +172,13 @@ export function ZotzFlowLoopNode({
         position={Position.Left}
         isConnectable={isConnectable}
         className="zotz-flow-handle"
-        style={{ top: 28 }}
+        style={{ top: 32 }}
       />
       <div className="flex flex-col gap-1.5 border-b border-border/60 px-3 py-2">
         <div className="flex items-center gap-2">
           <Icon className="size-4 shrink-0 text-muted-foreground" />
-          <span className="truncate font-mono text-[15px] font-medium">{data.node.name}</span>
-          <span className="shrink-0 text-[13px] text-muted-foreground">
+          <span className="truncate font-mono text-lg font-medium">{data.node.name}</span>
+          <span className="shrink-0 text-base text-muted-foreground">
             {t(...ZOTZ_FLOW_NODE_KINDS.for_each.copy)}
           </span>
           <span className="flex-1" />
@@ -215,7 +215,7 @@ export function ZotzFlowLoopNode({
             ) : null}
           </div>
         ) : (
-          <p className="truncate text-[13px] text-muted-foreground">
+          <p className="truncate text-base text-muted-foreground">
             {zotzFlowNodeSummary(data.node, t)}
           </p>
         )}
@@ -235,7 +235,7 @@ export function ZotzFlowTriggersNode({
   return (
     <div
       className={cn(
-        'w-[220px] rounded-lg border-2 bg-card text-card-foreground shadow-xs',
+        'w-[280px] rounded-lg border-2 bg-card text-card-foreground shadow-xs',
         selected
           ? 'border-ring ring-2 ring-ring ring-offset-2 ring-offset-background'
           : 'border-border'
@@ -243,11 +243,11 @@ export function ZotzFlowTriggersNode({
     >
       <div className="flex items-center gap-2 px-3 pt-2.5 pb-1.5">
         <Zap className="size-4 shrink-0 text-muted-foreground" />
-        <span className="text-[15px] font-medium">{t('zotz.flows.triggers', 'Triggers')}</span>
+        <span className="text-lg font-medium">{t('zotz.flows.triggers', 'Triggers')}</span>
       </div>
       <div className="flex flex-col gap-0.5 px-1.5 pb-2">
         {data.triggers.length === 0 ? (
-          <p className="px-1.5 text-xs text-muted-foreground">
+          <p className="px-1.5 text-base text-muted-foreground">
             {t('zotz.flows.triggersEmpty', 'Runs only by hand')}
           </p>
         ) : null}
@@ -259,7 +259,7 @@ export function ZotzFlowTriggersNode({
               key={trigger.id}
               type="button"
               className={cn(
-                'nodrag flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                'nodrag flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-base hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                 data.selectedTriggerId === trigger.id && 'bg-accent'
               )}
               onClick={(event) => {

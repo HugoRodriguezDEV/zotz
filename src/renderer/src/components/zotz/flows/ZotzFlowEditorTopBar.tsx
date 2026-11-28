@@ -58,7 +58,9 @@ export function ZotzFlowEditorTopBar({
   saving,
   running,
   onSave,
-  onRun
+  onRun,
+  leading,
+  trailing
 }: {
   name: string
   onNameChange: (name: string) => void
@@ -79,11 +81,15 @@ export function ZotzFlowEditorTopBar({
   running: boolean
   onSave: () => void
   onRun: () => void
+  /** Panel toggles at each end of the bar. */
+  leading?: React.ReactNode
+  trailing?: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
   const blocked = errorCount > 0
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border px-4 py-2.5">
+      {leading}
       <Input
         value={name}
         aria-label={t('zotz.flows.flowName', 'Flow name')}
@@ -138,6 +144,7 @@ export function ZotzFlowEditorTopBar({
         {saving ? <Loader2 className="size-4 animate-spin" /> : <Save />}
         {t('zotz.flows.save', 'Save')}
       </Button>
+      {trailing}
     </div>
   )
 }

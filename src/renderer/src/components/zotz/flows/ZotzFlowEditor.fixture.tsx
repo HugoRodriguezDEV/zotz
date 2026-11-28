@@ -8,6 +8,11 @@ const hosts = [
   { id: 'runtime:msi', label: 'MSI' }
 ]
 
+function openPanels(): void {
+  window.localStorage.removeItem('zotz.flows.panel.palette')
+  window.localStorage.removeItem('zotz.flows.panel.inspector')
+}
+
 function render(): React.JSX.Element {
   return (
     <div className="flex h-[760px]">
@@ -32,22 +37,25 @@ function click(frame: HTMLElement, selector: string): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 300))
 }
 
-export const example = defineFixture({ width: 1280, render })
+export const example = defineFixture({ width: 1280, setup: openPanels, render })
 
 export const agentSelected = defineFixture({
   width: 1280,
+  setup: openPanels,
   render,
   interact: (frame) => click(frame, '.react-flow__node[data-id="n-review"]')
 })
 
 export const loopSelected = defineFixture({
   width: 1280,
+  setup: openPanels,
   render,
   interact: (frame) => click(frame, '.react-flow__node[data-id="n-fix"]')
 })
 
 export const empty = defineFixture({
   width: 1280,
+  setup: openPanels,
   render: () => (
     <div className="flex h-[760px]">
       <ZotzFlowEditor
@@ -64,4 +72,13 @@ export const empty = defineFixture({
       />
     </div>
   )
+})
+
+export const panelsHidden = defineFixture({
+  width: 1280,
+  setup: () => {
+    window.localStorage.setItem('zotz.flows.panel.palette', 'closed')
+    window.localStorage.setItem('zotz.flows.panel.inspector', 'closed')
+  },
+  render
 })
