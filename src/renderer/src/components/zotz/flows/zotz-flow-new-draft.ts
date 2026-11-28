@@ -6,19 +6,14 @@ import {
 } from '../../../../../shared/zotz/flows/zotz-flow-contract'
 import { createZotzFlowTrigger } from './zotz-flow-trigger-catalog'
 import { newZotzFlowId } from './zotz-flow-graph-edits'
-import { zotzFlowSlugFromName } from './zotz-flow-slug'
+import { uniqueZotzFlowSlug } from '../../../../../shared/zotz/flows/zotz-flow-slug'
 
 /** A fresh flow on this machine with a manual trigger; slug kept unique among `taken`. */
 export function createZotzFlowDraft(name: string, taken: readonly string[]): ZotzFlowDraft {
-  const base = zotzFlowSlugFromName(name)
-  let slug = base
-  for (let index = 2; taken.includes(slug); index += 1) {
-    slug = `${base}-${index}`
-  }
   return {
     id: newZotzFlowId(),
     name,
-    slug,
+    slug: uniqueZotzFlowSlug(name, taken),
     description: '',
     hostId: LOCAL_EXECUTION_HOST_ID,
     enabled: true,

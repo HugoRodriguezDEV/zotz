@@ -1,0 +1,16 @@
+$ zotz flows list
+prueba-migracion  Prueba migracion  · 3 steps · triggers: schedule
+
+$ zotz automations list
+7d2ca73e-4618-4088-a3a9-648874985af6  Prueba migracion  claude  disabled
+Custom schedule  next: 2026-11-28T16:12:00.000Z
+host: self
+
+$ cat zotz-flow-migrations.json
+{
+  "version": 1,
+  "migrated": [
+    "7d2ca73e-4618-4088-a3a9-648874985af6"
+  ],
+  "warned": []
+}

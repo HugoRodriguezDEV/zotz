@@ -1118,6 +1118,8 @@
     "zotz.flows.newName",
     "zotz.flows.noRuns",
     "zotz.flows.off",
+    "zotz.flows.previousRuns.body",
+    "zotz.flows.previousRuns.title",
     "zotz.flows.reload",
     "zotz.flows.retryLoad",
     "zotz.flows.run",

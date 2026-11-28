@@ -26754,6 +26754,10 @@
         "true": "Yes",
         "withFailures": "With failures"
       },
+      "previousRuns": {
+        "title": "Earlier runs",
+        "body": "From the automation this flow came from. Read only."
+      },
       "problem": {
         "chatContextNotRequested": "{template} is empty unless the chat command sends it.",
         "chatWithoutTrigger": "This needs a chat command trigger.",
@@ -26888,7 +26892,6 @@
         "label": "Label",
         "manual": "Manual",
         "newToken": "New token",
-        "notListening": "Zotz does not listen for this yet. It is saved and starts working when it does.",
         "outcomeError": "Failed",
         "outcomeInterrupted": "Interrupted",
         "outcomeSuccess": "Succeeded",

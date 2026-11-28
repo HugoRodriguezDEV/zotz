@@ -1,0 +1,7 @@
+$ zotz flows runs revisar-pr
+#1 done · chat_command · 2026-11-28T16:13:01.520Z 485s  (run 3a37a74c-79c0-4f9e-9e1c-4cc1f8cfd615)
+  revisar (agent): done  json {"riesgo":"alto","resumen":"El cambio en suma.js reemplaza `a + b` por `eval(a + \"+\" + b)`. Si `a` o `b` vienen de alguien externo, esa persona puede ejecutar… · 105s
+  riesgo_alto (condition): done  -> true · 0s
+  aprobar (approval): done  -> approved · 26s
+  corregir (agent): done  95s
+  nota (chat_reply): done  0s

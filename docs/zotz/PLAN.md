@@ -363,7 +363,7 @@ Spec completo: [`SPEC-flows.md`](./specs/SPEC-flows.md). Propuesta del 2026-11-2
 - [x] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
 - [x] 3. Disparadores por evento: agente terminó, PR, tarea cambió de columna, webhook.
 - [x] 4. Chat: `/flow` con el contexto de la conversación y Responder en chat.
-- [ ] 5. Migración de automatizaciones a flows de un nodo, página vieja oculta y móvil.
+- [x] 5. Migración de automatizaciones a flows de un nodo y página vieja oculta. **Pendiente: móvil** (va cuando se habilite el teléfono).
 
 **Listo cuando:** el caso de `/revisar-pr` del final del spec corre completo en la MSI.
 

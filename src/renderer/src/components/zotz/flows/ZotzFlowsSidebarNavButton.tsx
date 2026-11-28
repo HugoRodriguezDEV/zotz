@@ -4,7 +4,10 @@ import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
 import { openZotzFlows, useZotzFlowsOpen } from './zotz-flows-page-store'
 
-/** Same row as Automations in upstream's sidebar; Automations stays until flows replace it. */
+/** Takes the Automations row of upstream's sidebar: automations became flows (spec §8). */
+// Upstream's Automations row stays in the code, off: its page redirects here.
+export const ZOTZ_SHOWS_AUTOMATIONS_ROW = false
+
 export function ZotzFlowsSidebarNavButton(): React.JSX.Element {
   const t = useTranslate()
   const active = useZotzFlowsOpen()
