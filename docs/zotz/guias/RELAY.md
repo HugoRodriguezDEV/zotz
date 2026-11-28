@@ -1,6 +1,6 @@
 # Relay de webhooks del tablero (`zotz-relay`)
 
-Spec: [`TASKS-SPEC.md` §8](./TASKS-SPEC.md#8-relay-propio-webhooks). Código del servicio: repo aparte `zotz-relay`.
+Spec: [`TASKS-SPEC.md` §8](../specs/TASKS-SPEC.md#8-relay-propio-webhooks). Código del servicio: repo aparte `zotz-relay`.
 
 El relay es **opcional y viene apagado**. Sin él, el tablero consulta GitHub cada 5 minutos mientras está abierto. Con él, cada cambio en GitHub llega en segundos y la consulta completa baja a cada 30 minutos.
 

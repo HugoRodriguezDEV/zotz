@@ -1,6 +1,6 @@
 # Spec — Nombre corto y enlaces entre conversaciones
 
-Que dos o más conversaciones (de cualquier proyecto, en la Mac o en un servidor como la MSI) trabajen juntas y se escriban por un nombre corto (`salmon`, `albatross`), no por id. Rama: `zotz-comunicacion-entre-agentes`. Reglas del fork: [`PLAN.md`](./PLAN.md) (diff mínimo contra upstream, lógica nueva en archivos `zotz-*`, no renombrar RPC ni `ORCA_*`).
+Que dos o más conversaciones (de cualquier proyecto, en la Mac o en un servidor como la MSI) trabajen juntas y se escriban por un nombre corto (`salmon`, `albatross`), no por id. Rama: `zotz-comunicacion-entre-agentes`. Reglas del fork: [`PLAN.md`](../PLAN.md) (diff mínimo contra upstream, lógica nueva en archivos `zotz-*`, no renombrar RPC ni `ORCA_*`).
 
 ## 1. Lo que ya existe (verificado 2026-11-20)
 

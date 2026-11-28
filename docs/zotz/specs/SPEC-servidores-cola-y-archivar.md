@@ -1,6 +1,6 @@
 # Spec — Cola de memoria de los servidores y archivar conversaciones principales
 
-Dos arreglos que salieron de usar Zotz con la MSI como servidor. Rama: `zotz/servidores-cola-y-archivar`. Reglas del fork: [`PLAN.md`](./PLAN.md) (diff mínimo contra upstream, lógica nueva en archivos `zotz-*`, no renombrar RPC ni `ORCA_*`).
+Dos arreglos que salieron de usar Zotz con la MSI como servidor. Rama: `zotz/servidores-cola-y-archivar`. Reglas del fork: [`PLAN.md`](../PLAN.md) (diff mínimo contra upstream, lógica nueva en archivos `zotz-*`, no renombrar RPC ni `ORCA_*`).
 
 ## 1. Problemas
 

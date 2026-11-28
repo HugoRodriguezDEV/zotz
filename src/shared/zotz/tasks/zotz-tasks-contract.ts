@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { parse as parseYaml } from 'yaml'
 import { parse as parseToml } from 'smol-toml'
 
-/** The contract external task services send Zotz. See docs/zotz/TASKS-SPEC.md §7. */
+/** The contract external task services send Zotz. See docs/zotz/specs/TASKS-SPEC.md §7. */
 export const ZOTZ_TASKS_SCHEMA = 'zotz-tasks/v1'
 export const ZOTZ_TASKS_MAX_BYTES = 2 * 1024 * 1024
 export const ZOTZ_TASKS_MAX_TASKS = 2000

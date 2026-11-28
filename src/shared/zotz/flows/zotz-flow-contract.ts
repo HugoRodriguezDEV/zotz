@@ -4,7 +4,7 @@ import { ZOTZ_FLOW_MAX_NAME, ZotzFlowId, ZotzFlowSlug } from './zotz-flow-fields
 import { ZotzFlowNodeSchema } from './zotz-flow-node-contract'
 import { ZotzFlowTriggerSchema } from './zotz-flow-trigger-contract'
 
-/** Versioned contract for Flows. See docs/zotz/SPEC-flows.md §4. */
+/** Versioned contract for Flows. See docs/zotz/specs/SPEC-flows.md §4. */
 export const ZOTZ_FLOW_SCHEMA = 'zotz-flow/v1'
 
 export const ZOTZ_FLOW_DEFAULT_MAX_RUNS_PER_HOUR = 20

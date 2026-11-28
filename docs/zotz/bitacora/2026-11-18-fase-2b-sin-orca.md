@@ -1,0 +1,13 @@
+# Fase 2b: cortar lo que aún llegaba a Orca (`zotz/fase-2b-sin-orca`)
+
+2026-11-18
+
+- `zotz-network-policy.ts` suma `plugin-catalog` y `feedback`, ambos apagados.
+- **Plugins:** el sistema de plugins sigue encendido. Ajustes → Plugins tiene el interruptor "Descargar el catálogo de plugins de Orca" (`zotzOrcaPluginCatalogEnabled`, apagado por defecto). Apagado, no se siembran ni refrescan `stablyai/orca-plugins` ni `orca-community-plugins` (incluye las fuentes ya sembradas antes), ni se bajan la lista de bloqueo y las estadísticas de `orca.dev`. Los marketplaces que agregue el usuario siguen funcionando. Guardas en `src/main/zotz/zotz-plugin-catalog-guard.ts` (el ajuste se enlaza en `zotz-plugin-catalog-opt-in.ts`, que también arranca o detiene la lista de bloqueo al cambiarlo), enganchadas en los servicios (no en `main-process-plugins.ts` ni `plugin-marketplace-service.ts` más allá de una línea: ya estaban en el tope de 300 líneas).
+- **Estrella de GitHub:** `checkOrcaStarred`/`starOrca` ya no llaman a `gh`; Ajustes y la pantalla de inicio ocultan el botón.
+- **Comentarios:** "Enviar comentarios" abre `issues/new` del repo de Zotz; `postFeedback` rechaza sin red.
+- **Enlaces:** el menú de ayuda pierde Docs, Discord y X. Los avisos de error de terminal y las vistas de proyecto de GitHub apuntan a los issues de Zotz. Se ocultan "Explorar plugins de temas" (onboarding) y la guía de modo administrador en Windows.
+- **Textos con "Orca" escritos en el código:** `applyZotzBrandToCopy` se aplica en la salida humana de la CLI (`printResult`, `reportCliError`; el JSON queda intacto) y en `unwrapIpcErrorMessage`, por donde pasan los errores del proceso principal que muestra la interfaz. No toca "Orca Mobile" ni "Orca" dentro de rutas (`~/Orca/x`, `C:\Orca\x`). El comando pair ya dice "Paste this link in Zotz: Settings → Remote Zotz Servers".
+- Vistas previas de enlaces (`ZotzLinkPreview/1.0`) y Jira se presentan como Zotz. Los textos de permisos de macOS (`NS*UsageDescription`) dicen "Zotz allows…".
+- Sorpresa: `pnpm check:changed` selecciona casi toda la suite (la política de red y el rebrand de textos se importan en todos lados) y las pruebas unitarias llegan al tope de 30 min. Se corrieron acotadas: 1475 pasan; solo falla `process-host-dev-rebuild.test.ts` (espera a un watcher de rolldown en carpetas temporales; no usa nada de esta rama).
+- Pendiente: los 17 enlaces de la galería de funciones siguen en `orca.dev/docs` (el título entero es el enlace; hace falta decidir si se quitan o se apuntan a docs propias). El diálogo de comentarios de Orca queda en el código, sin ruta para abrirlo.

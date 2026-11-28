@@ -51,7 +51,7 @@ function ServerSystem({
   )
 }
 
-/** Mounted only while the System tab shows: the picked machine samples only then (docs/zotz/SPEC-monitor-y-remotos.md §A.5). */
+/** Mounted only while the System tab shows: the picked machine samples only then (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.5). */
 export function ZotzSystemMonitorTab(): React.JSX.Element {
   const t = useTranslate()
   const machines = useZotzSystemMachines()

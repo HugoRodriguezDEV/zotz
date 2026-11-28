@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CI: turns the Zotz self-signed certificate into a valid codesign identity so electron-builder
-# and the afterPack helper signing find it through CSC_NAME (docs/zotz/UPDATES-SPEC.md §6).
+# and the afterPack helper signing find it through CSC_NAME (docs/zotz/specs/UPDATES-SPEC.md §6).
 set -euo pipefail
 
 : "${ZOTZ_MAC_CERT_P12:?}" "${ZOTZ_MAC_CERT_PASSWORD:?}" "${ZOTZ_MAC_SIGNING_NAME:?}"

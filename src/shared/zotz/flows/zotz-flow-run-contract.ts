@@ -7,7 +7,7 @@ import type {
   ZotzFlowPullRequestAction
 } from './zotz-flow-trigger-contract'
 
-/** Runs kept per flow, like automation run retention. See docs/zotz/SPEC-flows.md §5. */
+/** Runs kept per flow, like automation run retention. See docs/zotz/specs/SPEC-flows.md §5. */
 export const ZOTZ_FLOW_RUNS_RETAINED_PER_FLOW = 200
 
 export const ZOTZ_FLOW_NODE_RUN_STATUSES = [

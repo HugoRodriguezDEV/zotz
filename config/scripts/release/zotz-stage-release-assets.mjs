@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Copies what the updater needs (manifests and every file they name, with blockmaps) into one
-// folder under Zotz names, rewriting the manifests to match, see docs/zotz/UPDATES-SPEC.md §4.
+// folder under Zotz names, rewriting the manifests to match, see docs/zotz/specs/UPDATES-SPEC.md §4.
 // The build keeps upstream's orca-* artifact names because upstream CI reads them.
 import {
   copyFileSync,

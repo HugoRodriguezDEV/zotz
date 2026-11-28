@@ -1,7 +1,7 @@
 name: Zotz desktop builds
 
 # Builds unsigned Zotz installers for Windows, macOS (Apple silicon) and Linux and publishes them as a
-# versioned release the in-app updater reads (docs/zotz/UPDATES-SPEC.md).
+# versioned release the in-app updater reads (docs/zotz/specs/UPDATES-SPEC.md).
 on:
   push:
     branches: [main]

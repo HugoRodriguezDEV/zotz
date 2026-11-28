@@ -1,6 +1,6 @@
 # Spec — Monitor del sistema, Multipass y terminales remotas
 
-Tres trabajos independientes, un PR cada uno. Reglas del fork: [`PLAN.md`](./PLAN.md) (diff mínimo contra upstream, código de Zotz en módulos `zotz`, enganches de una línea en archivos de Orca, bitácora al terminar).
+Tres trabajos independientes, un PR cada uno. Reglas del fork: [`PLAN.md`](../PLAN.md) (diff mínimo contra upstream, código de Zotz en módulos `zotz`, enganches de una línea en archivos de Orca, bitácora al terminar).
 
 ## Decisiones (Hugo, 2026-11-24)
 

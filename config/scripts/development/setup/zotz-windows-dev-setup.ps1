@@ -6,7 +6,7 @@
 .DESCRIPTION
   Only developers need this; the installed Zotz ships its native modules already compiled.
   Each step checks first and installs only what is missing (winget asks for admin when needed),
-  so running it again changes nothing. See docs/zotz/UPDATE.md, "Construir desde el código".
+  so running it again changes nothing. See docs/zotz/guias/UPDATE.md, "Construir desde el código".
 
   Steps: winget, Node 24, pnpm (corepack), Python 3 (node-gyp), Visual Studio Build Tools with
   the C++ workload, Rust (Windows CLI launcher), then pnpm install and a native-module build check.

@@ -1,6 +1,6 @@
 # Sincronizar Zotz con upstream (Orca)
 
-Zotz sigue a [stablyai/orca](https://github.com/stablyai/orca). El diff contra upstream se mantiene chico a propósito (ver reglas en [`PLAN.md`](./PLAN.md)) para que esto sea barato.
+Zotz sigue a [stablyai/orca](https://github.com/stablyai/orca). El diff contra upstream se mantiene chico a propósito (ver reglas en [`PLAN.md`](../PLAN.md)) para que esto sea barato.
 
 ## Una vez por clon
 
