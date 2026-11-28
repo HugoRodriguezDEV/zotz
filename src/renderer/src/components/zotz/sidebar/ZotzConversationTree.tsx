@@ -2,6 +2,7 @@ import React from 'react'
 import type { ZotzSidebarDrag } from './use-zotz-sidebar-drag'
 import type { ZotzDragItem } from './zotz-sidebar-drop'
 import { ZotzDraggableRow } from './ZotzDraggableRow'
+import { ZotzFlashSessions } from './ZotzFlashSessions'
 import { zotzRowKey, type ZotzConversationRow } from './zotz-project-conversations'
 
 type Member = { hostId: ZotzConversationRow['hostId']; path: string }
@@ -21,7 +22,7 @@ export function zotzRowMember(row: ZotzConversationRow): Member | null {
   return row.worktree ? { hostId: row.hostId, path: row.worktree.path } : null
 }
 
-/** A conversation and, indented under it, the conversations its agent created. */
+/** A conversation and, indented under it, its running background work and the conversations its agent created. */
 export function ZotzConversationTree({
   row,
   childrenOf,
@@ -54,6 +55,7 @@ export function ZotzConversationTree({
   return (
     <>
       {content}
+      <ZotzFlashSessions workspaceId={row.id} hostId={row.hostId} />
       {children.length > 0 ? (
         <div className="ml-5 border-l border-worktree-sidebar-border pl-1">
           {children.map((child) => (

@@ -1,6 +1,6 @@
 import type { ZotzMemoryPressure } from '../agent-queue/zotz-memory-pressure'
 
-// docs/zotz/SPEC-monitor-y-remotos.md §A: what the system monitor measures and sends to a window.
+// docs/zotz/specs/SPEC-monitor-y-remotos.md §A: what the system monitor measures and sends to a window.
 
 export const ZOTZ_SYSTEM_SAMPLE_INTERVAL_MS = 2_000
 export const ZOTZ_SYSTEM_HISTORY_MS = 10 * 60_000
@@ -128,7 +128,7 @@ export type ZotzSystemMonitorUpdate = {
   latest: ZotzSystemReading
 }
 
-/** Who a process belongs to, from the trees Zotz already knows (docs/zotz/SPEC-monitor-y-remotos.md §A.3). */
+/** Who a process belongs to, from the trees Zotz already knows (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.3). */
 export type ZotzSystemProcessOwner =
   | { kind: 'agent'; agent: string; worktreeId: string | null; paneKey: string }
   /** Zotz itself: its main process, helpers and terminal daemon. */
@@ -156,7 +156,7 @@ export type ZotzSystemProcessCloseResult =
   | { ok: true; exited: boolean }
   | { ok: false; reason: 'gone' | 'changed' | 'protected' | 'not_permitted' | 'failed' }
 
-/** The status bar's `CPU · MEM` (docs/zotz/SPEC-monitor-y-remotos.md §A.4). */
+/** The status bar's `CPU · MEM` (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.4). */
 export type ZotzSystemStatus = {
   sampledAt: number
   /** Null until two CPU reads exist. */

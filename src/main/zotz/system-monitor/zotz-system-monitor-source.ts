@@ -12,7 +12,7 @@ export type ZotzSystemMonitorSource = {
 
 let source: ZotzSystemMonitorSource | null = null
 
-/** What the runtime RPC reads, so a paired client sees this machine (docs/zotz/SPEC-monitor-y-remotos.md §A.5). */
+/** What the runtime RPC reads, so a paired client sees this machine (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.5). */
 export function registerZotzSystemMonitorSource(next: ZotzSystemMonitorSource): () => void {
   source = next
   return () => {

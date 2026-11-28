@@ -43,7 +43,7 @@ function useCriticalMemoryNotice(status: ZotzSystemStatus | null): void {
   }, [critical, memory, t])
 }
 
-/** `CPU · MEM` beside the queue segment; opens the System tab (docs/zotz/SPEC-monitor-y-remotos.md §A.4). */
+/** `CPU · MEM` beside the queue segment; opens the System tab (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.4). */
 export function ZotzSystemStatusSegment({ iconOnly }: { iconOnly: boolean }): React.JSX.Element {
   const t = useTranslate()
   const status = useZotzSystemStatus()

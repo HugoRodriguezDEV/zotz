@@ -1,7 +1,7 @@
 # Spec — Fase 10: Flows (automatizaciones con nodos, estilo n8n)
 
 **Estado:** propuesta (2026-11-27), por aprobar por Hugo.
-**Reglas del fork:** [`PLAN.md`](./PLAN.md). Diff mínimo contra upstream, lógica nueva en archivos `zotz-*`, no renombrar RPC ni `ORCA_*`, no borrar features de upstream (se ocultan).
+**Reglas del fork:** [`PLAN.md`](../PLAN.md). Diff mínimo contra upstream, lógica nueva en archivos `zotz-*`, no renombrar RPC ni `ORCA_*`, no borrar features de upstream (se ocultan).
 **Reemplaza:** la página de Automatizaciones de Orca como punto de entrada. Una automatización pasa a ser un flow de un solo nodo.
 
 ## 1. Objetivo

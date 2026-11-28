@@ -26974,6 +26974,10 @@
         "skipped": "Skipped"
       },
       "thisMachine": "This machine"
+    },
+    "flashSessions": {
+      "more": "+{{count}} more",
+      "less": "Show fewer"
     }
   }
 }

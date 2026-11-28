@@ -8,7 +8,7 @@ export const ZOTZ_DISABLE_UPDATER_ENV = 'ZOTZ_DISABLE_UPDATER'
 
 let updatesEnabledSetting = true
 
-/** Updates come from the fork's own releases (docs/zotz/UPDATES-SPEC.md); on unless turned off. */
+/** Updates come from the fork's own releases (docs/zotz/specs/UPDATES-SPEC.md); on unless turned off. */
 export function isZotzUpdaterEnabled(): boolean {
   // E2E drivers install an old build; a real release installing over it pulls files from under the test.
   return (

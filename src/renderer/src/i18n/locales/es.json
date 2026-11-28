@@ -25348,6 +25348,10 @@
         "skipped": "Saltado"
       },
       "thisMachine": "Esta máquina"
+    },
+    "flashSessions": {
+      "more": "+{{count}} más",
+      "less": "Ver menos"
     }
   }
 }

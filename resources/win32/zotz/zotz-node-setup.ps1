@@ -170,7 +170,7 @@ Invoke-Step 'ssh' {
     $adminKeys = Join-Path $env:ProgramData 'ssh\administrators_authorized_keys'
     $userKeys = Join-Path $env:USERPROFILE '.ssh\authorized_keys'
     if (-not (Test-Path -LiteralPath $adminKeys) -and -not (Test-Path -LiteralPath $userKeys)) {
-        return 'sshd running key-only, but no authorized_keys yet: add your public key (see docs/zotz/NODE-SETUP.md)'
+        return 'sshd running key-only, but no authorized_keys yet: add your public key (see docs/zotz/guias/NODE-SETUP.md)'
     }
     'sshd running, key-only'
 }
