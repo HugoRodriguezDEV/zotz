@@ -140,6 +140,7 @@ export type UiViewHistory =
   | 'artifacts'
   | 'mobile'
   | 'zotz-board'
+  | 'zotz-flows'
 
 export type UISliceCore = {
   sidebarOpen: boolean
