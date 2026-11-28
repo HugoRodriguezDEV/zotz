@@ -47,6 +47,8 @@
               "mobile-browser-driver-banner",
               "mobile-driver-banner",
               "native-chat-*",
+              "nodrag",
+              "nopan",
               "orca-*",
               "pdfViewer",
               "popover-scroll-content",
@@ -59,7 +61,8 @@
               "scrollbar-sleek-parent",
               "toaster",
               "worktree-sidebar-scrollbar",
-              "xterm-*"
+              "xterm-*",
+              "zotz-flow-*"
             ]
           }
         ]
