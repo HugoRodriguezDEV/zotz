@@ -1,0 +1,63 @@
+/* React Flow's theme variables mapped onto the app tokens; no new colors. */
+.zotz-flow-canvas .react-flow {
+  --xy-background-color: var(--background);
+  --xy-background-pattern-color: var(--border);
+  --xy-edge-stroke: var(--muted-foreground);
+  --xy-edge-stroke-width: 2;
+  --xy-edge-stroke-selected: var(--ring);
+  --xy-connectionline-stroke: var(--ring);
+  --xy-connectionline-stroke-width: 2;
+  --xy-handle-background-color: var(--background);
+  --xy-handle-border-color: var(--muted-foreground);
+  --xy-selection-background-color: color-mix(in srgb, var(--ring) 12%, transparent);
+  --xy-selection-border: 1px dashed var(--ring);
+  --xy-minimap-background-color: var(--card);
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--background) 70%, transparent);
+  --xy-minimap-mask-stroke-color: var(--border);
+  --xy-minimap-node-background-color: var(--muted);
+  --xy-minimap-node-stroke-color: var(--border);
+  --xy-attribution-background-color: transparent;
+  color: var(--foreground);
+}
+
+.zotz-flow-canvas .react-flow__node:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.zotz-flow-canvas .react-flow__edge:focus-visible .react-flow__edge-path,
+.zotz-flow-canvas .react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--ring);
+  stroke-width: 3;
+}
+
+.zotz-flow-canvas .zotz-flow-edge-implicit .react-flow__edge-path {
+  stroke-dasharray: 6 6;
+  stroke: var(--border);
+}
+
+.zotz-flow-canvas .zotz-flow-edge-error .react-flow__edge-path {
+  stroke: var(--destructive);
+  stroke-dasharray: 6 4;
+}
+
+.zotz-flow-canvas .zotz-flow-edge-warning .react-flow__edge-path {
+  stroke: var(--status-warning);
+  stroke-dasharray: 6 4;
+}
+
+.zotz-flow-canvas .zotz-flow-edge-taken .react-flow__edge-path {
+  stroke: var(--foreground);
+}
+
+.zotz-flow-canvas .zotz-flow-handle {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
+.zotz-flow-canvas .react-flow__minimap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}

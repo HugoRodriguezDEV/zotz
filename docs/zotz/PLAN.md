@@ -360,7 +360,7 @@ Spec completo: [`SPEC-flows.md`](./specs/SPEC-flows.md). Propuesta del 2026-11-2
 
 - [x] 0. Contrato de flows, nodos, disparadores, corridas y RPC `zotz.flows.*`.
 - [x] 1. Motor: ejecutor, nodos (con bucle Para cada), plantillas, salida Markdown/JSON, horario y CLI `zotz flows`.
-- [ ] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
+- [x] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
 - [ ] 3. Disparadores por evento: agente terminó, PR, tarea cambió de columna, webhook.
 - [ ] 4. Chat: `/flow` con el contexto de la conversación y Responder en chat.
 - [ ] 5. Migración de automatizaciones a flows de un nodo, página vieja oculta y móvil.
