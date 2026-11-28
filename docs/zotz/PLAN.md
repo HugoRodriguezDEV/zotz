@@ -354,6 +354,21 @@ Spec completo: [`TASKS-SPEC.md`](./specs/TASKS-SPEC.md).
 
 ---
 
+## Fase 10 — Flows (automatizaciones con nodos, estilo n8n)
+
+Spec completo: [`SPEC-flows.md`](./specs/SPEC-flows.md). Propuesta del 2026-11-27, por aprobar.
+
+- [x] 0. Contrato de flows, nodos, disparadores, corridas y RPC `zotz.flows.*`.
+- [x] 1. Motor: ejecutor, nodos (con bucle Para cada), plantillas, salida Markdown/JSON, horario y CLI `zotz flows`.
+- [ ] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
+- [ ] 3. Disparadores por evento: agente terminó, PR, tarea cambió de columna, webhook.
+- [ ] 4. Chat: `/flow` con el contexto de la conversación y Responder en chat.
+- [ ] 5. Migración de automatizaciones a flows de un nodo, página vieja oculta y móvil.
+
+**Listo cuando:** el caso de `/revisar-pr` del final del spec corre completo en la MSI.
+
+---
+
 ## Decisiones abiertas (las resuelve Hugo)
 
 1. **Notificaciones push al celular** (`push.onorca.dev`): las manda la infraestructura de StablyAI. Opciones: (a) dejarlas, que es cómodo pero los avisos pasan por sus servidores; (b) apagarlas y usar un bot propio de Telegram para los avisos (sería una Fase 8).
@@ -378,6 +393,7 @@ Spec completo: [`TASKS-SPEC.md`](./specs/TASKS-SPEC.md).
 | 7 Seguridad             | 5          | S (en su mayoría docs y configuración) |
 | 8 Gobernador de memoria | 4, 5       | L                                      |
 | 9 Tablero de tareas     | 8          | L                                      |
+| 10 Flows                | 8, 9       | XL                                     |
 
 Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 

@@ -52,6 +52,8 @@ import { WslUsageReporter } from '../telemetry/wsl-usage-reporter'
 import { ALL_RPC_METHODS } from '../runtime/rpc/methods/rpc-method-registry'
 import { startClaudeCodeThemeSync } from '../claude/theme-sync/claude-code-theme-sync-schedule'
 import { startWorkspaceCleanupRunner } from '../workspaces/cleanup/workspace-cleanup-runner-startup'
+import { startZotzFlows } from '../zotz/flows/zotz-flow-startup'
+import { getCanonicalUserDataPath } from '../persistence/loading-store/user-data-path'
 
 // Headless serve has no first window; timer fallback must still sweep trash.
 const WORKTREE_TRASH_SWEEP_FALLBACK_MS = 15_000
@@ -69,6 +71,12 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
   initializeMainProcessAccountServices()
   const runtime = initializeMainProcessRuntime()
   initializeMainProcessAutomations()
+  void startZotzFlows({
+    runtime,
+    store,
+    userDataPath: getCanonicalUserDataPath(),
+    allowRemoteHostScheduling: state.isServeMode
+  }).catch((error: unknown) => console.error('[zotz-flows] could not start:', error))
   startWorkspaceCleanupRunner(runtime, store)
   configureRuntimeServices(runtime)
   installFirstWorkRenameHookSubscription()
