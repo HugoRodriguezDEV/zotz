@@ -10,7 +10,6 @@ import type {
 } from '../../../shared/zotz/flows/zotz-flow-run-contract'
 import type { ZotzFlowEngine } from './zotz-flow-engine'
 import { ZotzFlowStepError, type ZotzFlowStepContext } from './zotz-flow-executor-types'
-import { runZotzFlowLevel } from './zotz-flow-level-runner'
 import { runZotzFlowStep } from './zotz-flow-steps'
 import {
   resolveZotzFlowTemplate,
@@ -152,7 +151,7 @@ export async function executeZotzFlowNode(
       markStarted,
       changed: () => engine.changed(),
       runLevel: (parentId, childPath, childItem) =>
-        runZotzFlowLevel(engine, parentId, childPath, childItem, controller.signal),
+        engine.runLevel(parentId, childPath, childItem, controller.signal),
       waitForApproval: () => engine.awaitApproval(node, nodeRun, controller.signal)
     }
     try {

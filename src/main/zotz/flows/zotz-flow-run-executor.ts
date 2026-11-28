@@ -255,6 +255,15 @@ export class ZotzFlowRunExecutor implements ZotzFlowEngine {
     })
   }
 
+  runLevel(
+    parentId: string,
+    path: number[],
+    item: ZotzFlowLoopItem,
+    signal: AbortSignal
+  ): Promise<ZotzFlowLevelResult> {
+    return runZotzFlowLevel(this, parentId, path, item, signal)
+  }
+
   changed(): void {
     const { run } = this
     if (!isFinalZotzFlowRunStatus(run.status)) {
