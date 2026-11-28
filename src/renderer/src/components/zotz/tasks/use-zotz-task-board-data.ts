@@ -6,6 +6,7 @@ import { projectViewErrorMessage } from '../../github-project/auth-errors/projec
 import type { GetProjectViewTableResult } from '../../../../../shared/github/projects/project-result-types'
 import type { GitHubProjectTable } from '../../../../../shared/github/projects/project-types'
 import { zotzRepoIssuesTable } from '../../../../../shared/zotz/tasks/zotz-repo-issues'
+import { readZotzBoardProjectTable } from '../../../../../shared/zotz/tasks/zotz-task-board-project-table'
 import { asArray } from './zotz-task-bridge-results'
 import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import {
@@ -28,28 +29,20 @@ export type ZotzTaskBoardSourceState = {
 
 type FetchProjectViewTable = ReturnType<typeof useAppStore.getState>['fetchProjectViewTable']
 
-/** Roadmap views can't be read as a table, so fall back to the project's first board or table view. */
-async function fetchSourceTable(
+function fetchSourceTable(
   fetchProjectViewTable: FetchProjectViewTable,
   source: ZotzTaskBoardProjectSource,
   force: boolean
 ): Promise<GetProjectViewTableResult> {
-  const args = {
-    owner: source.owner,
-    ownerType: source.ownerType,
-    projectNumber: source.number,
-    ...(source.host ? { host: source.host } : {})
-  }
-  const first = await fetchProjectViewTable(LOCAL_TARGET, args, { force, wakeWslDistro: force })
-  if (first.ok || first.error.type !== 'unsupported_layout') {
-    return first
-  }
-  const views = await listProjectViewsForRuntime(LOCAL_TARGET, args)
-  const view = views.ok ? views.views.find((item) => item.layout !== 'ROADMAP_LAYOUT') : undefined
-  if (!view) {
-    return first
-  }
-  return fetchProjectViewTable(LOCAL_TARGET, { ...args, viewId: view.id }, { force })
+  return readZotzBoardProjectTable(source, {
+    table: (args) =>
+      fetchProjectViewTable(
+        LOCAL_TARGET,
+        args,
+        args.viewId ? { force } : { force, wakeWslDistro: force }
+      ),
+    views: (args) => listProjectViewsForRuntime(LOCAL_TARGET, args)
+  })
 }
 
 /**

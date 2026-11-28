@@ -24,6 +24,7 @@ import {
   sendZotzConnectorLinks
 } from './zotz-task-connector-sync'
 import { ZotzTaskSecretFile } from './zotz-task-secret-file'
+import { reportZotzTaskDocumentChange } from './zotz-task-document-changes'
 
 const CACHE_FILE = 'zotz-task-connectors.json'
 const SECRETS_FILE = 'zotz-task-connector-secrets.json'
@@ -63,6 +64,11 @@ export class ZotzTaskConnectorService {
         // Read after the download: a PR sync may have updated the entry meanwhile.
         const previous = cache[id]
         if (parsed?.ok === true) {
+          reportZotzTaskDocumentChange({
+            connectorId: id,
+            previous: previous?.document ?? null,
+            next: parsed.document
+          })
           cache[id] = {
             ...(previous ?? { verifiedActions: [], actionError: null, pullRequests: {} }),
             id,
@@ -103,6 +109,11 @@ export class ZotzTaskConnectorService {
     }
     const id = `file-${parsed.document.source.id}`
     const cache = await this.cache
+    reportZotzTaskDocumentChange({
+      connectorId: id,
+      previous: cache[id]?.document ?? null,
+      next: parsed.document
+    })
     cache[id] = {
       ...(cache[id] ?? { pullRequests: {} }),
       id,
@@ -168,9 +179,10 @@ export class ZotzTaskConnectorService {
   ): Promise<{ ok: true; snapshot: ZotzTaskConnectorSnapshot } | { ok: false; error: string }> {
     const cache = await this.cache
     const entry = cache[id]
-    const task = entry?.document?.tasks.find((item) => item.id === taskId)
-    const actionsUrl = entry?.document?.capabilities?.actionsUrl
-    if (!entry || !task || !actionsUrl || !entry.verifiedActions.includes('move')) {
+    const document = entry?.document
+    const task = document?.tasks.find((item) => item.id === taskId)
+    const actionsUrl = document?.capabilities?.actionsUrl
+    if (!entry || !document || !task || !actionsUrl || !entry.verifiedActions.includes('move')) {
       return { ok: false, error: 'This service does not accept moves' }
     }
     const result = await postZotzTaskAction(actionsUrl, await this.readToken(id), {
@@ -183,7 +195,13 @@ export class ZotzTaskConnectorService {
     if (!result.ok) {
       return { ok: false, error: result.error }
     }
+    const before = { ...task }
     task.fieldValues = { ...task.fieldValues, Status: optionId }
+    reportZotzTaskDocumentChange({
+      connectorId: id,
+      previous: { ...document, tasks: [before] },
+      next: { ...document, tasks: [task] }
+    })
     await this.write(this.cachePath, cache)
     return { ok: true, snapshot: publicZotzConnectorSnapshot(entry) }
   }

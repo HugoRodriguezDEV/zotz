@@ -37,6 +37,8 @@ export type ZotzTaskRelayDeps = {
     format: ZotzTasksFormat | 'auto'
   ) => Promise<ZotzTaskConnectorImportResult>
   publish: (update: ZotzTaskRelayUpdate) => void
+  /** Every batch of notices, board open or not (flows react to PR notices). */
+  onNotices?: (notices: ZotzRelayNotice[]) => void
 }
 
 function relayUrl(base: string, path: string, params: Record<string, string> = {}): string {
@@ -203,6 +205,9 @@ export class ZotzTaskRelayClient {
       await this.saveState(url, parsed.data.cursor)
       this.setStatus({ state: 'live', error: null })
       const forBoard = notices.filter((notice) => notice.kind !== 'source_push')
+      if (forBoard.length > 0) {
+        this.deps.onNotices?.(forBoard)
+      }
       // The first connection always resets; that's not news, the board just loaded.
       const reset = parsed.data.reset && state.cursor !== null
       if (this.watching && (forBoard.length > 0 || reset)) {

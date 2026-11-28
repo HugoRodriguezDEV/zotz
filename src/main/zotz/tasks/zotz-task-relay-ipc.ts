@@ -4,6 +4,12 @@ import { readZotzTaskRelayConfig } from '../../../shared/zotz/tasks/zotz-task-re
 import { isZotzTaskWindowRenderer } from './zotz-task-ipc-sender'
 import { pushZotzTasksDocument, type ZotzTaskSettingsStore } from './zotz-task-connector-registry'
 import { ZotzTaskRelayClient } from './zotz-task-relay-client'
+import {
+  onZotzRelayNoticesWantedChanged,
+  publishZotzRelayNotices,
+  setZotzRelayLive,
+  zotzRelayNoticesWanted
+} from './zotz-task-relay-notices'
 
 const CHANNELS = [
   'zotzTasks:relayStatus',
@@ -18,11 +24,16 @@ export function startZotzTaskRelay(userDataPath: string, store: ZotzTaskSettings
     userDataPath,
     readConfig: () => readZotzTaskRelayConfig(store.getSettings().zotzTaskRelay),
     importDocument: pushZotzTasksDocument,
-    publish: (update) => sendToTrustedUIRenderer('zotzTasks:relay', update)
+    publish: (update) => {
+      setZotzRelayLive(update.status.state === 'live')
+      sendToTrustedUIRenderer('zotzTasks:relay', update)
+    },
+    onNotices: publishZotzRelayNotices
   })
   // Windows with the board open; long-poll only while at least one is.
   const watchers = new Set<number>()
-  const syncWatching = (): void => client.setWatching(watchers.size > 0)
+  const syncWatching = (): void => client.setWatching(watchers.size > 0 || zotzRelayNoticesWanted())
+  const stopFlowWatch = onZotzRelayNoticesWantedChanged(syncWatching)
 
   ipcMain.handle('zotzTasks:relayStatus', () => client.getStatus())
   ipcMain.handle('zotzTasks:relayWatch', (event, active: unknown) => {
@@ -58,8 +69,11 @@ export function startZotzTaskRelay(userDataPath: string, store: ZotzTaskSettings
       client.restart()
     }
   })
+  syncWatching()
   client.start()
   return () => {
+    stopFlowWatch()
+    setZotzRelayLive(false)
     stopSettings()
     client.stop()
     for (const channel of CHANNELS) {
