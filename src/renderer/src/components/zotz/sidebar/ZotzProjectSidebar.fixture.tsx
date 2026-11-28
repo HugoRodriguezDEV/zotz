@@ -175,6 +175,33 @@ export const queuedConversation = defineFixture({
   )
 })
 
+// The agent's turn is over and only its commands and monitors run: the radar keeps watch.
+export const onlyProcessesLeft = defineFixture({
+  width: 300,
+  store: { repos: [zotz], worktreesByRepo: { zotz: [queuedWorktree] } },
+  render: () => (
+    <div className="bg-worktree-sidebar p-2">
+      <ZotzConversationRow
+        row={{
+          id: queuedWorktree.id,
+          worktree: queuedWorktree,
+          title: 'Servidor de pruebas corriendo',
+          branch: 'memory-limiter',
+          shortName: 'memory-limiter',
+          lastActivityAt: 1,
+          repo: zotz,
+          hostId: 'local'
+        }}
+        repo={zotz}
+        active={false}
+        status={{ state: 'monitoring', unread: false, agentType: 'claude' }}
+        canceled={false}
+        queuedSince={null}
+      />
+    </div>
+  )
+})
+
 const salmonWorktree = {
   ...worktree('zotz', 'zotz/fase-9-tareas', 'Chat workspace board options'),
   path: '/code/zotz/salmon'
