@@ -40,11 +40,14 @@ export type ZotzFlowAgentFinishedDeps = {
     latestRow: (paneKey: string) => AgentStatusIpcPayload | null
   }
   getAcceptedReply: (paneKey: string, leadTurnKey: number) => string | undefined
+  /** The worktree's branch; null for a detached HEAD or when it cannot be read. */
+  readBranch: (worktreeId: string) => Promise<string | null>
 }
 
 type WorkspaceFacts = {
-  workspace: { id: string; name: string | null; path: string | null; branch: string | null }
+  workspace: { id: string; name: string | null; path: string | null }
   project: (string | null)[]
+  folder: boolean
 }
 
 function workspaceFacts(store: WorkspaceStore, workspaceId: string): WorkspaceFacts {
@@ -57,10 +60,10 @@ function workspaceFacts(store: WorkspaceStore, workspaceId: string): WorkspaceFa
       workspace: {
         id: workspaceId,
         name: folder?.name ?? null,
-        path: folder?.folderPath ?? null,
-        branch: null
+        path: folder?.folderPath ?? null
       },
-      project: [scope.folderWorkspaceId, folder?.name ?? null]
+      project: [scope.folderWorkspaceId, folder?.name ?? null],
+      folder: true
     }
   }
   const worktreeId = scope?.type === 'worktree' ? scope.worktreeId : workspaceId
@@ -70,10 +73,10 @@ function workspaceFacts(store: WorkspaceStore, workspaceId: string): WorkspaceFa
     workspace: {
       id: worktreeId,
       name: store.getWorktreeMeta(worktreeId)?.displayName || (path ? basename(path) : null),
-      path,
-      branch: null
+      path
     },
-    project: [repoId, store.getRepo(repoId)?.displayName ?? null]
+    project: [repoId, store.getRepo(repoId)?.displayName ?? null],
+    folder: store.getRepo(repoId)?.kind === 'folder'
   }
 }
 
@@ -166,13 +169,17 @@ export function watchZotzFlowAgentFinished(deps: ZotzFlowAgentFinishedDeps): () 
     }
     // Read before the message so a flow-launched agent is known even if its run is pruned meanwhile.
     const causedBy = deps.findOrigin(input.origin)
-    const lastMessage = bounded(await input.lastMessage().catch(() => ''))
+    const [lastMessage, branch] = await Promise.all([
+      input.lastMessage().then(bounded, () => ''),
+      // Folder workspaces have no branch.
+      facts.folder ? null : deps.readBranch(facts.workspace.id).catch(() => null)
+    ])
     deps.dispatcher.fire(
       'agent_finished',
       {
         kind: 'agent_finished',
         agent: { agentId: input.agentId, sessionId: input.sessionId, title: input.title },
-        workspace: facts.workspace,
+        workspace: { ...facts.workspace, branch },
         lastMessage,
         outcome
       },
@@ -262,4 +269,10 @@ export function watchZotzFlowAgentFinished(deps: ZotzFlowAgentFinishedDeps): () 
     news.dispose()
     announced.clear()
   }
+}
+
+/** `refs/heads/main` → `main`; empty (detached HEAD) → null. */
+export function zotzFlowBranchName(ref: string | null | undefined): string | null {
+  const name = ref?.replace(/^refs\/heads\//, '').trim()
+  return name ? name : null
 }

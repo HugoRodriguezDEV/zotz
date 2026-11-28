@@ -8,6 +8,7 @@ import type { AgentStatusIpcPayload } from '../../../shared/agent-status/contrac
 import { ZotzFlowDraftSchema } from '../../../shared/zotz/flows/zotz-flow-contract'
 import type { ZotzFlowRun } from '../../../shared/zotz/flows/zotz-flow-run-contract'
 import type { ZotzTasksDocument } from '../../../shared/zotz/tasks/zotz-tasks-contract'
+import type { GitHubProjectTable } from '../../../shared/github/projects/project-types'
 import { reportZotzTaskDocumentChange } from '../tasks/zotz-task-document-changes'
 import { publishZotzRelayNotices } from '../tasks/zotz-task-relay-notices'
 import { startZotzFlowEventTriggers } from './zotz-flow-event-triggers'
@@ -17,6 +18,85 @@ import { withZotzFlowWebhooks } from './zotz-flow-webhook'
 
 const graphql = vi.hoisted(() => ({ runGraphql: vi.fn() }))
 vi.mock('../../github/project-view/project-graphql', () => graphql)
+const projectTable = vi.hoisted(() => ({ getProjectViewTable: vi.fn() }))
+vi.mock('../../github/project-view/project-view-table', () => projectTable)
+vi.mock('../../github/project-view/project-view-listing', () => ({
+  listProjectViews: async () => ({ ok: true, views: [] })
+}))
+
+const BOARD_PROJECT = {
+  kind: 'github-project',
+  owner: 'acme',
+  ownerType: 'organization',
+  number: 3,
+  title: 'Roadmap'
+}
+
+/** One issue in the acme/3 Project, in the given Status column. */
+function projectTableIn(status: string): GitHubProjectTable {
+  const options = ['Todo', 'In Review', 'Done'].map((name) => ({
+    id: `opt-${name}`,
+    name,
+    color: 'GRAY',
+    description: ''
+  }))
+  const option = options.find((entry) => entry.name === status)!
+  return {
+    project: {
+      id: 'PVT_1',
+      owner: 'acme',
+      ownerType: 'organization',
+      number: 3,
+      title: 'Roadmap',
+      url: 'https://github.com/orgs/acme/projects/3'
+    },
+    selectedView: {
+      id: 'view-1',
+      number: 1,
+      name: 'Board',
+      layout: 'BOARD_LAYOUT',
+      filter: '',
+      fields: [
+        { kind: 'single-select', id: 'status', name: 'Status', dataType: 'SINGLE_SELECT', options }
+      ],
+      groupByFields: [],
+      sortByFields: []
+    },
+    rows: [
+      {
+        id: 'item-1',
+        itemType: 'ISSUE',
+        content: {
+          number: 42,
+          title: 'Fix login',
+          body: 'Steps',
+          url: 'https://github.com/acme/app/issues/42',
+          state: 'OPEN',
+          stateReason: null,
+          isDraft: null,
+          repository: 'acme/app',
+          assignees: [],
+          labels: [],
+          parentIssue: null,
+          issueType: null
+        },
+        fieldValuesByFieldId: {
+          status: {
+            kind: 'single-select',
+            fieldId: 'status',
+            optionId: option.id,
+            name: option.name,
+            color: 'GRAY'
+          }
+        },
+        updatedAt: '2026-11-28T10:00:00Z',
+        position: 0
+      }
+    ],
+    totalCount: 1,
+    parentFieldDropped: false
+  }
+}
 
 const TOKEN = 'a'.repeat(40)
 
@@ -93,6 +173,7 @@ async function start(dir: string, triggers: unknown[]): Promise<Harness> {
       getWorktreeMeta: () => undefined,
       getFolderWorkspaces: () => []
     },
+    readTaskBoardSources: () => [BOARD_PROJECT],
     userDataPath: dir,
     agents: {
       transitions: {
@@ -102,7 +183,8 @@ async function start(dir: string, triggers: unknown[]): Promise<Harness> {
         },
         latestRow: (paneKey) => rows.get(paneKey) ?? null
       },
-      getAcceptedReply: (paneKey) => `reply from ${paneKey}`
+      getAcceptedReply: (paneKey) => `reply from ${paneKey}`,
+      readBranch: async (worktreeId) => (worktreeId === 'repo-1::/work/app' ? 'login-fix' : null)
     }
   })
   return {
@@ -150,6 +232,7 @@ describe('flow event triggers', () => {
   beforeEach(async () => {
     dir = await mkdtemp(join(tmpdir(), 'zotz-flow-events-'))
     graphql.runGraphql.mockReset()
+    projectTable.getProjectViewTable.mockReset()
   })
 
   afterEach(async () => {
@@ -168,7 +251,7 @@ describe('flow event triggers', () => {
       triggerId: 'when-done',
       kind: 'agent_finished',
       agent: { agentId: 'claude' },
-      workspace: { id: 'repo-1::/work/app', path: '/work/app' },
+      workspace: { id: 'repo-1::/work/app', path: '/work/app', branch: 'login-fix' },
       outcome: 'success',
       lastMessage: 'reply from pane-user'
     })
@@ -372,5 +455,63 @@ describe('flow event triggers', () => {
     publishZotzRelayNotices([notice])
     await settle()
     expect(runsOf(harness)).toHaveLength(1)
+  })
+
+  it('fires once per column change in a GitHub Project, also across a restart', async () => {
+    let status = 'Todo'
+    projectTable.getProjectViewTable.mockImplementation(async () => ({
+      ok: true,
+      data: projectTableIn(status)
+    }))
+    const reads = () => projectTable.getProjectViewTable.mock.calls.length
+    // A relay notice for the Project rereads it at once; resolves after that read.
+    const notice = async () => {
+      const before = reads()
+      publishZotzRelayNotices([
+        {
+          cursor: '1',
+          kind: 'projects_v2_item',
+          action: 'edited',
+          at: '2026-11-28T10:00:00Z',
+          projectNodeId: 'PVT_1'
+        }
+      ])
+      await vi.waitFor(() => expect(reads()).toBeGreaterThan(before), { timeout: 5000 })
+      await settle()
+    }
+    const triggers = [{ id: 'moved', kind: 'task_moved', source: 'acme/3' }]
+    harness = await start(dir, triggers)
+    await vi.waitFor(() => expect(reads()).toBeGreaterThan(0))
+    await settle()
+    // The first read only stores the columns.
+    expect(runsOf(harness)).toHaveLength(0)
+
+    status = 'Done'
+    await notice()
+    await notice()
+    expect(runsOf(harness)).toHaveLength(1)
+    expect(runsOf(harness)[0]!.trigger).toMatchObject({
+      kind: 'task_moved',
+      task: {
+        id: 'https://github.com/acme/app/issues/42',
+        title: 'Fix login',
+        url: 'https://github.com/acme/app/issues/42',
+        fields: { Status: 'Done', Repository: 'acme/app' }
+      },
+      from: 'Todo',
+      to: 'Done'
+    })
+
+    // Moved again while Zotz was off: the first read after the restart tells it, once.
+    harness.stop()
+    await harness.flowStore.flush()
+    status = 'In Review'
+    harness = await start(dir, triggers)
+    await vi.waitFor(() => expect(runsOf(harness!)).toHaveLength(2))
+    await notice()
+    expect(runsOf(harness)).toHaveLength(2)
+    expect(runsOf(harness).map((run) => run.trigger)).toContainEqual(
+      expect.objectContaining({ kind: 'task_moved', from: 'Done', to: 'In Review' })
+    )
   })
 })

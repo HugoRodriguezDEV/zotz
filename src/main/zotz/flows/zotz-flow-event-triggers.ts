@@ -20,6 +20,11 @@ import { watchZotzFlowPullRequests } from './zotz-flow-pull-request-source'
 import type { ZotzFlowService } from './zotz-flow-service'
 import type { ZotzFlowStore } from './zotz-flow-store'
 import { watchZotzFlowTaskMoves } from './zotz-flow-task-moved-source'
+import { watchZotzFlowProjectMoves } from './zotz-flow-project-moved-source'
+import { readZotzBoardProjectTable } from '../../../shared/zotz/tasks/zotz-task-board-project-table'
+import { readZotzTaskBoardSources } from '../../../shared/zotz/tasks/zotz-task-board-types'
+import { getProjectViewTable } from '../../github/project-view/project-view-table'
+import { listProjectViews } from '../../github/project-view/project-view-listing'
 import { registerZotzFlowWebhooks } from './zotz-flow-webhook'
 
 // Webhooks need no listener: each request reads the stored flows.
@@ -50,8 +55,10 @@ export async function startZotzFlowEventTriggers(input: {
   flowStore: ZotzFlowStore
   service: ZotzFlowService
   store: Pick<RuntimeStore, 'getRepos' | 'getRepo' | 'getWorktreeMeta' | 'getFolderWorkspaces'>
+  /** Settings' `zotzTaskBoardSources`, as stored. */
+  readTaskBoardSources: () => unknown
   userDataPath: string
-  agents: Pick<ZotzFlowAgentFinishedDeps, 'transitions' | 'getAcceptedReply'>
+  agents: Pick<ZotzFlowAgentFinishedDeps, 'transitions' | 'getAcceptedReply' | 'readBranch'>
 }): Promise<() => void> {
   const { flowStore, service } = input
   const memory = new ZotzFlowEventMemory(input.userDataPath)
@@ -77,12 +84,31 @@ export async function startZotzFlowEventTriggers(input: {
         relay: { live: isZotzRelayLive, subscribe: subscribeZotzRelayNotices },
         now: Date.now
       }),
-    task_moved: () =>
-      watchZotzFlowTaskMoves({
+    task_moved: () => {
+      const stopFeeds = watchZotzFlowTaskMoves({
         dispatcher,
         onDocumentChanged: onZotzTaskDocumentChanged,
         refreshFeeds: refreshZotzTaskFeeds
       })
+      const stopProjects = watchZotzFlowProjectMoves({
+        dispatcher,
+        memory,
+        boardProjects: () =>
+          readZotzTaskBoardSources(input.readTaskBoardSources()).flatMap((source) =>
+            source.kind === 'github-project' ? [source] : []
+          ),
+        readTable: (source) =>
+          readZotzBoardProjectTable(source, {
+            table: getProjectViewTable,
+            views: listProjectViews
+          }),
+        relay: { subscribe: subscribeZotzRelayNotices }
+      })
+      return () => {
+        stopFeeds()
+        stopProjects()
+      }
+    }
   }
   const running = new Map<SourceKind, () => void>()
   const sync = (): void => {

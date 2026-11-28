@@ -4,6 +4,7 @@ import type { OrcaRuntimeService } from '../../runtime/orca-runtime'
 import { automationSystemSettled } from '../../automations/dispatch/automation-wake-settle'
 import { createZotzFlowAgentDriver, type ZotzFlowPreviousSession } from './zotz-flow-agent-driver'
 import { startZotzFlowEventTriggers } from './zotz-flow-event-triggers'
+import { zotzFlowBranchName } from './zotz-flow-agent-finished-source'
 import { runZotzFlowCommand } from './zotz-flow-command-runner'
 import { fetchZotzFlowHttp } from './zotz-flow-http-client'
 import { notifyZotzFlow } from './zotz-flow-notifier'
@@ -79,10 +80,13 @@ export async function startZotzFlows(input: {
     flowStore,
     service,
     store: input.store,
+    readTaskBoardSources: () => input.store.getSettings().zotzTaskBoardSources,
     userDataPath: input.userDataPath,
     agents: {
       transitions: input.runtime.agentTransitions,
-      getAcceptedReply: (paneKey, turnKey) => input.runtime.getAcceptedAgentReply(paneKey, turnKey)
+      getAcceptedReply: (paneKey, turnKey) => input.runtime.getAcceptedAgentReply(paneKey, turnKey),
+      readBranch: async (worktreeId) =>
+        zotzFlowBranchName((await input.runtime.showManagedWorktree(`id:${worktreeId}`)).branch)
     }
   })
   const stop = (): void => {
