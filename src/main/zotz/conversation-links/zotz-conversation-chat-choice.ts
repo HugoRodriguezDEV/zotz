@@ -66,6 +66,7 @@ export function toZotzConversationEntry(conversation: ZotzHostConversation): Zot
     shortName: conversation.shortName,
     title: conversation.title,
     projectName: conversation.projectName,
+    parentWorktreeId: conversation.parentWorktreeId ?? null,
     agent: chat?.agent ?? null,
     state: chat?.state ?? null,
     address: chat?.address ?? null

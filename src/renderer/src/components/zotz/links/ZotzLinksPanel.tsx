@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { Link2, Link2Off, Users } from 'lucide-react'
+import { CornerDownRight, Crown, Link2, Link2Off, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import { activateAndRevealWorkspace } from '@/lib/workspace/activation/worktree-activation'
+import type { ExecutionHostId } from '../../../../../shared/execution-host'
 import type {
   ZotzConversationEntry,
   ZotzLinkGroup
@@ -29,12 +30,14 @@ import {
 } from './zotz-link-groups'
 import { findZotzLinkWorktreeId, selectActiveZotzLinkMember } from './zotz-link-worktrees'
 import { ZotzLinkConversationRow } from './ZotzLinkConversationRow'
-import { ZotzLinkHostRoom } from './ZotzLinkHostRoom'
+import { ZotzLinkHostRoom, zotzHostRoomKey } from './ZotzLinkHostRoom'
 import { ZotzLinkHostSection } from './ZotzLinkHostSection'
 import { ZotzLinkTimeline } from './ZotzLinkTimeline'
 import { ZotzGroupMap } from './ZotzGroupMap'
 import { useZotzGroupMap } from './use-zotz-group-map'
 import { isZotzMessageOfMember } from './zotz-group-map-edges'
+import { useZotzLinkFamily } from './use-zotz-link-family'
+import { zotzFamilyEdges, zotzFamilyExtras, zotzFamilyOf } from './zotz-link-family'
 
 const NO_GROUPS: readonly ZotzLinkGroup[] = []
 
@@ -75,17 +78,32 @@ export default function ZotzLinksPanel(): React.JSX.Element {
   const context: ZotzLinkContext = { hosts, describe: entryFor }
   const group = active ? findZotzLinkGroup(groups, active) : null
   const partners = group?.members.filter((m) => !active || !sameZotzLinkMember(m, active)) ?? []
-  // One string so polling restarts only when the group's addresses really change.
-  const addressKey = (group?.members ?? [])
+  // A worker and the conversation that started it work together even outside a group.
+  const family = useZotzLinkFamily(conversations)
+  const kin = active && !group ? zotzFamilyOf(family, active) : []
+  const withFamily = kin.length > 1
+  const extras = group ? zotzFamilyExtras(family, group.members) : []
+  const roomMembers = group ? [...group.members, ...extras.map((extra) => extra.member)] : kin
+  const roomId = group
+    ? `group:${group.id}`
+    : withFamily
+      ? `family:${kin[0].hostId}:${kin[0].path}`
+      : null
+  // One string so polling restarts only when the room's addresses really change.
+  const addressKey = roomMembers
     .flatMap((member) => {
       const address = entryFor(member)?.address
       return address ? [address] : []
     })
     .join('\n')
-  const messages = useZotzLinkMessages(hosts, addressKey, group !== null)
+  const messages = useZotzLinkMessages(hosts, addressKey, roomId !== null)
   const [focusedMember, setFocusedMember] = useState<string | null>(null)
   const map = useZotzGroupMap({
-    group,
+    roomId,
+    members: roomMembers,
+    roleOf: (member) =>
+      extras.find((extra) => sameZotzLinkMember(extra.member, member))?.role ?? null,
+    parentEdges: zotzFamilyEdges(family, roomMembers),
     active,
     messages,
     entryFor,
@@ -103,7 +121,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
         )
 
   const nameFor = (addressOrLabel: string): string => {
-    for (const member of group?.members ?? []) {
+    for (const member of roomMembers) {
       const entry = entryFor(member)
       if (entry?.address && addressOrLabel.includes(entry.address)) {
         return entry.shortName
@@ -125,6 +143,26 @@ export default function ZotzLinksPanel(): React.JSX.Element {
     active && member.hostId !== active.hostId
       ? { hostId: member.hostId, name: hostFor(member.hostId)?.name ?? member.hostId }
       : null
+
+  const depthOf = (member: ZotzLinkMember): number => {
+    let depth = 0
+    for (let at = family.parentOf(member); at && depth < kin.length; at = family.parentOf(at)) {
+      depth += 1
+    }
+    return depth
+  }
+  const hostGuides = (hostId: ExecutionHostId, entries: readonly ZotzConversationEntry[]) =>
+    entries.flatMap((entry) => {
+      const parent = family.parentOf({ hostId, path: entry.path })
+      return parent
+        ? [
+            {
+              child: zotzHostRoomKey(hostId, entry.path),
+              parent: zotzHostRoomKey(parent.hostId, parent.path)
+            }
+          ]
+        : []
+    })
 
   const linkAction = (member: ZotzLinkMember): React.ReactNode => {
     if (!active || sameZotzLinkMember(member, active)) {
@@ -189,42 +227,72 @@ export default function ZotzLinksPanel(): React.JSX.Element {
             )}
           </p>
         ) : group ? (
-          <>
-            <Section
-              title={group.name?.trim() || t('zotz.links.workingTogether', 'Working together')}
-            >
-              {group.members.map((member) => {
-                const entry = entryFor(member)
-                return entry ? (
+          <Section
+            title={group.name?.trim() || t('zotz.links.workingTogether', 'Working together')}
+          >
+            {group.members.map((member) => {
+              const entry = entryFor(member)
+              return entry ? (
+                <ZotzLinkConversationRow
+                  key={`${member.hostId}:${member.path}`}
+                  entry={entry}
+                  machine={machineOf(member)}
+                  highlighted={sameZotzLinkMember(member, active)}
+                  onOpen={() => open(member)}
+                  action={linkAction(member)}
+                />
+              ) : null
+            })}
+            {activeEntry ? (
+              <div className="px-2">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  disabled={busy}
+                  onClick={() => run(() => unlinkZotzConversation(active, context))}
+                >
+                  <Link2Off className="size-3" />
+                  {t('zotz.links.leave', 'Leave the group')}
+                </Button>
+              </div>
+            ) : null}
+          </Section>
+        ) : withFamily ? (
+          <Section title={t('zotz.links.workingWithWorkers', 'Working with its workers')}>
+            {kin.map((member) => {
+              const entry = entryFor(member)
+              return entry ? (
+                <div
+                  key={`${member.hostId}:${member.path}`}
+                  style={{ paddingLeft: Math.min(depthOf(member), 3) * 12 }}
+                >
                   <ZotzLinkConversationRow
-                    key={`${member.hostId}:${member.path}`}
                     entry={entry}
                     machine={machineOf(member)}
                     highlighted={sameZotzLinkMember(member, active)}
                     onOpen={() => open(member)}
                     action={linkAction(member)}
                   />
-                ) : null
-              })}
-              {activeEntry ? (
-                <div className="px-2">
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    disabled={busy}
-                    onClick={() => run(() => unlinkZotzConversation(active, context))}
-                  >
-                    <Link2Off className="size-3" />
-                    {t('zotz.links.leave', 'Leave the group')}
-                  </Button>
                 </div>
-              ) : null}
-            </Section>
-            {group.members.length > 1 ? (
+              ) : null
+            })}
+          </Section>
+        ) : (
+          <p className="px-3 py-2 text-xs text-muted-foreground">
+            {t(
+              'zotz.links.notLinked',
+              '{{name}} works alone. Link it with another conversation below; both agents learn how to write to each other.',
+              { name: activeEntry?.shortName ?? '' }
+            )}
+          </p>
+        )}
+        {roomId !== null ? (
+          <>
+            {roomMembers.length > 1 ? (
               <Section title={t('zotz.groups.mapTitle', 'Who talks to whom')}>
                 <div className="px-1">
                   <ZotzGroupMap
-                    groupId={group.id}
+                    roomKey={roomId}
                     nodes={map.nodes}
                     edges={map.edges}
                     parentEdges={map.parentEdges}
@@ -232,6 +300,22 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                     selected={focusedIndex === -1 ? null : focusedMember}
                     onSelect={setFocusedMember}
                   />
+                  {extras.length > 0 ? (
+                    <p className="flex flex-wrap gap-x-3 px-1 pt-1 text-2xs text-muted-foreground">
+                      {extras.some((extra) => extra.role === 'parent') ? (
+                        <span className="flex items-center gap-1">
+                          <Crown aria-hidden className="size-3" />
+                          {t('zotz.links.legendParent', 'Started a member; not in the group')}
+                        </span>
+                      ) : null}
+                      {extras.some((extra) => extra.role === 'worker') ? (
+                        <span className="flex items-center gap-1">
+                          <CornerDownRight aria-hidden className="size-3" />
+                          {t('zotz.links.legendWorker', "A member's worker; not in the group")}
+                        </span>
+                      ) : null}
+                    </p>
+                  ) : null}
                   {focusedIndex !== -1 ? (
                     <Button variant="ghost" size="xs" onClick={() => setFocusedMember(null)}>
                       {t('zotz.groups.mapShowAll', 'Show every message')}
@@ -246,15 +330,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
               </div>
             </Section>
           </>
-        ) : (
-          <p className="px-3 py-2 text-xs text-muted-foreground">
-            {t(
-              'zotz.links.notLinked',
-              '{{name}} works alone. Link it with another conversation below; both agents learn how to write to each other.',
-              { name: activeEntry?.shortName ?? '' }
-            )}
-          </p>
-        )}
+        ) : null}
         {hosts.map((host) => {
           const list = conversations.get(host.hostId)
           return (
@@ -262,8 +338,8 @@ export default function ZotzLinksPanel(): React.JSX.Element {
               key={host.hostId}
               host={host}
               list={list}
-              groupKey={group?.id ?? null}
-              compact={(group?.members.length ?? 0) > 1}
+              groupKey={roomId}
+              compact={roomMembers.length > 1}
             >
               {!host.supported ? (
                 <p className="px-2 text-[11px] text-muted-foreground">
@@ -285,6 +361,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                     host={host}
                     entries={list.conversations}
                     groupMap={map}
+                    guides={hostGuides(host.hostId, list.conversations)}
                     isCurrent={(entry) =>
                       active
                         ? sameZotzLinkMember({ hostId: host.hostId, path: entry.path }, active)

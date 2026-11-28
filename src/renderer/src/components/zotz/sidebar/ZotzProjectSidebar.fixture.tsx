@@ -363,8 +363,16 @@ export const githubRepoInGroup = defineFixture({
   store: {
     repos: [zotzOnGitHub, empresas],
     worktreesByRepo: {
-      zotz: [worktree('zotz', 'repo-visible', 'Mostrar el repo de GitHub')],
-      empresas: [worktree('empresas', 'op-200-facturas', 'OP-200 facturas')]
+      zotz: [
+        worktree('zotz', 'repo-visible', 'Mostrar el repo de GitHub', {
+          lastActivityAt: Date.now() - 5 * 60_000
+        })
+      ],
+      empresas: [
+        worktree('empresas', 'op-200-facturas', 'OP-200 facturas', {
+          lastActivityAt: Date.now() - 3 * 60 * 60_000
+        })
+      ]
     },
     settings: {
       ...getDefaultSettings('/home/fixture'),
@@ -377,6 +385,45 @@ export const githubRepoInGroup = defineFixture({
             { hostId: 'local', path: '/code/zotz/repo-visible' },
             { hostId: 'local', path: '/code/empresas/op-200-facturas' }
           ]
+        }
+      ]
+    }
+  },
+  render: () => (
+    <div className="flex h-[380px] flex-col bg-worktree-sidebar">
+      <ZotzProjectSidebar />
+    </div>
+  )
+})
+
+// Long group, project and branch names must truncate beside the pixel icons, not push them out.
+const longProject = repo('long', 'avena-health-backoffice-empresas-admin')
+export const longNames = defineFixture({
+  width: 300,
+  store: {
+    repos: [longProject],
+    worktreesByRepo: {
+      long: [
+        worktree(
+          'long',
+          'isai/op-318-exportar-facturas-por-empresa',
+          'Exportar facturas por empresa y periodo fiscal',
+          { lastActivityAt: Date.now() - 2 * 60_000 }
+        ),
+        worktree('long', 'op-142-fix-login', 'OP-142 login con Google', {
+          lastActivityAt: Date.now() - 60 * 60_000
+        })
+      ]
+    },
+    activeWorktreeId: 'long::isai/op-318-exportar-facturas-por-empresa',
+    settings: {
+      ...getDefaultSettings('/home/fixture'),
+      zotzConversationLinks: [
+        {
+          id: 'g-long',
+          name: 'Facturación electrónica multiempresa',
+          createdAt: 1,
+          members: [{ hostId: 'local', path: '/code/long/op-142-fix-login' }]
         }
       ]
     }
