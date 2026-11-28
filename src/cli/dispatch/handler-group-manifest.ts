@@ -245,6 +245,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('../zotz/zotz-tasks.js')).ZOTZ_TASKS_HANDLERS
   },
   {
+    name: 'zotz-flows',
+    keys: ['flows list', 'flows run', 'flows runs', 'flows export', 'flows import'],
+    load: async () => (await import('../zotz/zotz-flows.js')).ZOTZ_FLOWS_HANDLERS
+  },
+  {
     name: 'zotz-agents',
     keys: ['agent list'],
     load: async () => (await import('../zotz/zotz-agents.js')).ZOTZ_AGENTS_HANDLERS

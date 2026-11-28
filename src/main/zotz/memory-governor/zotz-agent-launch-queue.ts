@@ -54,6 +54,8 @@ const FRESH_SAMPLE_MS = 20_000
 
 // Enough to cover every pane still open; older marks belong to long-closed tabs.
 const CANCELED_KEPT = 50
+// A caller that already waited its turn launches within seconds; a stale pass must not let a stranger skip the line.
+const PASS_MS = 120_000
 
 /**
  * Holds agent launches until memory and the concurrency limit allow them, in the order of
@@ -65,6 +67,7 @@ export class ZotzAgentLaunchQueue {
   private reservations: Reservation[] = []
   private canceled: ZotzCanceledLaunch[] = []
   private readonly listeners = new Set<() => void>()
+  private passes: { agent: TuiAgent; until: number }[] = []
   private enabled = true
 
   constructor(
@@ -88,9 +91,28 @@ export class ZotzAgentLaunchQueue {
     }
   }
 
+  /**
+   * Lets the next launch of `agent` through once: a flow step waits here first (so its timeout
+   * starts only once admitted) and its own spawn must not wait a second time. Returns a revoke.
+   */
+  grantPass(agent: TuiAgent): () => void {
+    const pass = { agent, until: this.now() + PASS_MS }
+    this.passes.push(pass)
+    return () => {
+      this.passes = this.passes.filter((entry) => entry !== pass)
+    }
+  }
+
   /** Resolves when the launch may start, or with 'canceled' once the user canceled that pane. */
   admit(request: ZotzAgentLaunchRequest): Promise<ZotzAdmission> {
     if (!this.enabled) {
+      return Promise.resolve('admitted')
+    }
+    const now = this.now()
+    this.passes = this.passes.filter((entry) => entry.until > now)
+    const pass = this.passes.find((entry) => entry.agent === request.agent)
+    if (pass) {
+      this.passes = this.passes.filter((entry) => entry !== pass)
       return Promise.resolve('admitted')
     }
     const id = request.paneKey ?? randomUUID()

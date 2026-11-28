@@ -9,6 +9,7 @@ import { AUTOMATION_METHODS } from './automations/automations'
 import { ZOTZ_AGENT_QUEUE_METHODS } from './zotz/zotz-agent-queue'
 import { ZOTZ_SHORT_NAME_METHODS } from './zotz/zotz-short-names'
 import { ZOTZ_TASKS_METHODS } from './zotz/zotz-tasks'
+import { ZOTZ_FLOWS_METHODS } from './zotz/zotz-flows'
 import { ZOTZ_CONVERSATION_LINK_METHODS } from './zotz/zotz-conversation-links'
 import { ZOTZ_SYSTEM_MONITOR_METHODS } from './zotz/zotz-system-monitor'
 import { REPO_METHODS } from './projects/repo'
@@ -104,6 +105,7 @@ export const ALL_RPC_METHODS = [
   ...ZOTZ_AGENT_QUEUE_METHODS,
   ...ZOTZ_SHORT_NAME_METHODS,
   ...ZOTZ_TASKS_METHODS,
+  ...ZOTZ_FLOWS_METHODS,
   ...ZOTZ_CONVERSATION_LINK_METHODS,
   ...ZOTZ_SYSTEM_MONITOR_METHODS,
   ...REPO_METHODS,

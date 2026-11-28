@@ -26,6 +26,8 @@ export type AutomationChatLaunchRequest = {
   run: Pick<AutomationRun, 'id' | 'title' | 'scheduledFor' | 'createdAt'>
   target: Extract<AutomationRunTargetResult, { ok: true }>
   runs: readonly AutomationRun[]
+  /** A Zotz flow step: its automation is not stored, so its new workspace carries no automation label. */
+  unsaved?: boolean
 }
 
 export async function launchAutomationChatAgent(
@@ -87,12 +89,16 @@ async function launchChat(
                     ? { approvedSetupHash: automation.setupTrustHash }
                     : {}),
                   activate: false,
-                  automationProvenanceRequest: {
-                    automationId: automation.id,
-                    automationRunId: run.id,
-                    dispatchToken: createAutomationDispatchToken(automation.id, run.id),
-                    createRequestId: operationId
-                  }
+                  ...(request.unsaved
+                    ? {}
+                    : {
+                        automationProvenanceRequest: {
+                          automationId: automation.id,
+                          automationRunId: run.id,
+                          dispatchToken: createAutomationDispatchToken(automation.id, run.id),
+                          createRequestId: operationId
+                        }
+                      })
                 }
               }
       },
