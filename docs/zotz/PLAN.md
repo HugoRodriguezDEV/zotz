@@ -1127,6 +1127,12 @@ Sección B de la spec de monitor y remotos.
 - Pasos Agente con proyecto de un servidor (`runtime:`) se lanzan como automatización `remote_host_service`, igual que una automatización del servidor; antes el destino los rechazaba.
 - `zotzFlowSlugFromName` pasó a `src/shared/zotz/flows/zotz-flow-slug.ts` (con `uniqueZotzFlowSlug`) para usarlo en main.
 
+**Verificado** en una instancia dev en segundo plano (CDP, capturas y salida de la CLI en `capturas/flows-integracion/`), con un repo de prueba local y Claude (Codex no está en el PATH de esta Mac):
+
+- `revisar-pr` (chat `/revisar-pr` y PR abierto → Agente con JSON `{ riesgo, resumen }` → Condición riesgo = alto → Aprobación → Agente → nota): `/revisar-pr enfocate en seguridad` desde el chat; la tarjeta mostró cada paso, "View run" abrió el lienzo en la corrida #1 esperando aprobación, se aprobó desde el lienzo y terminó `done` con la nota en la tarjeta. El flow se importó por CLI y se revisó en el lienzo (no se armó nodo por nodo con el mouse).
+- Migración: una automatización creada por el RPC viejo (cada 3 min, con chequeo) se volvió al reiniciar un flow Comando → Condición → Agente y quedó apagada. El flow corrió solo a la hora que tocaba la automatización y a la siguiente; la automatización, reencendida a mano y vencida, no corrió. Con su flow apagado, "Run now" de la automatización sí corrió, y esa corrida aparece como "Corridas anteriores".
+- `zotz automations create` respondió con el flow creado y la automatización quedó apagada.
+
 **Sorpresas / pendientes**
 
 - **Móvil** (lista de flows, correr, aprobar, ver corridas, `/flow` en su chat): pendiente por decisión de Hugo, va cuando se habilite el teléfono.

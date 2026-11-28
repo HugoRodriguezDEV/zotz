@@ -1,0 +1,23 @@
+Sat Nov 28 10:16:16 CST 2026
+$ zotz automations list
+7d2ca73e-4618-4088-a3a9-648874985af6  Prueba migracion  claude  enabled
+Custom schedule  next: 2026-11-28T16:12:00.000Z
+host: self
+
+f7095803-fa53-4d88-9a0d-73949eb827f7  Resumen semanal  claude  disabled
+Mondays at 9:00 AM  next: 2026-11-30T15:00:00.000Z
+host: self
+
+$ zotz automations runs --id 7d2ca73e-4618-4088-a3a9-648874985af6
+No automation runs found.
+
+$ zotz flows runs prueba-migracion
+#2 running · schedule · 2026-11-28T16:15:00.003Z  (run ab66e9a2-3797-4605-9e2a-1b015c11deee)
+  chequeo (command): done  exit 0 · 0s
+  paso_chequeo (condition): done  -> true · 0s
+  agente (agent): queued
+
+#1 done · schedule · 2026-11-28T16:12:00.003Z 35s  (run c2f990b5-5059-4e26-b3be-deec93a8061f)
+  chequeo (command): done  exit 0 · 0s
+  paso_chequeo (condition): done  -> true · 0s
+  agente (agent): done  35s
