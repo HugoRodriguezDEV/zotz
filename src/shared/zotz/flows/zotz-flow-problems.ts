@@ -21,6 +21,8 @@ export type ZotzFlowProblemCode =
   | 'template_in_command'
   | 'chat_without_trigger'
   | 'chat_context_not_requested'
+  // Raised by the host on save: slugs address flows from the CLI and `/flow`.
+  | 'duplicate_slug'
 
 /** Errors block saving; warnings are shown but allowed. */
 export type ZotzFlowProblem = {

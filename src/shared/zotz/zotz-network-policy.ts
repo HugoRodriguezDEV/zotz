@@ -36,3 +36,12 @@ export function isZotzCloudFeatureAllowed(feature: ZotzCloudFeature): boolean {
 export function _setZotzCloudFeaturesOpenForTests(open: boolean): void {
   globalThis.zotzCloudFeaturesOpenForTests = open
 }
+
+// Orca/StablyAI service domains (and their subdomains).
+const ZOTZ_ORCA_CLOUD_DOMAINS = ['orca.dev', 'onorca.dev', 'stably.ai', 'stablyai.com']
+
+/** A request Zotz itself builds (a flow's HTTP step) never reaches Orca/StablyAI services either. */
+export function isZotzOrcaCloudHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/\.$/, '')
+  return ZOTZ_ORCA_CLOUD_DOMAINS.some((domain) => host === domain || host.endsWith(`.${domain}`))
+}
