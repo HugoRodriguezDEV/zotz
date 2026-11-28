@@ -1,5 +1,6 @@
 import React from 'react'
 import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
+import { ZotzFlowsSidebarNavButton } from '../zotz/flows/ZotzFlowsSidebarNavButton'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store/index'
 import { cn } from '@/lib/class-names'
@@ -206,6 +207,7 @@ const SidebarNav = React.memo(function SidebarNav() {
           <HideSidebarMenu onHide={hideAutomationsButton} />
         </ContextMenu>
       ) : null}
+      <ZotzFlowsSidebarNavButton />
       {showAgentDashboardButton ? (
         <React.Suspense fallback={null}>
           <AgentDashboardSidebarEntry />
