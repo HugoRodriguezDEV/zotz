@@ -3,6 +3,7 @@ import type { AgentChildRowModel } from '../../../shared/agent-status/presentati
 import { AgentStateDot } from '@/components/AgentStateDot'
 import type { StateIndicatorTooltipSide } from '@/components/StateIndicatorTooltip'
 import { agentChildRowText } from './agent-child-row-text'
+import { zotzProcessForTask } from '@/components/zotz/agent-sprite/zotz-process-sprite-spec'
 
 type AgentChildRowContentProps = {
   row: AgentChildRowModel
@@ -37,6 +38,7 @@ export const AgentChildRowContent = React.memo(function AgentChildRowContent({
         size="sm"
         title={dotTitle}
         tooltipSide={tooltipSide}
+        zotzProcess={zotzProcessForTask(row.kind, row.displayState, row.id)}
       />
       <span
         className="min-w-0 flex-1 truncate"

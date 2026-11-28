@@ -1002,6 +1002,11 @@ Sección B de la spec de monitor y remotos.
 - **Vista previa (`ZotzDictationLivePreview`):** las palabras aún no escritas se dibujan en gris en el cursor del campo donde van a caer (textarea, editor contentEditable, composer del chat y terminal), con la fuente del campo y envolviendo como texto tecleado; al escribirse de verdad desaparecen. No se escribe nada en el campo antes, así que deshacer y teclear al mismo tiempo siguen igual. La barra de arriba se queda. Páginas del navegador: solo la barra.
 - Verificado: audio real de 11 s sin pausas (voz Eddy es-MX) alimentado en tiempo real en una instancia dev: texto nuevo cada ~0.5 s desde el segundo 1.6 y el final exacto; capturas de la vista previa en textarea y contentEditable (fixtures, claro y oscuro); en la terminal la posición cae en la celda del cursor (textarea auxiliar de xterm). **Sin probar de punta a punta:** el flujo con micrófono real (la prueba usa la API del motor y fixtures).
 
+### 2026-11-26 — La vista previa del dictado ya no se encima con el placeholder (`zotz-dictado-placeholder`)
+
+- Con el composer vacío, el texto gris del dictado se dibujaba encima de "Ask anything, @ to mention files, / for commands". Mientras se ve la vista previa, el campo destino lleva `data-zotz-dictating` y su placeholder (el `::before` de Tiptap, `::placeholder` de textarea/input) se oculta sin mover el cursor; al terminar vuelve.
+- Verificado con la fixture `ZotzDictationLivePreview:emptyComposer` (mismas clases de placeholder que `NativeChatPromptEditor`): sin dictado se ve el placeholder, con dictado solo el texto.
+
 ### 2026-11-27 — Logo luna pixelada (`zotz-logo-luna-pixel`)
 
 - Fuente nueva: `resources/icon-source/zotz-bat-pixel.mjs` (murciélago 16×16 con alas arriba/abajo y luna 32×32). `render-zotz-icons.mjs` pinta cada tamaño a escala entera por celda; solo las esquinas del cuadro llevan suavizado.
@@ -1013,6 +1018,16 @@ Sección B de la spec de monitor y remotos.
 
 - Bandeja de Windows: Electron no expone si la barra de tareas es clara u oscura (es distinto del tema de apps), así que en lugar de silueta clara/oscura usa el murciélago sobre el cuadro noche (16/32 px), que se lee en ambas. Linux no tiene bandeja en esta app.
 - La insignia DEV de la barra de menú de macOS (`tray-dev-badge.ts`) se pinta encima del ala izquierda; solo afecta builds de desarrollo.
+
+### 2026-11-27 — Aparatos pixelados para lo que no es agente (`zotz-procesos-pixel`)
+
+- **Problema:** comandos, monitores, programas OSC 7501 y workspaces sin agente salían como robot, igual que un agente.
+- **Motor nuevo** junto al de los robots (`zotz/agent-sprite/zotz-process-sprite-*.ts`, `ZotzProcessSprite`): mismo hueco de 32×22, reloj compartido, tema y movimiento reducido. El ciclo del canvas pasó a `use-zotz-row-sprite-canvas.ts` y lo usan robots y aparatos.
+- **Tareas en segundo plano** (Claude, Codex y Grok): comando = terminal, monitor = radar, flujo = tablita de pasos, desconocido = engrane, en la tira del chat, el panel de segundo plano, las filas hijas de la barra lateral y la línea de tarea del transcript. Las de tipo `agent` y la cola de memoria siguen con robot.
+- **Workspace sin agente** (`StatusIndicator`): `active` = servidor con luces verdes, `inactive` = servidor apagado con luz ámbar; `monitoring` = radar, igual que la fila de conversación en `monitoring`.
+- **Programas OSC 7501:** chip con núcleo, barra de progreso y candado / "?" / llave. Una fila es de programa si trae la faceta `programStatus` y su `agentType` no es un agente conocido (id del catálogo `TUI_AGENT_CONFIG`, su comando de arranque como `dsh-tui`, o `dsb`): el proyector ya traduce el `app` de los agentes conocidos a su id y los hooks siempre nombran el suyo. No cambia el protocolo ni lo que recibe la app móvil.
+- Enganches de una línea (`zotzProcess`) en `AgentStateDot`, `AgentChildRowContent`, `NativeChatBackgroundTaskRun`, `worktree-card-compact-agent-row` y `DashboardAgentRow`.
+- Verificado con fixtures en claro y oscuro (`zotz/agent-sprite/ZotzProcessSprite:*`, `zotz/background/ZotzBackgroundPanel:everyKind`, `zotz/sidebar/ZotzProjectSidebar:onlyProcessesLeft`; capturas en `capturas/procesos-pixel/`). **Sin probar en la app:** tareas reales de Codex/Grok y un programa real que emita OSC 7501.
 
 ### 2026-11-28 — Flows, parte 0: contrato (`zotz/fase-10-flows-0-contrato`)
 

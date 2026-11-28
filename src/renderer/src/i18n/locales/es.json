@@ -24756,7 +24756,10 @@
       "twoServers": "Dos servidores no se pueden escribir entre sí. Enlaza cada uno con una conversación de esta máquina.",
       "unreachable": "{{host}} no responde.",
       "updateServer": "Actualiza Zotz en {{host}} para enlazar sus conversaciones.",
-      "workingTogether": "Trabajando juntas"
+      "workingTogether": "Trabajando juntas",
+      "workingWithWorkers": "Trabajando con sus workers",
+      "legendParent": "Inició a una integrante; no está en el grupo",
+      "legendWorker": "Worker de una integrante; no está en el grupo"
     },
     "agentRoom": {
       "agent": "{{name}}: {{state}}",
@@ -24764,7 +24767,10 @@
       "help": "Las flechas lo mueven; Enter lo selecciona. Líneas: {{lines}}.",
       "line": "{{a}} ↔ {{b}}: {{count}} mensajes",
       "helpOpen": "Las flechas lo mueven; Espacio lo selecciona; Enter lo abre. Líneas: {{lines}}.",
-      "inGroup": "en un grupo"
+      "inGroup": "en un grupo",
+      "guide": "{{child}} es worker de {{parent}}",
+      "kinParent": "padre de una integrante",
+      "kinWorker": "worker de una integrante"
     },
     "groups": {
       "twoServers": "Dos servidores no pueden escribirse entre sí; un grupo junta esta máquina y como máximo un servidor.",
