@@ -1051,5 +1051,5 @@ Sección B de la spec de monitor y remotos.
 
 - Los disparadores de evento y de chat muestran "Zotz todavía no escucha esto"; hay que quitar ese aviso cuando lleguen las partes 3 y 4.
 - Cambiar la máquina de un flow ya guardado está bloqueado: moverlo entre máquinas necesita borrar y guardar en otra, que no está en el contrato.
-- El primer encuadre usa zoom mínimo 0.9 para que los nombres se lean; un flow ancho arranca por su izquierda y se recorre con el minimapa.
+- El lienzo encuadra el grafo completo al abrir, en la vista de corrida y después de Acomodar (sin pasar de 100 % en flows chicos); en pantallas angostas un flow ancho se ve pequeño y se acerca con zoom o al seleccionar un paso.
 - `AutomationWorkspaceField` ofrece "Nueva corrida" también en carpetas sin git; queda como en automatizaciones.

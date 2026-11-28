@@ -10,6 +10,7 @@ import {
 } from '../../../../../shared/zotz/flows/zotz-flow-run-contract'
 import { formatAutomationDateTime } from '../../automations/automation-page-parts'
 import { ZotzFlowCanvas } from './ZotzFlowCanvas'
+import { runZotzFlowBusyAction } from './zotz-flow-busy-action'
 import { indexZotzFlowNodes, zotzFlowParentChain } from './zotz-flow-canvas-geometry'
 import { ZotzFlowRunNodeDetail } from './ZotzFlowRunNodeDetail'
 import { ZOTZ_FLOW_TRIGGER_KINDS } from './zotz-flow-trigger-catalog'
@@ -48,14 +49,10 @@ export function ZotzFlowRunView({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const act = useCallback(async (action: () => Promise<void>) => {
-    setBusy(true)
     setError(null)
-    try {
-      await action()
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught))
-    } finally {
-      setBusy(false)
+    const outcome = await runZotzFlowBusyAction(setBusy, action)
+    if (!outcome.ok) {
+      setError(outcome.error)
     }
   }, [])
 

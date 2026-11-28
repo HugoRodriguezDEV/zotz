@@ -19,7 +19,7 @@ import {
   type ZotzFlowOutputFormat
 } from '../../../../../shared/zotz/flows/zotz-flow-node-contract'
 import { ZotzFlowField } from './ZotzFlowFormParts'
-import { isPlainJsonObject, pickZotzFlowOption, useZotzFlowRowKeys } from './zotz-flow-form-values'
+import { parseJsonObject, pickZotzFlowOption, useZotzFlowRowKeys } from './zotz-flow-form-values'
 
 type JsonMode = 'fields' | 'schema'
 
@@ -145,14 +145,11 @@ function SchemaEditor({
           aria-invalid={error ? true : undefined}
           onChange={(event) => {
             setText(event.target.value)
-            try {
-              const parsed: unknown = JSON.parse(event.target.value)
-              if (!isPlainJsonObject(parsed)) {
-                throw new Error('not an object')
-              }
+            const parsed = parseJsonObject(event.target.value)
+            if (parsed) {
               setError(null)
               onChange(parsed)
-            } catch {
+            } else {
               setError(t('zotz.flows.output.schemaInvalid', 'This is not a JSON object yet.'))
             }
           }}

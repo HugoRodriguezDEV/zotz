@@ -28,8 +28,8 @@ import { pickZotzFlowOption } from './zotz-flow-form-values'
 import type { ZotzFlowSelection } from './use-zotz-flow-editor-state'
 
 export const ZOTZ_FLOW_DRAG_MIME = 'application/x-zotz-flow-node-kind'
-// Below this the step names get too small to read; wide flows start at their left end instead.
-const READABLE_ZOOM = 0.9
+// Whole graph in view; small flows stay at 100% instead of being blown up.
+const FIT_OPTIONS = { padding: 0.1, maxZoom: 1 }
 
 export type ZotzFlowCanvasEditing = {
   onMove: (positions: Map<string, { x: number; y: number }>, dragging: boolean) => void
@@ -47,9 +47,12 @@ type Props = {
   decor: Omit<ZotzFlowCanvasDecor, 'measured' | 'editable'>
   editing?: ZotzFlowCanvasEditing
   ariaLabel: string
+  /** Bump to frame the whole graph again, e.g. after tidying it up. */
+  fitRequest?: number
 }
 
 function CanvasInner({
+  fitRequest = 0,
   graph,
   selection,
   onSelect,
@@ -63,24 +66,19 @@ function CanvasInner({
   const editable = editing !== undefined
   const containerRef = useRef<HTMLDivElement>(null)
   const initialized = useNodesInitialized()
-  const fitted = useRef(false)
+  const fittedFor = useRef<number | null>(null)
+  // Fits once nodes are measured (open, run view) and again whenever `fitRequest` changes.
   useEffect(() => {
-    if (!initialized || fitted.current) {
+    if (!initialized || fittedFor.current === fitRequest) {
       return
     }
-    fitted.current = true
-    void flow.fitView({ padding: 0.1, maxZoom: 1 }).then(() => {
-      if (flow.getZoom() >= READABLE_ZOOM || !containerRef.current) {
-        return
-      }
-      const bounds = flow.getNodesBounds(flow.getNodes())
-      void flow.setViewport({
-        zoom: READABLE_ZOOM,
-        x: 32 - bounds.x * READABLE_ZOOM,
-        y: containerRef.current.clientHeight / 2 - (bounds.y + bounds.height / 2) * READABLE_ZOOM
-      })
+    // Next frame: React Flow has adopted the new positions (auto-layout) by then.
+    const frame = requestAnimationFrame(() => {
+      fittedFor.current = fitRequest
+      void flow.fitView(FIT_OPTIONS)
     })
-  }, [initialized, flow])
+    return () => cancelAnimationFrame(frame)
+  }, [initialized, fitRequest, flow])
   const selectedNodeId = selection?.kind === 'node' ? selection.id : null
   // Keyboard and list selections can land off screen; bring the step into view.
   useEffect(() => {
@@ -135,7 +133,9 @@ function CanvasInner({
           change.id !== ZOTZ_FLOW_TRIGGERS_NODE_ID
         ) {
           positions.set(change.id, change.position)
-          dragging ||= change.dragging === true
+          if (change.dragging === true) {
+            dragging = true
+          }
         } else if (change.type === 'select' && change.selected) {
           onSelect(
             change.id === ZOTZ_FLOW_TRIGGERS_NODE_ID

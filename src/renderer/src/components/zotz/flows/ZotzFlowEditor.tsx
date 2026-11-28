@@ -12,6 +12,7 @@ import { autoLayoutZotzFlow } from './zotz-flow-auto-layout'
 import { removeZotzFlowElements } from './zotz-flow-graph-edits'
 import { zotzFlowSlugFromName } from './zotz-flow-slug'
 import { ZotzFlowCanvas } from './ZotzFlowCanvas'
+import { runZotzFlowBusyAction } from './zotz-flow-busy-action'
 import { ZotzFlowEditorTopBar } from './ZotzFlowEditorTopBar'
 import { ZotzFlowNodePalette } from './ZotzFlowNodePalette'
 import { ZotzFlowProblemsPanel } from './ZotzFlowProblemsPanel'
@@ -58,6 +59,7 @@ export function ZotzFlowEditor({
   const [baseline, setBaseline] = useState(() => JSON.stringify(initial))
   const [savedAt, setSavedAt] = useState(initialSavedAt)
   const [saving, setSaving] = useState(false)
+  const [fitRequest, setFitRequest] = useState(0)
   const [running, setRunning] = useState(false)
   const [notice, setNotice] = useState<{ text: string; current?: ZotzFlow } | null>(null)
   const problems = useMemo(() => collectZotzFlowProblems(draft), [draft])
@@ -67,52 +69,42 @@ export function ZotzFlowEditor({
   const dirty = JSON.stringify(draft) !== baseline
 
   const save = useCallback(async (): Promise<boolean> => {
-    setSaving(true)
     setNotice(null)
-    try {
-      const result = await onSave(draft, savedAt)
-      if (result.saved) {
-        setSavedAt(result.flow.updatedAt)
-        setBaseline(JSON.stringify(draft))
-        onSaved?.(result.flow)
-        return true
-      }
-      setNotice(
-        result.reason === 'conflict'
-          ? {
-              text: t(
-                'zotz.flows.conflict',
-                'This flow changed somewhere else since you opened it.'
-              ),
-              current: result.current
-            }
-          : {
-              text: t(
-                'zotz.flows.invalid',
-                'The machine refused the flow: fix the problems listed below.'
-              )
-            }
-      )
+    const outcome = await runZotzFlowBusyAction(setSaving, () => onSave(draft, savedAt))
+    if (!outcome.ok) {
+      setNotice({ text: outcome.error })
       return false
-    } catch (error) {
-      setNotice({ text: error instanceof Error ? error.message : String(error) })
-      return false
-    } finally {
-      setSaving(false)
     }
+    const result = outcome.value
+    if (result.saved) {
+      setSavedAt(result.flow.updatedAt)
+      setBaseline(JSON.stringify(draft))
+      onSaved?.(result.flow)
+      return true
+    }
+    setNotice(
+      result.reason === 'conflict'
+        ? {
+            text: t('zotz.flows.conflict', 'This flow changed somewhere else since you opened it.'),
+            current: result.current
+          }
+        : {
+            text: t(
+              'zotz.flows.invalid',
+              'The machine refused the flow: fix the problems listed below.'
+            )
+          }
+    )
+    return false
   }, [draft, onSave, onSaved, savedAt, t])
 
   const run = async (): Promise<void> => {
     if (dirty && !(await save())) {
       return
     }
-    setRunning(true)
-    try {
-      await onRun(draft.id)
-    } catch (error) {
-      setNotice({ text: error instanceof Error ? error.message : String(error) })
-    } finally {
-      setRunning(false)
+    const outcome = await runZotzFlowBusyAction(setRunning, () => onRun(draft.id))
+    if (!outcome.ok) {
+      setNotice({ text: outcome.error })
     }
   }
 
@@ -177,7 +169,10 @@ export function ZotzFlowEditor({
         canRedo={editor.canRedo}
         onUndo={editor.undo}
         onRedo={editor.redo}
-        onAutoLayout={() => editor.edit(autoLayoutZotzFlow)}
+        onAutoLayout={() => {
+          editor.edit(autoLayoutZotzFlow)
+          setFitRequest((value) => value + 1)
+        }}
         errorCount={errorCount}
         dirty={dirty}
         saving={saving}
@@ -219,6 +214,7 @@ export function ZotzFlowEditor({
               onSelect={editor.select}
               decor={decor}
               editing={actions.canvas}
+              fitRequest={fitRequest}
               ariaLabel={t('zotz.flows.canvas', 'Flow canvas')}
             />
           </div>

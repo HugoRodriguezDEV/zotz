@@ -18,6 +18,16 @@ export function isPlainJsonObject(value: unknown): value is Record<string, unkno
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/** A pasted JSON object, or null while the text is not one yet. */
+export function parseJsonObject(text: string): Record<string, unknown> | null {
+  try {
+    const value: unknown = JSON.parse(text)
+    return isPlainJsonObject(value) ? value : null
+  } catch {
+    return null
+  }
+}
+
 export function isZotzFlowNodeOfKind<K extends ZotzFlowNodeKind>(
   node: ZotzFlowNode,
   kind: K
