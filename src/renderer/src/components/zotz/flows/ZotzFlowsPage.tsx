@@ -21,6 +21,7 @@ import { ZotzFlowsList } from './ZotzFlowsList'
 import { ZotzFlowEditor } from './ZotzFlowEditor'
 import { ZotzFlowRunsList } from './ZotzFlowRunsList'
 import { ZotzFlowRunView } from './ZotzFlowRunView'
+import { ZotzFlowAutomationRuns } from './ZotzFlowAutomationRuns'
 import { takeZotzFlowsPendingRun, useZotzFlowsPendingRun } from './zotz-flows-page-store'
 
 type Open = { draft: ZotzFlowDraft; savedAt: number | null; key: number }
@@ -286,6 +287,12 @@ export default function ZotzFlowsPage(): React.JSX.Element {
             onOpen={setRunId}
             onReload={() => loadRuns(hostId, open.draft.id)}
           />
+          {stored?.migratedFromAutomationId ? (
+            <ZotzFlowAutomationRuns
+              hostId={hostId}
+              automationId={stored.migratedFromAutomationId}
+            />
+          ) : null}
         </div>
       )}
     </div>

@@ -34,6 +34,7 @@ import {
   readAutomationRunsPage
 } from './automation-runs-paging'
 import { RuntimeClientError } from '../runtime/connection/types'
+import { printAutomationCreatedAsFlow } from '../zotz/zotz-automation-flow'
 import {
   getOptionalWorktreeSelector,
   resolveCurrentWorktreeSelector
@@ -207,7 +208,7 @@ export const AUTOMATION_HANDLERS: Record<string, CommandHandler> = {
       await assertAutomationFieldsSupported(writer, create)
     }
     const result = await writer.call<{ automation: Automation }>('automation.create', params)
-    printResult(result, json, formatAutomationShow)
+    await printAutomationCreatedAsFlow(writer, result, json)
   },
   'automations edit': async ({ flags, client, cwd, json }) => {
     const setupDecision = getAutomationSetupFlag(flags)

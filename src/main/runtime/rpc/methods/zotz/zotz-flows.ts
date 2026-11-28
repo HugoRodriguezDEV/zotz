@@ -6,6 +6,7 @@ import {
   ZotzFlowsDeleteParams,
   ZotzFlowsGetParams,
   ZotzFlowsListParams,
+  ZotzFlowsMigrateAutomationParams,
   ZotzFlowsRetryParams,
   ZotzFlowsRunGetParams,
   ZotzFlowsRunParams,
@@ -18,6 +19,7 @@ import {
   type ZotzFlowsDeleteResult,
   type ZotzFlowsGetResult,
   type ZotzFlowsListResult,
+  type ZotzFlowsMigrateAutomationResult,
   type ZotzFlowsRetryResult,
   type ZotzFlowsRunGetResult,
   type ZotzFlowsRunResult,
@@ -151,6 +153,17 @@ export const ZOTZ_FLOWS_METHODS = [
         throw new InvalidArgumentError('This run no longer exists.')
       }
       return { run }
+    }
+  }),
+  defineMethod({
+    name: 'zotz.flows.migrateAutomation',
+    permission: 'workspace',
+    params: ZotzFlowsMigrateAutomationParams,
+    handler: async ({ automationId }): Promise<ZotzFlowsMigrateAutomationResult> => {
+      const outcome = flows().migrateAutomation(automationId)
+      return outcome.status === 'skipped'
+        ? { status: 'skipped', reason: outcome.reason, message: outcome.message }
+        : { status: outcome.status, flow: outcome.flow }
     }
   }),
   defineStreamingMethod({

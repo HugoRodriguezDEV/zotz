@@ -22,6 +22,10 @@ import {
 } from '../../../shared/automations/history/automation-run-failure-copy'
 import { AutomationDispatchCancelledError } from '../dispatch/automation-dispatch-cancelled-error'
 import {
+  isZotzFlowClaimedAutomation,
+  ZOTZ_FLOW_CLAIMED_AUTOMATION
+} from '../../zotz/flows/zotz-flow-automation-claims'
+import {
   isOrcadFencedAutomation,
   managedOrcadHostOf,
   ORCAD_FENCED_AUTOMATION
@@ -140,6 +144,9 @@ export function captureLegacyRunTarget(
   // The scheduler's first write; a fenced row must stay as the move exported it.
   if (isOrcadFencedAutomation(store, automation)) {
     throw new AutomationDispatchCancelledError(ORCAD_FENCED_AUTOMATION)
+  }
+  if (isZotzFlowClaimedAutomation(automation.id)) {
+    throw new AutomationDispatchCancelledError(ZOTZ_FLOW_CLAIMED_AUTOMATION)
   }
   const runContext = findLegacyAutomationRunContextStamp(store, automation, {
     allowRemoteHostScheduling

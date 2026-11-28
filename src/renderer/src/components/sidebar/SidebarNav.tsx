@@ -1,6 +1,9 @@
 import React from 'react'
 import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
-import { ZotzFlowsSidebarNavButton } from '../zotz/flows/ZotzFlowsSidebarNavButton'
+import {
+  ZOTZ_SHOWS_AUTOMATIONS_ROW,
+  ZotzFlowsSidebarNavButton
+} from '../zotz/flows/ZotzFlowsSidebarNavButton'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store/index'
 import { cn } from '@/lib/class-names'
@@ -178,7 +181,7 @@ const SidebarNav = React.memo(function SidebarNav() {
           <HideSidebarMenu onHide={hideSkillsButton} />
         </ContextMenu>
       ) : null}
-      {showAutomationsButton ? (
+      {showAutomationsButton && ZOTZ_SHOWS_AUTOMATIONS_ROW ? (
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <button

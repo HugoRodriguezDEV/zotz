@@ -13,17 +13,37 @@ import { registerZotzFlowRuntime, runZotzSubflow } from './zotz-flow-runtime'
 import { startZotzFlowScheduler } from './zotz-flow-scheduler'
 import { ZotzFlowService } from './zotz-flow-service'
 import { ZotzFlowStore } from './zotz-flow-store'
+import {
+  holdZotzFlowAutomationClaims,
+  setZotzFlowAutomationClaims
+} from './zotz-flow-automation-claims'
+import {
+  ZotzAutomationMigration,
+  zotzAutomationSourceFromStore
+} from './zotz-flow-automation-migration'
 
 // Enough history to find a reusable session without walking every retained run.
 const REUSE_LOOKBACK_RUNS = 20
 
-/** Flows live and run on this machine: the desktop app, or `zotz serve` on a server (spec §7). */
-export async function startZotzFlows(input: {
+type ZotzFlowsStartInput = {
   runtime: OrcaRuntimeService
   store: Store
   userDataPath: string
   allowRemoteHostScheduling: boolean
-}): Promise<() => void> {
+}
+
+/** Flows live and run on this machine: the desktop app, or `zotz serve` on a server (spec §7). */
+export async function startZotzFlows(input: ZotzFlowsStartInput): Promise<() => void> {
+  holdZotzFlowAutomationClaims()
+  try {
+    return await startZotzFlowsHeld(input)
+  } catch (error) {
+    setZotzFlowAutomationClaims(null)
+    throw error
+  }
+}
+
+async function startZotzFlowsHeld(input: ZotzFlowsStartInput): Promise<() => void> {
   const flowStore = new ZotzFlowStore(input.userDataPath)
   await flowStore.load()
   const previousSessions = (flowId: string, nodeId: string): ZotzFlowPreviousSession[] =>
@@ -66,7 +86,32 @@ export async function startZotzFlows(input: {
     },
     runZotzSubflow
   )
-  const unregister = registerZotzFlowRuntime({ store: flowStore, service })
+  const migration = new ZotzAutomationMigration({
+    automations: zotzAutomationSourceFromStore(input.store, input.allowRemoteHostScheduling),
+    flowStore,
+    userDataPath: input.userDataPath,
+    serveMode: input.allowRemoteHostScheduling,
+    warn: (automation, message) =>
+      void notifyZotzFlow(input.store.getSettings().notifications, {
+        title: `"${automation.name}" stays an automation`,
+        body: message,
+        runId: 'automation-migration',
+        nodeKey: automation.id
+      })
+  })
+  await migration.load()
+  // Claims go live first: an automation is claimed once its flow is saved, never before.
+  setZotzFlowAutomationClaims((automationId) =>
+    flowStore
+      .listFlows()
+      .some((flow) => flow.enabled && flow.migratedFromAutomationId === automationId)
+  )
+  migration.migrateAll()
+  const unregister = registerZotzFlowRuntime({
+    store: flowStore,
+    service,
+    migrateAutomation: (automationId) => migration.migrate(automationId)
+  })
   service.resumeAll()
   const stopScheduler = startZotzFlowScheduler({
     store: flowStore,
@@ -93,6 +138,7 @@ export async function startZotzFlows(input: {
     }
   })
   const stop = (): void => {
+    setZotzFlowAutomationClaims(null)
     stopEvents()
     stopScheduler()
     service.stop()

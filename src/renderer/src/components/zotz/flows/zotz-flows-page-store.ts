@@ -63,3 +63,26 @@ export function useZotzFlowsPendingRun(): ZotzFlowRunAddress | null {
 export function useZotzFlowRunOpenerRegistration(): void {
   useEffect(() => registerZotzFlowRunOpener(openZotzFlowRun), [])
 }
+
+/** The Automations page is hidden in Zotz (plan rule 4, spec §8): whatever opens it lands on Flows. */
+export function useZotzAutomationsPageRedirect(): void {
+  useEffect(() => {
+    const redirect = (view: TopLevelView): void => {
+      if (view !== 'automations') {
+        return
+      }
+      const { previousViewBeforeAutomations, setActiveView } = useAppStore.getState()
+      returnView =
+        previousViewBeforeAutomations === ZOTZ_FLOWS_VIEW
+          ? 'terminal'
+          : previousViewBeforeAutomations
+      setActiveView(ZOTZ_FLOWS_VIEW)
+    }
+    redirect(useAppStore.getState().activeView)
+    return useAppStore.subscribe((state, previous) => {
+      if (state.activeView !== previous.activeView) {
+        redirect(state.activeView)
+      }
+    })
+  }, [])
+}

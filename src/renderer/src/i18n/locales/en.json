@@ -26748,6 +26748,10 @@
         "true": "Yes",
         "withFailures": "With failures"
       },
+      "previousRuns": {
+        "title": "Earlier runs",
+        "body": "From the automation this flow came from. Read only."
+      },
       "problem": {
         "chatContextNotRequested": "{template} is empty unless the chat command sends it.",
         "chatWithoutTrigger": "This needs a chat command trigger.",
