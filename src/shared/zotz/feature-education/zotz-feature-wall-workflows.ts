@@ -16,7 +16,7 @@ const ZOTZ_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Leave one machine on as an agent node and send it work from your laptop or phone over Tailscale.',
     primaryTileId: 'tile-06',
     relatedTileIds: [],
-    docsUrl: `${ZOTZ_DOCS}/NODE-SETUP.md`
+    docsUrl: `${ZOTZ_DOCS}/guias/NODE-SETUP.md`
   },
   {
     id: 'zotz-queue',
@@ -32,7 +32,7 @@ const ZOTZ_WORKFLOWS: readonly FeatureWallWorkflow[] = [
 const ZOTZ_TASKS_WORKFLOW: Partial<FeatureWallWorkflow> = {
   meta: 'GitHub Projects · Repos · Services',
   lede: 'See every task in one board and hand any of them to an agent in its own workspace.',
-  docsUrl: `${ZOTZ_DOCS}/TASKS-SPEC.md`
+  docsUrl: `${ZOTZ_DOCS}/specs/TASKS-SPEC.md`
 }
 
 /** What Zotz is for goes first: the node and its queue, then the task board and Orca's workflows. */

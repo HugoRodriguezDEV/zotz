@@ -88,7 +88,7 @@ function failureMessage(
   }
 }
 
-/** Asks first, closes politely, and only then offers to force it (docs/zotz/SPEC-monitor-y-remotos.md §A.3). */
+/** Asks first, closes politely, and only then offers to force it (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.3). */
 export function ZotzCloseProcessDialog({
   target,
   workspaceName,

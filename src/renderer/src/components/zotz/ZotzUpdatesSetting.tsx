@@ -20,7 +20,7 @@ export function ZotzVersionLabel({ version }: { version: string | null }): React
   )
 }
 
-/** Settings → About: the switch for the fork's own updates (docs/zotz/UPDATES-SPEC.md §5.3). */
+/** Settings → About: the switch for the fork's own updates (docs/zotz/specs/UPDATES-SPEC.md §5.3). */
 export function ZotzUpdatesSetting(): React.JSX.Element {
   const t = useTranslate()
   const enabled = useAppStore((s) => s.settings?.zotzUpdatesEnabled !== false)

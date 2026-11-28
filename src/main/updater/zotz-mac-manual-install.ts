@@ -15,7 +15,7 @@ let runningAppHasStableIdentity = false
 /**
  * Squirrel.Mac only installs a build that meets the running app's designated requirement.
  * Ad-hoc builds pin it to their own cdhash; a certificate (even self-signed) pins it to the
- * certificate, which every release shares (docs/zotz/UPDATES-SPEC.md §6).
+ * certificate, which every release shares (docs/zotz/specs/UPDATES-SPEC.md §6).
  */
 export function hasStableMacSigningIdentity(
   codesignDisplay: string,

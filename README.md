@@ -23,12 +23,12 @@
 
 ## Qué hace Zotz
 
-- **Nodo remoto 24/7**: en modo servidor, la máquina no se duerme, Zotz arranca al iniciar sesión y se reinicia solo si se cae. Un asistente lo configura todo con un solo permiso de administrador ([guía](docs/zotz/NODE-SETUP.md)).
-- **Acceso solo por Tailscale**: el nodo acepta conexiones de la propia máquina y de tu tailnet; la red local e internet quedan fuera ([guía](docs/zotz/REMOTE.md)).
+- **Nodo remoto 24/7**: en modo servidor, la máquina no se duerme, Zotz arranca al iniciar sesión y se reinicia solo si se cae. Un asistente lo configura todo con un solo permiso de administrador ([guía](docs/zotz/guias/NODE-SETUP.md)).
+- **Acceso solo por Tailscale**: el nodo acepta conexiones de la propia máquina y de tu tailnet; la red local e internet quedan fuera ([guía](docs/zotz/guias/REMOTE.md)).
 - **Agentes con acceso total**: Claude Code, Codex y Antigravity arrancan en full-access, sin pedir aprobaciones. Los demás agentes siguen disponibles, ocultos por defecto.
 - **Gobernador de memoria**: antes de lanzar un agente revisa la memoria libre; si no alcanza, lo pone en cola. Un tablero lateral muestra la cola de cada máquina.
 - **Cero telemetría**: no manda eventos de uso. Relay, inicio de sesión, compartir y el catálogo de plugins remoto vienen apagados.
-- **Actualizaciones controladas**: se actualiza desde los releases de este repo, descarga en segundo plano y nunca se reinicia a media tarea; en modo servidor espera a que no haya agentes corriendo ([detalles](docs/zotz/UPDATE.md)).
+- **Actualizaciones controladas**: se actualiza desde los releases de este repo, descarga en segundo plano y nunca se reinicia a media tarea; en modo servidor espera a que no haya agentes corriendo ([detalles](docs/zotz/guias/UPDATE.md)).
 
 <table>
 <tr>
@@ -69,7 +69,7 @@ Notas:
 - **Windows**: el instalador no está firmado; SmartScreen avisará la primera vez.
 - **macOS**: el build no tiene Developer ID, así que las versiones nuevas se instalan a mano desde el `.dmg` (la app avisa cuando hay una).
 
-La primera vez que abres Zotz te pregunta si la máquina es **personal** o **servidor remoto**. Para preparar un nodo, sigue [NODE-SETUP.md](docs/zotz/NODE-SETUP.md).
+La primera vez que abres Zotz te pregunta si la máquina es **personal** o **servidor remoto**. Para preparar un nodo, sigue [NODE-SETUP.md](docs/zotz/guias/NODE-SETUP.md).
 
 ---
 
@@ -77,7 +77,7 @@ La primera vez que abres Zotz te pregunta si la máquina es **personal** o **ser
 
 - Plan de trabajo y reglas del proyecto: [docs/zotz/PLAN.md](docs/zotz/PLAN.md)
 - Cómo correr y contribuir: [CONTRIBUTING.md](.github/CONTRIBUTING.md)
-- Seguridad del nodo: [docs/zotz/SECURITY.md](docs/zotz/SECURITY.md)
+- Seguridad del nodo: [docs/zotz/guias/SECURITY.md](docs/zotz/guias/SECURITY.md)
 
 ## Licencia
 

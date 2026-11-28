@@ -209,7 +209,7 @@ function ProcessDetail({
   )
 }
 
-/** docs/zotz/SPEC-monitor-y-remotos.md §A.3: every process, filterable and sortable, with a way to close one. */
+/** docs/zotz/specs/SPEC-monitor-y-remotos.md §A.3: every process, filterable and sortable, with a way to close one. */
 export function ZotzSystemProcessesView({
   list,
   client,

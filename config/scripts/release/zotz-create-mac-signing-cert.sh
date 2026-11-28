@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Creates, once, the self-signed certificate Zotz signs its macOS builds with (docs/zotz/UPDATES-SPEC.md §6).
+# Creates, once, the self-signed certificate Zotz signs its macOS builds with (docs/zotz/specs/UPDATES-SPEC.md §6).
 # Its identity stays the same across builds, so Squirrel.Mac accepts updates. Nothing is uploaded.
 set -euo pipefail
 

@@ -1,0 +1,7 @@
+# Revisar cambios antes de borrar o quitar (`zotz/borrar-con-revision`)
+
+2026-11-19
+
+- **Borrar conversación/worktree:** upstream ya contaba los cambios sin commitear y listaba los archivos en un popover. Ahora cada archivo de esa lista se despliega con su diff contra HEAD (`ZotzDirtyFileDiff`, unificado con `structuredPatch` de `diff`, hasta 200 líneas). El diff se pide por `getRuntimeGitDiff` con el contexto de `getEditorFileReadContext`, así que funciona igual en local, SSH y WSL. Gancho: prop `owner` en `DeleteWorktreeDirtyChangeHint` (tres llamadas). Los folder workspaces no cambian: upstream no revisa cambios en ellos.
+- **Quitar proyecto:** solo lo desregistra (los archivos y worktrees se quedan en el disco o en el host remoto; se cierran sus terminales y ya avisaba de archivos sin guardar del editor). `ZotzProjectRemovalChanges` revisa las conversaciones del proyecto con la misma hidratación de estado del diálogo de borrar y lista las que tienen cambios sin commitear, con sus archivos y diffs, antes de confirmar. El aviso dice "N cambios sin commitear" (prop `keptLabel`), no "se perderán".
+- Sin verificar en local: las dependencias compartidas (`node_modules` de grunt) quedaron con enlaces rotos tras una reinstalación del 2026-11-19, así que no corrieron vitest, los plugins de oxlint ni `check:code-quality:changed`; los cubre el CI del PR. Sí pasaron `pnpm tc`, oxfmt, oxlint base, los ratchets de max-lines y workspace-record-read, y la extracción, cobertura y catálogos de traducciones.

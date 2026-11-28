@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Fails when an Orca sync brings stablyai/orca back into the updater (docs/zotz/UPDATES-SPEC.md §5.1).
+// Fails when an Orca sync brings stablyai/orca back into the updater (docs/zotz/specs/UPDATES-SPEC.md §5.1).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 

@@ -115,7 +115,7 @@ function closeRequest(value: unknown): ZotzSystemProcessCloseRequest | null {
     : null
 }
 
-/** docs/zotz/SPEC-monitor-y-remotos.md §A: the System tab's sampler, idle until a window watches. */
+/** docs/zotz/specs/SPEC-monitor-y-remotos.md §A: the System tab's sampler, idle until a window watches. */
 export function startZotzSystemMonitor(
   governor: ZotzMemoryGovernorService,
   listAgentRoots: () => ZotzAgentProcessRoot[]

@@ -1,6 +1,6 @@
 # Spec — Grupos de conversaciones, hijos y arrastrar
 
-Un **grupo** es una tarea en conjunto que cruza proyectos y máquinas: "Agenda de citas" junta la conversación del panel, la del backend y la de móvil, que trabajan juntas y se escriben. Los **proyectos** no cambian: siguen sirviendo para ver un solo repo. Rama: `zotz-grupos`. Reglas del fork: [`PLAN.md`](./PLAN.md).
+Un **grupo** es una tarea en conjunto que cruza proyectos y máquinas: "Agenda de citas" junta la conversación del panel, la del backend y la de móvil, que trabajan juntas y se escriben. Los **proyectos** no cambian: siguen sirviendo para ver un solo repo. Rama: `zotz-grupos`. Reglas del fork: [`PLAN.md`](../PLAN.md).
 
 ## 1. Lo que ya existe (verificado 2026-11-23)
 
