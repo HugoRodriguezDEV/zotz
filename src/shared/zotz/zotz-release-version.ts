@@ -1,4 +1,4 @@
-/** Splits a Zotz version (1.4.21427) into its Orca base and build, see docs/zotz/UPDATES-SPEC.md §3. */
+/** Splits a Zotz version (1.4.21427) into its Orca base and build, see docs/zotz/specs/UPDATES-SPEC.md §3. */
 export function describeZotzVersion(version: string): { orcaBase: string; build: number } | null {
   const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
   if (!match) {

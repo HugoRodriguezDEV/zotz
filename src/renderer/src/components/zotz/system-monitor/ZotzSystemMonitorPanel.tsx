@@ -238,7 +238,7 @@ type ZotzSystemView = ZotzSystemSection | 'processes'
 
 const workspaceIdAsName = (worktreeId: string | null): string => worktreeId ?? ''
 
-/** docs/zotz/SPEC-monitor-y-remotos.md §A fases 2 y 3: this machine's vitals as cards, each with a detail view, and its processes. */
+/** docs/zotz/specs/SPEC-monitor-y-remotos.md §A fases 2 y 3: this machine's vitals as cards, each with a detail view, and its processes. */
 export function ZotzSystemMonitorPanel({
   snapshot,
   initialView = null,

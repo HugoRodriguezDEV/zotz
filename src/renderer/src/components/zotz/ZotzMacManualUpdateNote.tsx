@@ -5,7 +5,7 @@ import {
   openAppHttpLinkFromAnchor
 } from '@/lib/browser/navigation/app-http-link-open'
 
-/** Unsigned macOS builds cannot self-update (docs/zotz/UPDATES-SPEC.md §6): offer the dmg instead. */
+/** Unsigned macOS builds cannot self-update (docs/zotz/specs/UPDATES-SPEC.md §6): offer the dmg instead. */
 export function ZotzMacManualUpdateNote({ url }: { url: string }): React.JSX.Element {
   const t = useTranslate()
   return (

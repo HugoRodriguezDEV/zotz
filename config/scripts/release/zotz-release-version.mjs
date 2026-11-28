@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Zotz release version: MAJOR.MINOR.(orcaPatch × 100 + build), see docs/zotz/UPDATES-SPEC.md §3.
+// Zotz release version: MAJOR.MINOR.(orcaPatch × 100 + build), see docs/zotz/specs/UPDATES-SPEC.md §3.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { appendFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'

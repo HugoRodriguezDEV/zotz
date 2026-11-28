@@ -1,0 +1,12 @@
+# Grupos de conversaciones, hijos y arrastrar (`zotz-grupos`)
+
+2026-11-23
+
+Spec: [`SPEC-grupos.md`](../specs/SPEC-grupos.md). Las 5 fases en una rama, un commit por fase.
+
+- **Grupos con nombre:** un grupo es un enlace (`zotzConversationLinks`) con `name` y `order`; uno con nombre sobrevive vacío. Sección **Grupos** arriba de **Proyectos**; quien está en un grupo ya no sale en su proyecto. Menú de la fila: "Mover a grupo" (grupos, nuevo, quitar). Menú del grupo: renombrar, eliminar (los miembros vuelven a su proyecto y se desenlazan).
+- **Arrastrar** (drag nativo con tipo propio, `use-zotz-sidebar-drag`): a un grupo en la posición del puntero, a su proyecto (sale del grupo), reordenar dentro del grupo y reordenar grupos por el encabezado. Soltar en otro proyecto se niega con aviso en rojo. Los proyectos siguen por actividad.
+- **Hijos:** la CLI manda `ORCA_AGENT_SESSION_ID` (solo al host local) y `--group`; el host resuelve la conversación del agente que crea y la guarda en `cliProvenance.zotzParentWorktreeId`, aunque se use `--no-parent` (la guía de upstream lo pide en cada entrega). Enganche de una línea en los dos caminos de creación (`worktree.create` y `agent.launch`) vía `buildZotzCliWorkspaceProvenance`. En la barra el hijo cuelga del padre (mismo grupo, o ambos sin grupo aunque sean de proyectos distintos) y se mueve con él. `useZotzGroupPlacement` lo mete una vez al grupo del padre o al de `--group` (lo crea si falta); `zotzPlacedConversations` recuerda a quién ya se colocó para que sacarlo a mano se respete.
+- **Mapa del grupo** en el panel de Enlaces: nodo por conversación, línea por par que se escribió (grosor por cantidad, parpadea con correo nuevo), punteada de hijo a padre; clic en una línea filtra los mensajes.
+- **Arrancar un grupo:** el diálogo de "Nuevo grupo" (desde `+`) deja elegir proyectos, agente y una tarea; crea una conversación por proyecto, las mete al grupo antes de arrancar (así cada agente conoce a los demás al iniciar) y les manda la tarea.
+- Verificado: `pnpm tc`, oxlint/oxfmt, pruebas nuevas (grupos, soltar, anidado, colocación, líneas del mapa) y en una instancia dev con perfil copiado: crear grupo, arrastrar dentro/fuera, negar otro proyecto, anidar un hijo (marcado en memoria), mapa y diálogo de arranque. **Sin probar de punta a punta:** una entrega real que registre el padre, el mapa con correo real y el arranque de agentes (crea worktrees reales).

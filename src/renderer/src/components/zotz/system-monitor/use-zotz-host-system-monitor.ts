@@ -6,7 +6,7 @@ import { isZotzSystemMonitorStreamEvent } from '../../../../../shared/zotz/syste
 
 /**
  * A server's System tab, streamed while mounted: the server samples itself only while this
- * stream is open, the same rule as a local window (docs/zotz/SPEC-monitor-y-remotos.md §A.5).
+ * stream is open, the same rule as a local window (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.5).
  */
 export function useZotzHostSystemMonitor(environmentId: string | null): {
   snapshot: ZotzSystemMonitorSnapshot | null

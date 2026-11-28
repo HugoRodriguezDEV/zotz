@@ -1,6 +1,6 @@
 # Zotz
 
-Este repo es **Zotz**, un fork de Orca. El plan de trabajo y sus reglas están en [`docs/zotz/PLAN.md`](./docs/zotz/PLAN.md); léelo antes de cualquier tarea del fork.
+Este repo es **Zotz**, un fork de Orca. El plan de trabajo y sus reglas están en [`docs/zotz/PLAN.md`](./docs/zotz/PLAN.md); léelo antes de cualquier tarea del fork. Cada PR anota su bitácora en un archivo nuevo de `docs/zotz/bitacora/` (nunca en `PLAN.md`); los specs van en `docs/zotz/specs/` ([índice](./docs/zotz/README.md)).
 
 # Useful Commands
 

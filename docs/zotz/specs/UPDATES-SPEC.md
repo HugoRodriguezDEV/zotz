@@ -160,7 +160,7 @@ La regla del modo servidor vive en un archivo nuevo, `src/main/updater/zotz-serv
 | `src/main/updater/zotz-update-automation.ts` (nuevo), `updater-status.ts`, `main-process-observers.ts`                               | descarga en segundo plano e instalación en servidor sin agentes                                |
 | `src/main/updater/lifecycle/updater-state.ts`                                                                                        | 6 h                                                                                            |
 | `src/renderer/src/components/zotz/ZotzUpdatesSetting.tsx` (nuevo), `GeneralUpdateSettingsSection.tsx`, `SidebarSettingsHelpMenu.tsx` | switch, versión con base de Orca, sin selector de canales, enlaces a Zotz                      |
-| `docs/zotz/UPDATE.md`, `SYNC.md`, `PLAN.md`                                                                                          | reescritura, zona de sync y bitácora                                                           |
+| `docs/zotz/guias/UPDATE.md`, `SYNC.md`, `PLAN.md`                                                                                    | reescritura, zona de sync y bitácora                                                           |
 
 ## 10. Riesgos
 

@@ -1,6 +1,6 @@
 # Actualizar Zotz
 
-Zotz se actualiza **desde sus propios releases** (`HugoRodriguezDEV/zotz`), nunca desde los de Orca. El diseño completo está en [UPDATES-SPEC.md](./UPDATES-SPEC.md).
+Zotz se actualiza **desde sus propios releases** (`HugoRodriguezDEV/zotz`), nunca desde los de Orca. El diseño completo está en [UPDATES-SPEC.md](../specs/UPDATES-SPEC.md).
 
 ## Cómo llega una versión nueva
 

@@ -13,7 +13,7 @@ let remoteWatcherId = 1_000_000_000
 
 /**
  * A paired client watching this machine's System tab: sampling runs while the stream is open,
- * exactly as for a local window (docs/zotz/SPEC-monitor-y-remotos.md §A.5).
+ * exactly as for a local window (docs/zotz/specs/SPEC-monitor-y-remotos.md §A.5).
  */
 export const ZOTZ_SYSTEM_MONITOR_SUBSCRIBE_METHOD = defineStreamingMethod({
   name: 'zotz.systemMonitor.subscribe',

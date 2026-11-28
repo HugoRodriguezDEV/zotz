@@ -339,7 +339,7 @@ Al ligar, y cada vez que el PR cambia de estado, Zotz manda:
 
 ## 8. Relay propio (webhooks) — parte 2
 
-Implementado (2026-11-20). Guía de puesta en marcha y API: [`RELAY.md`](./RELAY.md).
+Implementado (2026-11-20). Guía de puesta en marcha y API: [`RELAY.md`](../guias/RELAY.md).
 
 ### 8.1 Por qué relay y no Tailscale Funnel
 
@@ -362,7 +362,7 @@ Implementado (2026-11-20). Guía de puesta en marcha y API: [`RELAY.md`](./RELAY
 
 ### 8.3 Cómo quedó
 
-- **Servicio** (`zotz-relay`): una sola función de Vercel (`api/index.ts`) con Upstash Redis del Marketplace (Vercel KV ya no existe). Rutas en [`RELAY.md`](./RELAY.md#api).
+- **Servicio** (`zotz-relay`): una sola función de Vercel (`api/index.ts`) con Upstash Redis del Marketplace (Vercel KV ya no existe). Rutas en [`RELAY.md`](../guias/RELAY.md#api).
   - El aviso guarda además `owner` (dueño del repo o de la org) y `projectNodeId` (para saber qué Project releer). Sigue sin contenido.
   - **Cursor** = número del aviso. El relay responde `reset` si el dispositivo no trae cursor, si se borraron avisos que no vio (7 días) o si el almacenamiento se vació; Zotz entonces recarga todo.
   - Los tokens de dispositivo y de proveedor se configuran como hashes SHA-256 en variables de entorno; el relay nunca guarda tokens.
@@ -372,7 +372,7 @@ Implementado (2026-11-20). Guía de puesta en marcha y API: [`RELAY.md`](./RELAY
 - **Zotz:**
   - _Ajustes → Tareas → Relay para avisos al instante_: URL + token de dispositivo, cifrado con el `SecretStore` en `zotz-task-relay-secrets.json`. Se prueba antes de guardar. Apagado por defecto (setting `zotzTaskRelay`).
   - `ZotzTaskRelayClient` (main, sin Electron) hace long-poll de 25 s **solo mientras algún tablero está abierto**. Cerrado, consulta cada 10 min para recoger documentos de proveedores. El cursor se guarda en `zotz-task-relay.json`.
-  - Qué se relee por aviso: `planZotzRelayReload` (tabla en [`RELAY.md`](./RELAY.md#cómo-funciona)). Los avisos se juntan 1.5 s antes de aplicarse.
+  - Qué se relee por aviso: `planZotzRelayReload` (tabla en [`RELAY.md`](../guias/RELAY.md#cómo-funciona)). Los avisos se juntan 1.5 s antes de aplicarse.
   - Los documentos de proveedores entran por `pushZotzTasksDocument`, como `zotz tasks push`, solo si su `source.id` coincide con el `sourceId` autenticado.
   - La barra del tablero dice "En vivo" o "Relay caído".
 

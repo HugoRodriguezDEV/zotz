@@ -84,3 +84,50 @@ export const twelveNarrow = defineFixture({
     </div>
   )
 })
+
+const FOURTEEN = [...NAMES, 'lanternfish', 'bullhead']
+const BUSY_STATES = ['waiting', 'working', 'idle', 'permission', 'done', 'blocked'] as const
+
+// Fourteen with bubbles and raised hands; five were dragged into one column, too close: they step apart.
+export const fourteenWithBubbles = defineFixture({
+  width: 460,
+  setup: () => {
+    useAppStore.setState((state) => ({
+      settings: state.settings && {
+        ...state.settings,
+        zotzAgentRoomPositions: {
+          'fixture:fourteen': {
+            lanternfish: [0.86, 0.35],
+            bullhead: [0.86, 0.48],
+            tarpon: [0.86, 0.6],
+            remora: [0.86, 0.72],
+            snapper: [0.88, 0.84]
+          }
+        }
+      }
+    }))
+  },
+  render: () => (
+    <div className="p-2">
+      <ZotzAgentRoom
+        agents={FOURTEEN.map((name, index) => ({
+          key: name,
+          label: name,
+          state: BUSY_STATES[index % BUSY_STATES.length],
+          agent: AGENTS[index % AGENTS.length],
+          inGroup: index < 2,
+          current: index === 0
+        }))}
+        label="Local Mac"
+        roomKey="fixture:fourteen"
+        links={[{ a: 'salmon', b: 'albatross', count: 3 }]}
+        guides={[
+          { child: 'heron', parent: 'salmon' },
+          { child: 'tautog', parent: 'salmon' },
+          { child: 'bullhead', parent: 'lanternfish' }
+        ]}
+      />
+    </div>
+  ),
+  interact: () => new Promise((resolve) => window.setTimeout(resolve, 1200))
+})
