@@ -1,7 +1,12 @@
 import { z } from 'zod'
-import { ZotzFlowDraftSchema } from '../../zotz/flows/zotz-flow-contract'
+import { ZotzFlowDraftSchema, type ZotzFlow } from '../../zotz/flows/zotz-flow-contract'
 import { ZotzFlowInputValuesSchema } from '../../zotz/flows/zotz-flow-trigger-contract'
-import { ZotzFlowChatContextSchema } from '../../zotz/flows/zotz-flow-run-contract'
+import {
+  ZotzFlowChatContextSchema,
+  type ZotzFlowRun,
+  type ZotzFlowRunsPage
+} from '../../zotz/flows/zotz-flow-run-contract'
+import type { ZotzFlowProblem } from '../../zotz/flows/zotz-flow-problems'
 
 // Same bound the window IPC applies to an id.
 const Id = z.string().min(1).max(1024)
@@ -66,3 +71,22 @@ export const ZotzFlowsSubscribeParams = z.object({
   flowId: Id.optional(),
   runId: Id.optional()
 })
+
+export type ZotzFlowsListResult = { flows: ZotzFlow[] }
+export type ZotzFlowsGetResult = { flow: ZotzFlow | null }
+/** Errors block the save; warnings come back with the saved flow. */
+export type ZotzFlowsSaveResult =
+  | { saved: true; flow: ZotzFlow; problems: ZotzFlowProblem[] }
+  | { saved: false; reason: 'invalid'; problems: ZotzFlowProblem[] }
+  | { saved: false; reason: 'conflict'; current: ZotzFlow }
+export type ZotzFlowsDeleteResult = { deleted: boolean }
+export type ZotzFlowsRunResult = { run: ZotzFlowRun }
+export type ZotzFlowsRetryResult = { run: ZotzFlowRun }
+export type ZotzFlowsCancelResult = { run: ZotzFlowRun | null }
+export type ZotzFlowsRunsResult = ZotzFlowRunsPage
+export type ZotzFlowsRunGetResult = { run: ZotzFlowRun | null }
+export type ZotzFlowsApproveResult = { run: ZotzFlowRun }
+export type ZotzFlowsStreamEvent =
+  | { type: 'flow'; flow: ZotzFlow }
+  | { type: 'flow_deleted'; flowId: string }
+  | { type: 'run'; run: ZotzFlowRun }
