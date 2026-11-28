@@ -6,9 +6,14 @@ import { buildFontFamily } from '../../../../../shared/monospace-font-family'
 import { appendDictationText } from '../../../../../shared/speech/dictation/dictation-transcript-spacing'
 import {
   readZotzDictationPreviewBox,
+  zotzDictationPreviewField,
   type ZotzDictationPreviewBox
 } from './zotz-dictation-preview-geometry'
 import { useZotzDictationPreviewTarget } from './zotz-dictation-preview-target'
+
+const DICTATING_ATTRIBUTE = 'data-zotz-dictating'
+// Tiptap's placeholder is a ::before on the empty paragraph; text fields use ::placeholder.
+const HIDE_FIELD_PLACEHOLDER_CSS = `[${DICTATING_ATTRIBUTE}] p.is-editor-empty::before,[${DICTATING_ATTRIBUTE}][data-placeholder]::before{visibility:hidden}[${DICTATING_ATTRIBUTE}]::placeholder,[${DICTATING_ATTRIBUTE}] textarea::placeholder{color:transparent}`
 
 /**
  * Draws the words being dictated at the caret of the field they will land in, wrapping like typed
@@ -49,28 +54,38 @@ export function ZotzDictationLivePreview(): React.JSX.Element | null {
     }
   }, [visible, current, text, terminalFontFamily, terminalFontSize, terminalFontWeight])
 
+  // An empty field's placeholder sits where the preview is drawn; hide it (keeping its layout) meanwhile.
+  useLayoutEffect(() => {
+    const field = visible && current ? zotzDictationPreviewField(current.target) : null
+    field?.setAttribute(DICTATING_ATTRIBUTE, '')
+    return () => field?.removeAttribute(DICTATING_ATTRIBUTE)
+  }, [visible, current])
+
   if (!visible || !box) {
     return null
   }
   return createPortal(
-    <div
-      aria-hidden
-      data-zotz-dictation-preview=""
-      className="pointer-events-none fixed z-50 whitespace-pre-wrap break-words text-muted-foreground"
-      style={{
-        left: box.left,
-        top: box.top,
-        width: box.width,
-        textIndent: box.indent,
-        fontFamily: box.fontFamily,
-        fontSize: box.fontSize,
-        fontWeight: box.fontWeight,
-        lineHeight: box.lineHeight,
-        letterSpacing: box.letterSpacing
-      }}
-    >
-      {box.needsSpace ? ` ${text}` : text}
-    </div>,
+    <>
+      <style>{HIDE_FIELD_PLACEHOLDER_CSS}</style>
+      <div
+        aria-hidden
+        data-zotz-dictation-preview=""
+        className="pointer-events-none fixed z-50 whitespace-pre-wrap break-words text-muted-foreground"
+        style={{
+          left: box.left,
+          top: box.top,
+          width: box.width,
+          textIndent: box.indent,
+          fontFamily: box.fontFamily,
+          fontSize: box.fontSize,
+          fontWeight: box.fontWeight,
+          lineHeight: box.lineHeight,
+          letterSpacing: box.letterSpacing
+        }}
+      >
+        {box.needsSpace ? ` ${text}` : text}
+      </div>
+    </>,
     document.body
   )
 }

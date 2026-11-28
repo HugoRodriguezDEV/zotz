@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
@@ -30,6 +29,7 @@ import type { ZotzDragItem, ZotzDropAction } from './zotz-sidebar-drop'
 import type { ZotzGroupMenu } from './ZotzConversationMenu'
 import { ZotzGroupNameDialog, type ZotzGroupNameRequest } from './ZotzGroupNameDialog'
 import { ZotzGroupSection, zotzGroupName } from './ZotzGroupSection'
+import { ZotzPixelIcon } from '../pixel-icon/ZotzPixelIcon'
 import type {
   ZotzConversationRow as ConversationRow,
   ZotzGroupSection as GroupSection
@@ -141,7 +141,7 @@ export function ZotzProjectDropZone({
   return (
     <section
       className={cn(
-        'mb-2 rounded-md',
+        'mb-2',
         accepts && 'bg-primary/10 ring-1 ring-primary',
         refused && 'ring-1 ring-destructive'
       )}
@@ -197,7 +197,7 @@ export function ZotzSidebarGroups({
               aria-label={newGroupLabel}
               onClick={() => ui.askNewGroup()}
             >
-              <Plus className="size-3.5" />
+              <ZotzPixelIcon name="plus" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4}>

@@ -986,6 +986,11 @@ Sección B de la spec de monitor y remotos.
 - **Vista previa (`ZotzDictationLivePreview`):** las palabras aún no escritas se dibujan en gris en el cursor del campo donde van a caer (textarea, editor contentEditable, composer del chat y terminal), con la fuente del campo y envolviendo como texto tecleado; al escribirse de verdad desaparecen. No se escribe nada en el campo antes, así que deshacer y teclear al mismo tiempo siguen igual. La barra de arriba se queda. Páginas del navegador: solo la barra.
 - Verificado: audio real de 11 s sin pausas (voz Eddy es-MX) alimentado en tiempo real en una instancia dev: texto nuevo cada ~0.5 s desde el segundo 1.6 y el final exacto; capturas de la vista previa en textarea y contentEditable (fixtures, claro y oscuro); en la terminal la posición cae en la celda del cursor (textarea auxiliar de xterm). **Sin probar de punta a punta:** el flujo con micrófono real (la prueba usa la API del motor y fixtures).
 
+### 2026-11-26 — La vista previa del dictado ya no se encima con el placeholder (`zotz-dictado-placeholder`)
+
+- Con el composer vacío, el texto gris del dictado se dibujaba encima de "Ask anything, @ to mention files, / for commands". Mientras se ve la vista previa, el campo destino lleva `data-zotz-dictating` y su placeholder (el `::before` de Tiptap, `::placeholder` de textarea/input) se oculta sin mover el cursor; al terminar vuelve.
+- Verificado con la fixture `ZotzDictationLivePreview:emptyComposer` (mismas clases de placeholder que `NativeChatPromptEditor`): sin dictado se ve el placeholder, con dictado solo el texto.
+
 ### 2026-11-27 — Logo luna pixelada (`zotz-logo-luna-pixel`)
 
 - Fuente nueva: `resources/icon-source/zotz-bat-pixel.mjs` (murciélago 16×16 con alas arriba/abajo y luna 32×32). `render-zotz-icons.mjs` pinta cada tamaño a escala entera por celda; solo las esquinas del cuadro llevan suavizado.
