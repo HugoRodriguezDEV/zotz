@@ -134,3 +134,4 @@ export type TopLevelView =
   | 'artifacts'
   | 'mobile'
   | 'zotz-board'
+  | 'zotz-flows'

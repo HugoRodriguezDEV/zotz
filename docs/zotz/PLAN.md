@@ -359,7 +359,7 @@ Spec completo: [`SPEC-flows.md`](./SPEC-flows.md). Propuesta del 2026-11-27, por
 
 - [x] 0. Contrato de flows, nodos, disparadores, corridas y RPC `zotz.flows.*`.
 - [x] 1. Motor: ejecutor, nodos (con bucle Para cada), plantillas, salida Markdown/JSON, horario y CLI `zotz flows`.
-- [ ] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
+- [x] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
 - [x] 3. Disparadores por evento: agente terminó, PR, tarea cambió de columna, webhook.
 - [ ] 4. Chat: `/flow` con el contexto de la conversación y Responder en chat.
 - [ ] 5. Migración de automatizaciones a flows de un nodo, página vieja oculta y móvil.
@@ -1002,6 +1002,11 @@ Sección B de la spec de monitor y remotos.
 - **Vista previa (`ZotzDictationLivePreview`):** las palabras aún no escritas se dibujan en gris en el cursor del campo donde van a caer (textarea, editor contentEditable, composer del chat y terminal), con la fuente del campo y envolviendo como texto tecleado; al escribirse de verdad desaparecen. No se escribe nada en el campo antes, así que deshacer y teclear al mismo tiempo siguen igual. La barra de arriba se queda. Páginas del navegador: solo la barra.
 - Verificado: audio real de 11 s sin pausas (voz Eddy es-MX) alimentado en tiempo real en una instancia dev: texto nuevo cada ~0.5 s desde el segundo 1.6 y el final exacto; capturas de la vista previa en textarea y contentEditable (fixtures, claro y oscuro); en la terminal la posición cae en la celda del cursor (textarea auxiliar de xterm). **Sin probar de punta a punta:** el flujo con micrófono real (la prueba usa la API del motor y fixtures).
 
+### 2026-11-26 — La vista previa del dictado ya no se encima con el placeholder (`zotz-dictado-placeholder`)
+
+- Con el composer vacío, el texto gris del dictado se dibujaba encima de "Ask anything, @ to mention files, / for commands". Mientras se ve la vista previa, el campo destino lleva `data-zotz-dictating` y su placeholder (el `::before` de Tiptap, `::placeholder` de textarea/input) se oculta sin mover el cursor; al terminar vuelve.
+- Verificado con la fixture `ZotzDictationLivePreview:emptyComposer` (mismas clases de placeholder que `NativeChatPromptEditor`): sin dictado se ve el placeholder, con dictado solo el texto.
+
 ### 2026-11-27 — Logo luna pixelada (`zotz-logo-luna-pixel`)
 
 - Fuente nueva: `resources/icon-source/zotz-bat-pixel.mjs` (murciélago 16×16 con alas arriba/abajo y luna 32×32). `render-zotz-icons.mjs` pinta cada tamaño a escala entera por celda; solo las esquinas del cuadro llevan suavizado.
@@ -1013,6 +1018,16 @@ Sección B de la spec de monitor y remotos.
 
 - Bandeja de Windows: Electron no expone si la barra de tareas es clara u oscura (es distinto del tema de apps), así que en lugar de silueta clara/oscura usa el murciélago sobre el cuadro noche (16/32 px), que se lee en ambas. Linux no tiene bandeja en esta app.
 - La insignia DEV de la barra de menú de macOS (`tray-dev-badge.ts`) se pinta encima del ala izquierda; solo afecta builds de desarrollo.
+
+### 2026-11-27 — Aparatos pixelados para lo que no es agente (`zotz-procesos-pixel`)
+
+- **Problema:** comandos, monitores, programas OSC 7501 y workspaces sin agente salían como robot, igual que un agente.
+- **Motor nuevo** junto al de los robots (`zotz/agent-sprite/zotz-process-sprite-*.ts`, `ZotzProcessSprite`): mismo hueco de 32×22, reloj compartido, tema y movimiento reducido. El ciclo del canvas pasó a `use-zotz-row-sprite-canvas.ts` y lo usan robots y aparatos.
+- **Tareas en segundo plano** (Claude, Codex y Grok): comando = terminal, monitor = radar, flujo = tablita de pasos, desconocido = engrane, en la tira del chat, el panel de segundo plano, las filas hijas de la barra lateral y la línea de tarea del transcript. Las de tipo `agent` y la cola de memoria siguen con robot.
+- **Workspace sin agente** (`StatusIndicator`): `active` = servidor con luces verdes, `inactive` = servidor apagado con luz ámbar; `monitoring` = radar, igual que la fila de conversación en `monitoring`.
+- **Programas OSC 7501:** chip con núcleo, barra de progreso y candado / "?" / llave. Una fila es de programa si trae la faceta `programStatus` y su `agentType` no es un agente conocido (id del catálogo `TUI_AGENT_CONFIG`, su comando de arranque como `dsh-tui`, o `dsb`): el proyector ya traduce el `app` de los agentes conocidos a su id y los hooks siempre nombran el suyo. No cambia el protocolo ni lo que recibe la app móvil.
+- Enganches de una línea (`zotzProcess`) en `AgentStateDot`, `AgentChildRowContent`, `NativeChatBackgroundTaskRun`, `worktree-card-compact-agent-row` y `DashboardAgentRow`.
+- Verificado con fixtures en claro y oscuro (`zotz/agent-sprite/ZotzProcessSprite:*`, `zotz/background/ZotzBackgroundPanel:everyKind`, `zotz/sidebar/ZotzProjectSidebar:onlyProcessesLeft`; capturas en `capturas/procesos-pixel/`). **Sin probar en la app:** tareas reales de Codex/Grok y un programa real que emita OSC 7501.
 
 ### 2026-11-28 — Flows, parte 0: contrato (`zotz/fase-10-flows-0-contrato`)
 
@@ -1045,6 +1060,32 @@ Sección B de la spec de monitor y remotos.
 - Corridas manuales y de subflow corren aunque el flow esté apagado; horario y eventos no. El tope por hora cuenta todas las corridas que no se saltaron.
 - Notificar en un servidor sin escritorio deja el aviso solo en la salida del paso.
 - Contrato: se agregó el código `duplicate_slug` a `ZotzFlowProblemCode` (el host lo devuelve al guardar).
+
+### 2026-11-28 — Flows, parte 2: lienzo (`zotz/fase-10-flows-2-lienzo`)
+
+- Página **Flows** (vista `zotz-flows`) con entrada en las dos barras laterales: junto a Automatizaciones en la de Orca y bajo Tareas en la simple (la simple es la default de Zotz y no tiene Automatizaciones). Componentes en `src/renderer/src/components/zotz/flows/`.
+- Lienzo con `@xyflow/react` **12.12.1** (versión exacta; las 13.x tenían menos de dos semanas). Tema por variables de React Flow mapeadas a tokens; estados de corrida con `status-success`, `agent-working`, `agent-question`, `destructive` y `muted`.
+- Editor: lista de flows a la izquierda (agrupada por máquina) que cambia a paleta de pasos al editar; lienzo con zoom, minimapa, deshacer/rehacer (⌘Z / Ctrl+Z) y auto-acomodo; inspector a la derecha; arriba nombre, máquina, encendido, Guardar y Correr (si hay cambios, "Guardar y correr").
+- Inspector por tipo con los campos del contrato. Nodo Agente reusa `AutomationAgentLaunchPicker`, `AutomationEditorPromptEditor`, `AutomationProjectCombobox`, `AutomationWorkspaceField`, `AutomationSessionField` y `buildAutomationRunContextForRepo` con un adaptador nodo ↔ `AutomationDraft` (`zotz-flow-agent-draft.ts`); el disparador Programado reusa `AutomationSchedulePicker` (presets y cron); la máquina usa `HostCombobox`. No hubo que generalizar ningún componente de automatizaciones.
+- Switch Markdown/JSON con editor de campos o JSON Schema pegado. Selector de plantillas con el **mismo alcance** que la validación; en Comando las plantillas van en `env` y la ayuda muestra `$ZOTZ_FLOW_X` / `$env:ZOTZ_FLOW_X`.
+- `for_each` es un contenedor (nodo padre): soltar un paso dentro asigna `parentId`; meter o sacar un paso quita sus conexiones porque no pueden cruzar el borde.
+- Validación en vivo con `validateZotzFlow` más el esquema zod (campos vacíos o slugs inválidos): marca nodo, arista o disparador y lista los problemas; Guardar se bloquea con errores. El conflicto de `save` ofrece cargar la versión guardada.
+- Vista de corrida: mismo lienzo en solo lectura, color por estado, avance del bucle (`8/10 · 1 falló`) con selector de vuelta, detalle de entradas y salida, aprobar/rechazar, cancelar y reintentar (también desde un paso). Pestaña Corridas con el historial. Todo se actualiza con `zotz.flows.subscribe`.
+- Teclado: Tab llega a nodos, aristas y disparadores; Enter selecciona; flechas mueven; Suprimir borra; Esc deselecciona; la paleta agrega después del paso seleccionado (o dentro del bucle seleccionado) y conecta la primera salida libre; el inspector conecta salidas y mete pasos a un bucle. Verificado armando el flow de ejemplo solo con teclado.
+- Fixtures: `zotz/flows/ZotzFlowEditor` (`example`, `agentSelected`, `loopSelected`, `empty`) y `zotz/flows/ZotzFlowRunView` (`halfway`, `failedItem`).
+
+**Cambios al contrato**
+
+- `createZotzFlowTemplateScope()` exportado desde `zotz-flow-validation.ts` (misma lógica que ya usaba la validación, sin cambiar resultados) para que el selector de plantillas no duplique el alcance.
+- Las formas de respuesta y el evento del stream de `zotz.flows.*` las agregó el coordinador en la rama base (cb5db8558ad) a pedido de esta parte.
+
+**Sorpresas / pendientes**
+
+- Los disparadores de evento y de chat muestran "Zotz todavía no escucha esto"; hay que quitar ese aviso cuando lleguen las partes 3 y 4.
+- Cambiar la máquina de un flow ya guardado está bloqueado: moverlo entre máquinas necesita borrar y guardar en otra, que no está en el contrato.
+- Legibilidad primero: al abrir, en la vista de corrida y después de Acomodar, el flow se encuadra entero solo si cabe entre 80 % y 100 %; si no, queda a 80 % desde su esquina superior izquierda (los disparadores) y el resto se ve moviendo el lienzo. A 80 % el texto de los nodos mide lo mismo que el del inspector. "Ajustar a la vista" (abajo a la izquierda, junto a acercar y alejar) sí encuadra todo sin mínimo. Los paneles de pasos e inspector se pliegan y se recuerdan por usuario (`localStorage`).
+- `AutomationWorkspaceField` ofrece "Nueva corrida" también en carpetas sin git; queda como en automatizaciones.
+- Dormir un workspace desde la barra lateral deja a Zotz sin workspace activo (oráculo `sleep-quit-resume`, falla igual en la rama del contrato); se agregó una excepción en `tests/e2e/workspace-layout-oracle-known-on-main.ts`. Investigar y quitar la excepción al arreglarlo.
 
 ### 2026-11-28 — Flows, parte 3: disparadores por evento (`zotz/fase-10-flows-3-eventos`)
 

@@ -124,7 +124,8 @@ export const TopLevelViewSchema = z.enum([
   'skills',
   'artifacts',
   'mobile',
-  'zotz-board'
+  'zotz-board',
+  'zotz-flows'
 ])
 
 export const UiUpdateFields = z

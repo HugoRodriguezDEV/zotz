@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type React from 'react'
 import { useTranslate } from '@/i18n/use-translate'
 import type { ZotzConversationEntry } from '../../../../../shared/zotz/conversation-links/zotz-conversation-links-contract'
-import { ZotzAgentRoom, type ZotzRoomAgent } from '../agent-room/ZotzAgentRoom'
+import { ZotzAgentRoom, type ZotzRoomAgent, type ZotzRoomGuide } from '../agent-room/ZotzAgentRoom'
 import type { ZotzGroupMapData } from './use-zotz-group-map'
 import type { ZotzLinkHost } from './use-zotz-link-data'
 import { ZotzLinkAgentCard } from './ZotzLinkAgentCard'
@@ -14,12 +14,14 @@ export function zotzHostRoomKey(hostId: string, path: string): string {
 
 /**
  * One machine's conversations as a room of robots. Picking one shows its card below with the
- * link action; double click or Enter opens it. Lines and mail come from the open group's map.
+ * link action; double click or Enter opens it. Lines and mail come from the open group's map;
+ * a faint dashed line joins each worker to its parent.
  */
 export function ZotzLinkHostRoom({
   host,
   entries,
   groupMap,
+  guides,
   isCurrent,
   isInGroup,
   actionFor,
@@ -28,6 +30,8 @@ export function ZotzLinkHostRoom({
   host: ZotzLinkHost
   entries: readonly ZotzConversationEntry[]
   groupMap: Pick<ZotzGroupMapData, 'nodes' | 'edges' | 'mail'>
+  /** Each worker joined to the conversation that created it, by room key. */
+  guides: readonly ZotzRoomGuide[]
   isCurrent: (entry: ZotzConversationEntry) => boolean
   isInGroup: (entry: ZotzConversationEntry) => boolean
   actionFor: (entry: ZotzConversationEntry) => React.ReactNode
@@ -74,6 +78,7 @@ export function ZotzLinkHostRoom({
         label={t('zotz.links.hostRoom', 'Conversations on {{host}}', { host: host.name })}
         roomKey={`machine:${host.hostId}`}
         links={links}
+        guides={guides}
         mail={mail}
         selected={picked ? selected : null}
         onSelect={setSelected}
