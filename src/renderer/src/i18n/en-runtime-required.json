@@ -2857,6 +2857,7 @@
         "duplicateEdge": "Duplicate connection.",
         "duplicateNodeId": "Two steps share the same id.",
         "duplicateNodeName": "Another step is also named {name}.",
+        "duplicateSlug": "Another flow already uses this slug.",
         "duplicateSwitchCase": "Output \"{port}\" is repeated or reserved.",
         "edgeCrossesLoop": "Connections cannot cross a loop border.",
         "edgeUnknownNode": "Connection to a step that does not exist.",
