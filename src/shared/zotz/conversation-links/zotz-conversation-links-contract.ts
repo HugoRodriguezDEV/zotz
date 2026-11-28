@@ -23,6 +23,8 @@ export type ZotzConversationEntry = {
   state: ZotzConversationState | null
   /** `orca_session_id:<root>` of its live chat, null when none is reachable. */
   address: string | null
+  /** Worktree id (on the same host) of the conversation whose agent created this one; hosts before it omit it. */
+  parentWorktreeId?: string | null
 }
 
 export type ZotzConversationsListResult = {
