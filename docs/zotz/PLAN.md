@@ -1070,6 +1070,7 @@ Sección B de la spec de monitor y remotos.
 - Cambiar la máquina de un flow ya guardado está bloqueado: moverlo entre máquinas necesita borrar y guardar en otra, que no está en el contrato.
 - Legibilidad primero: al abrir, en la vista de corrida y después de Acomodar, el flow se encuadra entero solo si cabe entre 80 % y 100 %; si no, queda a 80 % desde su esquina superior izquierda (los disparadores) y el resto se ve moviendo el lienzo. A 80 % el texto de los nodos mide lo mismo que el del inspector. "Ajustar a la vista" (abajo a la izquierda, junto a acercar y alejar) sí encuadra todo sin mínimo. Los paneles de pasos e inspector se pliegan y se recuerdan por usuario (`localStorage`).
 - `AutomationWorkspaceField` ofrece "Nueva corrida" también en carpetas sin git; queda como en automatizaciones.
+- Dormir un workspace desde la barra lateral deja a Zotz sin workspace activo (oráculo `sleep-quit-resume`, falla igual en la rama del contrato); se agregó una excepción en `tests/e2e/workspace-layout-oracle-known-on-main.ts`. Investigar y quitar la excepción al arreglarlo.
 
 ### 2026-11-28 — Flows, parte 3: disparadores por evento (`zotz/fase-10-flows-3-eventos`)
 
