@@ -37,6 +37,7 @@ import { ZotzConversationMenu } from './ZotzConversationMenu'
 import { AddProjectButton, ProjectHeader } from './ZotzProjectHeader'
 import HiddenProjectsSection from '../../sidebar/hidden-projects/HiddenProjectsSection'
 import { ZotzConversationRow } from './ZotzConversationRow'
+import { ZotzFlashSessions } from './ZotzFlashSessions'
 import { ZotzMachineSubgroups } from './ZotzMachineSubgroups'
 import { useZotzHostPalette } from '../host-color/use-zotz-host-color'
 import { ZotzArchivedSection } from './ZotzArchivedSection'
@@ -283,16 +284,19 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
   )
 
   const renderFolder = (row: ConversationRow): React.JSX.Element => (
-    <ZotzConversationMenu key={`${row.hostId}:${row.id}`} worktree={row.folderWorktree ?? null}>
-      <ZotzConversationRow
-        row={row}
-        repo={undefined}
-        active={row.id === activeWorktreeId}
-        status={statusByWorkspace.get(row.id) ?? null}
-        canceled={canceledWorkspaces.has(row.id)}
-        queuedSince={queuedSince.get(row.id) ?? null}
-      />
-    </ZotzConversationMenu>
+    <React.Fragment key={`${row.hostId}:${row.id}`}>
+      <ZotzConversationMenu worktree={row.folderWorktree ?? null}>
+        <ZotzConversationRow
+          row={row}
+          repo={undefined}
+          active={row.id === activeWorktreeId}
+          status={statusByWorkspace.get(row.id) ?? null}
+          canceled={canceledWorkspaces.has(row.id)}
+          queuedSince={queuedSince.get(row.id) ?? null}
+        />
+      </ZotzConversationMenu>
+      <ZotzFlashSessions workspaceId={row.id} hostId={row.hostId} />
+    </React.Fragment>
   )
 
   const sectionHeader = (label: string, action: React.ReactNode): React.JSX.Element => (

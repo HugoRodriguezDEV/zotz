@@ -11,6 +11,7 @@ import {
 } from '../../../../../../shared/agent-status/child-work/agent-status-child-work-display'
 import { buildRunningAgentChildRowModels } from '../../../../../../shared/agent-status/presentation/running-agent-child-rows'
 import { agentChildRowName } from '@/components/agent-child-row-text'
+import type { AgentChildWorkKind } from '../../../../../../shared/agent-status/child-work/agent-status-child-work'
 import type { TerminalTab } from '../../../../../../shared/workspace-layout/terminal-tab-types'
 
 /** NUL prevents collision with real pane keys; synthetic keys are never parsed for activation, which uses the parent pane. */
@@ -81,10 +82,11 @@ export function buildSubagentChildRows(args: {
   tab: TerminalTab
   /** A stale parent hook stream makes active child evidence unverifiable too. */
   parentIsFresh: boolean
+  kinds?: ReadonlySet<AgentChildWorkKind>
 }): DashboardAgentRow[] {
   const { parentEntry } = args
   const context = agentChildRowContextForParent(parentEntry, args.parentIsFresh)
-  return buildRunningAgentChildRowModels(parentEntry, context).map((row) =>
+  return buildRunningAgentChildRowModels(parentEntry, context, args.kinds).map((row) =>
     childDashboardRow(row, parentEntry, args.tab)
   )
 }

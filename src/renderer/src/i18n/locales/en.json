@@ -26567,6 +26567,10 @@
     },
     "repoGitHub": {
       "open": "Open {{repo}} on GitHub"
+    },
+    "flashSessions": {
+      "more": "+{{count}} more",
+      "less": "Show fewer"
     }
   }
 }

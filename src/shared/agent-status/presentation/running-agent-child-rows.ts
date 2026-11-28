@@ -7,7 +7,10 @@ import {
 } from './agent-child-row-model'
 import { agentChildWorkIsRunning } from '../child-work/agent-child-work-listing'
 import type { AgentChildWorkView } from '../child-work/agent-status-child-work-view'
+import type { AgentChildWorkKind } from '../child-work/agent-status-child-work'
 import type { AgentSubagentSnapshot } from '../contracts/agent-status-subagent-snapshot'
+
+const AGENT_ONLY: ReadonlySet<AgentChildWorkKind> = new Set(['agent'])
 
 function ownsLiveWork(row: AgentChildRowModel): boolean {
   return row.owned.some((owned) => !owned.settled || ownsLiveWork(owned))
@@ -19,7 +22,9 @@ export function buildRunningAgentChildRowModels(
     children?: readonly AgentChildWorkView[]
     subagents?: readonly AgentSubagentSnapshot[]
   },
-  context: AgentChildRowContext
+  context: AgentChildRowContext,
+  /** Zotz: its sidebar also lists running workflows, commands and monitors. */
+  kinds: ReadonlySet<AgentChildWorkKind> = AGENT_ONLY
 ): AgentChildRowModel[] {
   const rows =
     source.children !== undefined
@@ -27,7 +32,7 @@ export function buildRunningAgentChildRowModels(
       : buildLegacyAgentChildRowModels(source.subagents ?? [], context)
   return flattenAgentChildRowModels(rows).filter(
     (row) =>
-      row.kind === 'agent' &&
+      kinds.has(row.kind) &&
       agentChildWorkIsRunning({ settled: row.settled, ownsLiveWork: ownsLiveWork(row) })
   )
 }
