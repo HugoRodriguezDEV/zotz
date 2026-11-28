@@ -1,5 +1,5 @@
 import React from 'react'
-import { Ellipsis, EyeOff, Image, Settings, Trash2 } from 'lucide-react'
+import { EyeOff, Image, Settings, Trash2 } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import { setProjectHidden } from '../../sidebar/hidden-projects/set-project-hidd
 import { getRepositoryIconSectionId } from '../../settings/repository/repository-settings-targets'
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host'
 import type { Repo } from '../../../../../shared/repository/repo-types'
+import { ZotzPixelIcon } from '../pixel-icon/ZotzPixelIcon'
 
 /** A project's "…" menu, with the same actions and dialogs as upstream's project header. */
 export function ZotzProjectMenu({ repo }: { repo: Repo }): React.JSX.Element {
@@ -38,7 +39,7 @@ export function ZotzProjectMenu({ repo }: { repo: Repo }): React.JSX.Element {
             { value0: repo.displayName }
           )}
         >
-          <Ellipsis className="size-4" />
+          <ZotzPixelIcon name="more" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom">

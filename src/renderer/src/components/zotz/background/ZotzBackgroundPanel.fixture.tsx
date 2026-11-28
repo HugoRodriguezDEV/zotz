@@ -59,7 +59,66 @@ const outputs: ZotzBackgroundTaskOutputs = {
   read: async () => testOutput
 }
 
-function PanelWithTasks({ height = 360 }: { height?: number }): React.JSX.Element {
+// One task per kind and state worth telling apart: devices for work, the robot for the agent.
+const mixedTasks: AgentSessionBackgroundTask[] = [
+  {
+    id: 'api',
+    kind: 'command',
+    description: 'Start the local test API',
+    state: 'working',
+    startedAt: now - 12_000
+  },
+  {
+    id: 'app',
+    kind: 'command',
+    description: 'Start the app on the test API',
+    state: 'waiting',
+    startedAt: now - 30_000
+  },
+  {
+    id: 'logs',
+    kind: 'monitor',
+    description: 'Watch the build logs',
+    state: 'monitoring',
+    startedAt: now - 5 * 60_000
+  },
+  {
+    id: 'release',
+    kind: 'workflow',
+    description: 'Release checklist',
+    state: 'working',
+    startedAt: now - 2 * 60_000
+  },
+  {
+    id: 'contract',
+    kind: 'agent',
+    description: 'Review the API contract',
+    state: 'working',
+    startedAt: now - 60_000
+  },
+  {
+    id: 'migrate',
+    kind: 'command',
+    description: 'Run the migration',
+    state: 'blocked',
+    startedAt: now - 90_000
+  },
+  {
+    id: 'sync',
+    kind: 'unknown',
+    description: 'Sync task',
+    state: 'unverifiable',
+    startedAt: now - 8 * 60_000
+  }
+]
+
+function PanelWithTasks({
+  height = 360,
+  shown = tasks
+}: {
+  height?: number
+  shown?: AgentSessionBackgroundTask[]
+}): React.JSX.Element {
   const [expanded, setExpanded] = useState(true)
   return (
     <div style={{ height }} className="flex flex-col border border-border bg-background">
@@ -67,7 +126,7 @@ function PanelWithTasks({ height = 360 }: { height?: number }): React.JSX.Elemen
       <ZotzBackgroundTasksPortal active outputs={outputs}>
         <NativeChatBackgroundTasksStatus
           isVisible
-          tasks={tasks}
+          tasks={shown}
           settledTasks={[]}
           supportsTaskStop
           offersStopAll
@@ -86,6 +145,11 @@ function PanelWithTasks({ height = 360 }: { height?: number }): React.JSX.Elemen
 export const withTasks = defineFixture({
   width: 340,
   render: () => <PanelWithTasks />
+})
+
+export const everyKind = defineFixture({
+  width: 380,
+  render: () => <PanelWithTasks height={420} shown={mixedTasks} />
 })
 
 export const empty = defineFixture({

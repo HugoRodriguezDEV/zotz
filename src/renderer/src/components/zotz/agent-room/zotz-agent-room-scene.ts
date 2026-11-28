@@ -7,7 +7,11 @@ import {
   type ZotzRoomEdgeFrame,
   type ZotzRoomSceneFrame
 } from './zotz-agent-room-paint'
-import type { ZotzAgentRoomStageInput, ZotzRoomMail } from './zotz-agent-room-types'
+import {
+  zotzRoomAgentMarked,
+  type ZotzAgentRoomStageInput,
+  type ZotzRoomMail
+} from './zotz-agent-room-types'
 
 type Point = { x: number; y: number }
 
@@ -90,7 +94,7 @@ export function buildZotzRoomScene({
       label: agent.label,
       current: agent.current ?? false,
       branded: Boolean(agent.agent),
-      grouped: agent.inGroup ?? false,
+      grouped: zotzRoomAgentMarked(agent),
       state: agent.state ?? 'idle',
       color: agentBodyColorFor(agent.label, agent.agent),
       seed: agentAnimationSeed(agent.label),

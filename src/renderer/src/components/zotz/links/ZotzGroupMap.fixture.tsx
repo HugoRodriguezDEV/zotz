@@ -23,7 +23,7 @@ export const busyGroup = defineFixture({
   render: () => (
     <div className="p-2">
       <ZotzGroupMap
-        groupId={null}
+        roomKey={null}
         nodes={NODES}
         edges={EDGES}
         parentEdges={[{ child: 3, parent: 2 }]}
@@ -41,7 +41,7 @@ export const agentSelected = defineFixture({
   render: () => (
     <div className="p-2">
       <ZotzGroupMap
-        groupId={null}
+        roomKey={null}
         nodes={NODES}
         edges={EDGES}
         parentEdges={[]}
@@ -73,7 +73,7 @@ function MailInFlight({
   return (
     <div className="p-2">
       <ZotzGroupMap
-        groupId={null}
+        roomKey={null}
         nodes={nodes}
         edges={arrived ? after : before}
         parentEdges={[]}
@@ -108,7 +108,7 @@ export const keyboardFocus = defineFixture({
   render: () => (
     <div className="p-2">
       <ZotzGroupMap
-        groupId={null}
+        roomKey={null}
         nodes={NODES.slice(0, 3)}
         edges={EDGES}
         parentEdges={[]}

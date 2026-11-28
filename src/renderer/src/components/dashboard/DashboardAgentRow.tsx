@@ -23,6 +23,7 @@ import {
   showsAgentToolPreview
 } from '@/lib/agent-status/presentation/agent-row-tool-preview'
 import { resolveRowProgramStatus } from '@/lib/program-status/agent-row-presentation'
+import { zotzProgramStatusProcess } from '@/components/zotz/agent-sprite/zotz-process-sprite-spec'
 import { agentRowStoppingLabel } from '@/lib/agent-status/presentation/agent-row-stopping-label'
 import {
   agentNoUpdateLabel,
@@ -318,6 +319,7 @@ const DashboardAgentRow = React.memo(function DashboardAgentRow({
                 title={null}
                 progress={presentation.progress}
                 unread={isUnvisited}
+                zotzProcess={zotzProgramStatusProcess(agent)}
               />
             </span>
           </TooltipTrigger>

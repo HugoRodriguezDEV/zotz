@@ -202,6 +202,20 @@ function terminalCaret(
   }
 }
 
+/** The field whose own placeholder would show under the preview; null where there is none. */
+export function zotzDictationPreviewField(target: DictationInsertionTarget): HTMLElement | null {
+  switch (target.kind) {
+    case 'text':
+    case 'contentEditable':
+      return target.element
+    case 'composer':
+      return target.root
+    case 'terminal':
+    case 'browser':
+      return null
+  }
+}
+
 /** The caret box for a dictation target, or null where none can be drawn (a browser page, a gone field). */
 export function readZotzDictationPreviewBox(
   target: DictationInsertionTarget,

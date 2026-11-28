@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react'
-import { Link2 } from 'lucide-react'
+import { CornerDownRight, Crown, Link2 } from 'lucide-react'
 import { agentStateLabel } from '@/components/AgentStateDot'
 import { AgentTypeIcon } from '@/components/agent/icons/agent-type-icon'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -9,12 +9,13 @@ import { useZotzAgentRoomPositions } from './use-zotz-agent-room-positions'
 import { ZOTZ_ROOM_HIT, zotzRoomColumns, zotzRoomHeight } from './zotz-agent-room-layout'
 import { ZOTZ_ROOM_TAG_MARK } from './zotz-agent-room-paint'
 import { createZotzAgentRoomStage, type ZotzAgentRoomStage } from './zotz-agent-room-stage'
-import type {
-  ZotzAgentRoomStageCallbacks,
-  ZotzRoomAgent,
-  ZotzRoomGuide,
-  ZotzRoomLink,
-  ZotzRoomMail
+import {
+  zotzRoomAgentMarked,
+  type ZotzAgentRoomStageCallbacks,
+  type ZotzRoomAgent,
+  type ZotzRoomGuide,
+  type ZotzRoomLink,
+  type ZotzRoomMail
 } from './zotz-agent-room-types'
 
 export type {
@@ -34,7 +35,7 @@ export type ZotzAgentRoomProps = {
   links?: readonly ZotzRoomLink[]
   /** Mail that just arrived; each new id flies once. Pass a new array per batch. */
   mail?: readonly ZotzRoomMail[]
-  /** Faint dashed child → parent lines. */
+  /** Faint dashed child → parent lines, drawn even when the two never wrote. */
   guides?: readonly ZotzRoomGuide[]
   /** Key of the highlighted agent; lines and names away from it fade. */
   selected?: string | null
@@ -178,15 +179,21 @@ export function ZotzAgentRoom({
 
   const nameOf = (key: string): string => agents.find((agent) => agent.key === key)?.label ?? key
   const lines =
-    links
-      .map((link) =>
+    [
+      ...links.map((link) =>
         t('zotz.agentRoom.line', '{{a}} ↔ {{b}}: {{count}} messages', {
           a: nameOf(link.a),
           b: nameOf(link.b),
           count: link.count
         })
+      ),
+      ...guides.map((guide) =>
+        t('zotz.agentRoom.guide', '{{child}} is a worker of {{parent}}', {
+          child: nameOf(guide.child),
+          parent: nameOf(guide.parent)
+        })
       )
-      .join('; ') || '—'
+    ].join('; ') || '—'
   const faded = (key: string): string | false =>
     selected !== null && selected !== key && 'opacity-50'
   return (
@@ -225,7 +232,7 @@ export function ZotzAgentRoom({
         ) : null
       )}
       {agents.map((agent) =>
-        agent.inGroup ? (
+        zotzRoomAgentMarked(agent) ? (
           <span
             key={`group:${agent.key}`}
             ref={(element) => {
@@ -241,7 +248,13 @@ export function ZotzAgentRoom({
               faded(agent.key)
             )}
           >
-            <Link2 size={ZOTZ_ROOM_TAG_MARK.size} />
+            {agent.inGroup ? (
+              <Link2 size={ZOTZ_ROOM_TAG_MARK.size} />
+            ) : agent.kin === 'parent' ? (
+              <Crown size={ZOTZ_ROOM_TAG_MARK.size} />
+            ) : (
+              <CornerDownRight size={ZOTZ_ROOM_TAG_MARK.size} />
+            )}
           </span>
         ) : null
       )}
@@ -265,7 +278,13 @@ export function ZotzAgentRoom({
             aria-pressed={selected === agent.key}
             aria-describedby={helpId}
             aria-label={
-              agent.inGroup ? `${name}, ${t('zotz.agentRoom.inGroup', 'in a group')}` : name
+              agent.inGroup
+                ? `${name}, ${t('zotz.agentRoom.inGroup', 'in a group')}`
+                : agent.kin === 'parent'
+                  ? `${name}, ${t('zotz.agentRoom.kinParent', 'parent of a member')}`
+                  : agent.kin === 'worker'
+                    ? `${name}, ${t('zotz.agentRoom.kinWorker', 'worker of a member')}`
+                    : name
             }
             // The canvas takes the pointer; this stays for keyboard focus and screen readers.
             className={cn(

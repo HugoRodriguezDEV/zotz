@@ -14,6 +14,7 @@ import {
   resolveLineageRunningSession,
   type AgentSessionRecordReader
 } from '../../runtime/orchestration/addressing/session-lineage/structured-session-lineage'
+import { listZotzOrchestrationMail, parseZotzSqliteTime } from './zotz-orchestration-mail'
 
 const DEFAULT_LIMIT = 200
 
@@ -56,13 +57,10 @@ function labelAddress(handle: string): string | null {
   return at > 0 ? handle.slice(0, at) : null
 }
 
-/** SQLite stores `datetime('now')` as UTC without a zone. */
-function parseCreatedAt(value: string): number {
-  const parsed = Date.parse(`${value.replace(' ', 'T')}Z`)
-  return Number.isNaN(parsed) ? 0 : parsed
-}
-
-/** Mail on this host whose sender and recipient are both linked conversations, oldest first. */
+/**
+ * Mail on this host whose sender and recipient are both linked conversations, or a parent and its
+ * workers (orchestration mail included), oldest first.
+ */
 export function listZotzLinkMessages(
   db: OrchestrationDb,
   params: ZotzLinkMessagesParams,
@@ -99,8 +97,17 @@ export function listZotzLinkMessages(
       subject: row.subject,
       body: row.body,
       type: row.type,
-      createdAt: parseCreatedAt(row.created_at)
+      createdAt: parseZotzSqliteTime(row.created_at)
     }
   })
-  return { messages }
+  const limit = params.limit ?? DEFAULT_LIMIT
+  const byId = new Map(messages.map((message) => [message.id, message]))
+  for (const message of listZotzOrchestrationMail(db, known, limit)) {
+    if (!byId.has(message.id)) {
+      byId.set(message.id, message)
+    }
+  }
+  return {
+    messages: [...byId.values()].sort((a, b) => a.createdAt - b.createdAt).slice(-limit)
+  }
 }
