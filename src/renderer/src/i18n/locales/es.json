@@ -25136,6 +25136,7 @@
         "duplicateEdge": "Conexión repetida.",
         "duplicateNodeId": "Dos pasos tienen el mismo id.",
         "duplicateNodeName": "Otro paso también se llama {name}.",
+        "duplicateSlug": "Otro flow ya usa este identificador.",
         "duplicateSwitchCase": "La salida \"{port}\" está repetida o reservada.",
         "edgeCrossesLoop": "Las conexiones no pueden cruzar el borde de un bucle.",
         "edgeUnknownNode": "Conexión a un paso que no existe.",

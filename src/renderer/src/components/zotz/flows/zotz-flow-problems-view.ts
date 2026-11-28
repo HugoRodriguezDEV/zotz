@@ -55,6 +55,7 @@ const COPY: Record<ZotzFlowProblemCode, [string, string]> = {
     'zotz.flows.problem.duplicateNodeName',
     'Another step is also named {name}.'
   ],
+  duplicate_slug: ['zotz.flows.problem.duplicateSlug', 'Another flow already uses this slug.'],
   reserved_node_name: ['zotz.flows.problem.reservedNodeName', '{name} is reserved for templates.'],
   parent_not_for_each: [
     'zotz.flows.problem.parentNotForEach',
