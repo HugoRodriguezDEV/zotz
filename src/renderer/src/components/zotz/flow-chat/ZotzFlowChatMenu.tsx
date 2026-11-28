@@ -8,6 +8,7 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command'
+import { ZOTZ_FLOW_CHAT_COMMAND } from '../../../../../shared/zotz/flows/zotz-flow-chat-command'
 import type { ZotzFlowChatMachineEntry } from './zotz-flow-chat-store'
 
 export type ZotzFlowChatMenuGroup = {
@@ -79,7 +80,7 @@ export function ZotzFlowChatMenu({
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-foreground">{entry.flow.name}</div>
                       <div className="font-mono text-xs text-muted-foreground">
-                        {`/flow ${entry.flow.slug}`}
+                        {`/${ZOTZ_FLOW_CHAT_COMMAND} ${entry.flow.slug}`}
                       </div>
                       {entry.flow.description ? (
                         <div className="line-clamp-2 text-xs text-muted-foreground">
