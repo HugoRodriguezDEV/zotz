@@ -22,6 +22,7 @@ import {
 } from './native-chat-worker-approval-feed'
 import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import type { NativeChatTimedRow } from '../conversation/slots/native-chat-timed-rows'
+import { useZotzFlowChatTimedRows } from '@/components/zotz/flow-chat/use-zotz-flow-chat-timed-rows'
 import {
   formatOrcaSessionAddress,
   isOrcaSessionId
@@ -220,12 +221,16 @@ export function nativeChatWorkerApprovalParty(pane: {
  *  asked. Holds them itself, so only the transcript redraws, and only when a receipt changes. */
 export function NativeChatWorkerApprovalTimeline({
   party,
+  chat,
   children
 }: {
   party: string | null
+  /** Zotz: the chat whose flow cards join these rows. */
+  chat?: { sessionId: string; target?: RuntimeClientTarget }
   children: (timedRows: readonly NativeChatTimedRow[]) => React.ReactNode
 }): React.ReactNode {
   const receipts = useNativeChatWorkerApprovalReceipts(party)
+  const withZotzFlowRows = useZotzFlowChatTimedRows(chat)
   const timedRows = useMemo(
     () =>
       receipts.map((entry) => ({
@@ -235,5 +240,5 @@ export function NativeChatWorkerApprovalTimeline({
       })),
     [receipts]
   )
-  return children(timedRows)
+  return children(withZotzFlowRows(timedRows))
 }

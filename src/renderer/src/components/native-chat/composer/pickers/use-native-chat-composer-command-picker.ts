@@ -11,6 +11,10 @@ import {
 } from './use-native-chat-resume-command'
 import type { NativeChatStructuredComposerTransport } from '../submit/native-chat-structured-composer-transport'
 import { useNativeChatSideChatCommand } from './use-native-chat-side-chat-command'
+import {
+  useZotzFlowChatCommand,
+  useZotzFlowChatRows
+} from '@/components/zotz/flow-chat/use-zotz-flow-chat-command'
 
 type PickerArgs = Parameters<typeof useNativeChatPickerState>[0]
 type ResumeArgs = Parameters<typeof useNativeChatResumeCommand>[0]
@@ -35,7 +39,12 @@ export function useNativeChatComposerCommandPicker(
 ): { picker: NativeChatPickerState; orcaCommands: NativeChatResumeCommand } {
   const { structuredTransport, editor, setNotice, mode, ...pickerArgs } = args
   const { agent, terminalTabId } = pickerArgs
-  const { agentCommands, sessionSkills } = useNativeChatComposerCatalog(agent, structuredTransport)
+  const catalog = useNativeChatComposerCatalog(agent, structuredTransport)
+  const { sessionSkills } = catalog
+  // Zotz: `/flow` and flow shortcuts, only where a draft goes to a live chat.
+  const zotzTransport = mode === undefined ? structuredTransport : undefined
+  const zotzFlows = useZotzFlowChatRows(zotzTransport, catalog.agentCommands, sessionSkills)
+  const agentCommands = zotzFlows.commands
   const reported = structuredTransport?.sessionCommands
   const hostSetsGoals = structuredTransport?.threadGoal !== undefined
   const hostSetsInteractionMode =
@@ -77,7 +86,7 @@ export function useNativeChatComposerCommandPicker(
     matchesDraft: resumeMatches,
     interceptPick: resumeIntercept
   } = resume
-  const orcaCommands = useMemo(
+  const upstreamCommands = useMemo(
     (): NativeChatResumeCommand => ({
       matchesDraft: (draft) => sideMatches(draft) || resumeMatches(draft),
       consume: (draft) => sideConsume(draft) || resumeConsume(draft),
@@ -85,5 +94,13 @@ export function useNativeChatComposerCommandPicker(
     }),
     [resumeConsume, resumeIntercept, resumeMatches, sideConsume, sideIntercept, sideMatches]
   )
+  const orcaCommands = useZotzFlowChatCommand({
+    structuredTransport: zotzTransport,
+    agent,
+    shortcuts: zotzFlows.shortcuts,
+    picker,
+    editor,
+    upstream: upstreamCommands
+  })
   return { picker, orcaCommands }
 }

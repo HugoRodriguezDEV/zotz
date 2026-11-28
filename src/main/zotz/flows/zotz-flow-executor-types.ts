@@ -66,6 +66,8 @@ export type ZotzFlowAgentDriver = {
     prompt: string
     turn: ZotzFlowAgentTurnKey
     signal: AbortSignal
+    /** The chat's workspace, for `workspaceSource: 'chat'`. */
+    workspaceId?: string | null
   }): Promise<ZotzFlowAgentTurn>
   /** Sends another prompt to the same session (the JSON correction). */
   followUp(request: {
@@ -83,6 +85,20 @@ export type ZotzFlowAgentDriver = {
     signal: AbortSignal
   }): Promise<ZotzFlowAgentReply> | null
   stop(link: ZotzFlowAgentSessionLink): Promise<void>
+}
+
+/** The chat that fired a run (spec §6.2, §6.3); it must live on the machine that runs the flow. */
+export type ZotzFlowChatDriver = {
+  /** `runInChatSession`: the prompt goes to that chat and its reply is the step's output. */
+  prompt(request: {
+    node: AgentNode
+    sessionId: string
+    prompt: string
+    turn: ZotzFlowAgentTurnKey
+    signal: AbortSignal
+  }): Promise<ZotzFlowAgentTurn>
+  /** `chat_reply` as a message to the agent; does not wait for its answer. */
+  send(request: { sessionId: string; text: string; operationId: string }): Promise<void>
 }
 
 // ---------- Commands, HTTP, notices, subflows ----------
@@ -116,6 +132,7 @@ export type ZotzFlowExecutorDeps = {
   now(): number
   save(run: ZotzFlowRun): void
   agents: ZotzFlowAgentDriver
+  chat: ZotzFlowChatDriver
   runCommand(request: ZotzFlowCommandRequest): Promise<ZotzFlowCommandResult>
   fetch(request: ZotzFlowHttpRequest): Promise<ZotzFlowHttpResponse>
   notify(request: { title: string; body: string; flow: ZotzFlow; run: ZotzFlowRun }): Promise<void>
