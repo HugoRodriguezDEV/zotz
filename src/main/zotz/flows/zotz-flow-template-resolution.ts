@@ -30,13 +30,9 @@ function readPath(value: unknown, path: readonly string[]): unknown {
   for (const segment of path) {
     if (Array.isArray(current) && /^\d+$/.test(segment)) {
       current = current[Number(segment)]
-    } else if (
-      current !== null &&
-      typeof current === 'object' &&
+    } else if (current !== null && typeof current === 'object') {
       // Own keys only, so `{{x.json.__proto__}}` never reaches the prototype chain.
-      Object.hasOwn(current, segment)
-    ) {
-      current = Reflect.get(current, segment)
+      current = Object.getOwnPropertyDescriptor(current, segment)?.value
     } else {
       return undefined
     }
