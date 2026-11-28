@@ -25128,6 +25128,10 @@
         "true": "Sí",
         "withFailures": "Con fallas"
       },
+      "previousRuns": {
+        "title": "Corridas anteriores",
+        "body": "De la automatización de la que salió este flow. Solo lectura."
+      },
       "problem": {
         "chatContextNotRequested": "{template} queda vacío si el comando del chat no lo manda.",
         "chatWithoutTrigger": "Esto necesita un disparador de comando del chat.",
@@ -25262,7 +25266,6 @@
         "label": "Label",
         "manual": "Manual",
         "newToken": "Token nuevo",
-        "notListening": "Zotz todavía no escucha esto. Queda guardado y empieza a funcionar cuando lo haga.",
         "outcomeError": "Falló",
         "outcomeInterrupted": "Interrumpido",
         "outcomeSuccess": "Salió bien",

@@ -72,6 +72,9 @@ export const ZotzFlowsChatRunsParams = z.object({
   limit: z.number().int().min(1).max(200).optional()
 })
 
+/** Turns one automation of this host into a flow (spec §8); `zotz automations create` uses it. */
+export const ZotzFlowsMigrateAutomationParams = z.object({ automationId: Id })
+
 /** Omitting both streams every flow and run change on the host. */
 export const ZotzFlowsSubscribeParams = z.object({
   flowId: Id.optional(),
@@ -93,6 +96,11 @@ export type ZotzFlowsRunsResult = ZotzFlowRunsPage
 export type ZotzFlowsRunGetResult = { run: ZotzFlowRun | null }
 export type ZotzFlowsChatRunsResult = { runs: ZotzFlowRun[] }
 export type ZotzFlowsApproveResult = { run: ZotzFlowRun }
+/** Why an automation stays one: SSH target, a plugin owns it, its server migrates it, or bad data. */
+export type ZotzFlowsMigrationSkipReason = 'ssh' | 'plugin' | 'elsewhere' | 'invalid'
+export type ZotzFlowsMigrateAutomationResult =
+  | { status: 'migrated' | 'already'; flow: ZotzFlow | null }
+  | { status: 'skipped'; reason: ZotzFlowsMigrationSkipReason; message: string }
 export type ZotzFlowsStreamEvent =
   | { type: 'flow'; flow: ZotzFlow }
   | { type: 'flow_deleted'; flowId: string }

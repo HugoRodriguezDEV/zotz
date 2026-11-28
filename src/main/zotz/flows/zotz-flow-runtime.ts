@@ -22,11 +22,16 @@ import type {
 } from './zotz-flow-service'
 import { summarizeZotzFlowRunOutput } from './zotz-flow-step-output'
 import type { ZotzFlowStore } from './zotz-flow-store'
+import type { ZotzAutomationMigrationOutcome } from './zotz-flow-automation-migration'
 
 // Deep enough for real reuse, shallow enough that a flow calling itself stops quickly.
 const MAX_SUBFLOW_DEPTH = 8
 
-export type ZotzFlowRuntime = { store: ZotzFlowStore; service: ZotzFlowService }
+export type ZotzFlowRuntime = {
+  store: ZotzFlowStore
+  service: ZotzFlowService
+  migrateAutomation: (automationId: string) => ZotzAutomationMigrationOutcome
+}
 
 let current: ZotzFlowRuntime | null = null
 

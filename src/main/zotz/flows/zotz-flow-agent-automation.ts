@@ -1,6 +1,7 @@
 import type { Automation } from '../../../shared/automations/automation-definition'
 import type { AutomationRun } from '../../../shared/automations/history/automation-run'
 import { getRepoIdFromWorktreeId } from '../../../shared/worktree/id'
+import { parseExecutionHostId } from '../../../shared/execution-host'
 import type { ZotzFlow } from '../../../shared/zotz/flows/zotz-flow-contract'
 import type { ZotzFlowNodeOf } from '../../../shared/zotz/flows/zotz-flow-node-contract'
 import type { ZotzFlowAgentSessionLink } from '../../../shared/zotz/flows/zotz-flow-run-contract'
@@ -34,7 +35,12 @@ export function buildZotzFlowStepAutomation(
     projectId: repoId,
     executionTargetType: 'local',
     executionTargetId: 'local',
-    schedulerOwner: 'local_host_service',
+    // A server names its own projects by its runtime host id; the run target only accepts those
+    // from a server-owned record, exactly as a server's own automation is.
+    schedulerOwner:
+      parseExecutionHostId(node.runContext?.hostId)?.kind === 'runtime'
+        ? 'remote_host_service'
+        : 'local_host_service',
     workspaceMode: existing ? 'existing' : 'new_per_run',
     workspaceId: existing ? workspaceId : null,
     baseBranch: node.baseBranch ?? null,

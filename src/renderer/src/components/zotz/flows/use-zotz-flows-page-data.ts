@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useEffectEvent, useState } from 'react'
 import type { ZotzFlow } from '../../../../../shared/zotz/flows/zotz-flow-contract'
 import type { ZotzFlowRun } from '../../../../../shared/zotz/flows/zotz-flow-run-contract'
+import { normalizeExecutionHostId } from '../../../../../shared/execution-host'
 import { subscribeZotzFlows, zotzFlowsRpc } from './zotz-flows-rpc'
 
 export type ZotzFlowsHostState = { flows: ZotzFlow[]; loading: boolean; error: string | null }
 
 function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+// A server only knows itself as `local` (a flow it migrated); clients address it by their own id.
+function onHost(flow: ZotzFlow, hostId: string): ZotzFlow {
+  const listedOn = normalizeExecutionHostId(hostId)
+  return !listedOn || flow.hostId === listedOn ? flow : { ...flow, hostId: listedOn }
 }
 
 /** Flows of every machine, kept current by each machine's stream. */
@@ -25,7 +32,14 @@ export function useZotzFlowsPageData(
     }))
     zotzFlowsRpc.list(hostId).then(
       ({ flows }) =>
-        setByHost((current) => ({ ...current, [hostId]: { flows, loading: false, error: null } })),
+        setByHost((current) => ({
+          ...current,
+          [hostId]: {
+            flows: flows.map((flow) => onHost(flow, hostId)),
+            loading: false,
+            error: null
+          }
+        })),
       (error: unknown) =>
         setByHost((current) => ({
           ...current,
@@ -50,7 +64,10 @@ export function useZotzFlowsPageData(
           )
           return {
             ...current,
-            [hostId]: { ...state, flows: event.type === 'flow' ? [...others, event.flow] : others }
+            [hostId]: {
+              ...state,
+              flows: event.type === 'flow' ? [...others, onHost(event.flow, hostId)] : others
+            }
           }
         })
       })

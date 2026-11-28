@@ -13,6 +13,11 @@ const UNSETTLED_RETRY_MS = 30_000
 // Same catch-up window automations default to: a run missed while asleep runs once within it.
 const MISSED_RUN_GRACE_MS = 720 * 60 * 1000
 
+/** An edited rrule or start changes it, and the schedule then starts over from its next occurrence. */
+export function zotzFlowScheduleSignature(trigger: { rrule: string; dtstart: number }): string {
+  return `${trigger.rrule}|${trigger.dtstart}`
+}
+
 /** Schedule triggers (spec §4.2), with the automation rrule, DST and missed-run rules. */
 export function startZotzFlowScheduler(input: {
   store: ZotzFlowStore
@@ -51,7 +56,7 @@ export function startZotzFlowScheduler(input: {
           continue
         }
         const key = `${flow.id}:${trigger.id}`
-        const signature = `${trigger.rrule}|${trigger.dtstart}`
+        const signature = zotzFlowScheduleSignature(trigger)
         const entry = previous[key]
         try {
           // A new or edited schedule starts from its next occurrence, never from the past.

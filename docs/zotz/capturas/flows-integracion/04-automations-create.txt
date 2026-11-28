@@ -1,0 +1,18 @@
+$ zotz automations create --name 'Resumen semanal' --trigger weekly --prompt 'Resume los commits de la semana.' --provider claude --precheck 'git log -1' --workspace path:<repo-de-prueba>
+Created flow "Resumen semanal" (resumen-semanal): schedule → chequeo → paso_chequeo → agente.
+It runs as a flow; the automation it came from stays off.
+Open it in Flows, or run it now: zotz flows run resumen-semanal
+
+$ zotz flows list
+prueba-migracion  Prueba migracion  · 3 steps · triggers: schedule
+resumen-semanal  Resumen semanal  · 3 steps · triggers: schedule
+revisar-pr  Revisar PR  · 5 steps · triggers: chat_command, pull_request
+
+$ zotz automations list
+7d2ca73e-4618-4088-a3a9-648874985af6  Prueba migracion  claude  disabled
+Custom schedule  next: 2026-11-28T16:12:00.000Z
+host: self
+
+f7095803-fa53-4d88-9a0d-73949eb827f7  Resumen semanal  claude  disabled
+Mondays at 9:00 AM  next: 2026-11-30T15:00:00.000Z
+host: self

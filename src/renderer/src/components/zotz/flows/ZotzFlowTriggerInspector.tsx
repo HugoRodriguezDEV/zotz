@@ -19,14 +19,6 @@ import { ZotzFlowSection } from './ZotzFlowFormParts'
 import { ZotzFlowTriggerFields } from './ZotzFlowTriggerFields'
 import { newZotzFlowId } from './zotz-flow-graph-edits'
 
-const NOT_LISTENING = new Set<ZotzFlowTrigger['kind']>([
-  'agent_finished',
-  'pull_request',
-  'task_moved',
-  'webhook',
-  'chat_command'
-])
-
 export function ZotzFlowTriggerInspector({
   triggers,
   selectedId,
@@ -121,14 +113,6 @@ export function ZotzFlowTriggerInspector({
             </Button>
           }
         >
-          {NOT_LISTENING.has(selected.kind) ? (
-            <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-              {t(
-                'zotz.flows.trigger.notListening',
-                'Zotz does not listen for this yet. It is saved and starts working when it does.'
-              )}
-            </p>
-          ) : null}
           <ZotzFlowTriggerFields
             trigger={selected}
             onChange={(next) =>
