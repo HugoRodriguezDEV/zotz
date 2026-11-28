@@ -1,6 +1,7 @@
 import {
   getZotzFlowNodePorts,
   ZOTZ_FLOW_ERROR_PORT,
+  ZOTZ_FLOW_SWITCH_DEFAULT_PORT,
   type ZotzFlowNode
 } from '../../../shared/zotz/flows/zotz-flow-node-contract'
 import type {
@@ -49,8 +50,19 @@ export function zotzFlowContinuePort(node: ZotzFlowNode): string | null {
       return 'rejected'
     case 'for_each':
       return 'with_failures'
-    default:
-      return ports.at(-1) ?? null
+    case 'switch':
+      return ZOTZ_FLOW_SWITCH_DEFAULT_PORT
+    case 'agent':
+    case 'command':
+    case 'http':
+    case 'template':
+    case 'subflow':
+    case 'parallel':
+    case 'join':
+    case 'wait':
+    case 'notify':
+    case 'chat_reply':
+      return null
   }
 }
 

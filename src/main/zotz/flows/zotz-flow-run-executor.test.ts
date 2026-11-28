@@ -67,9 +67,12 @@ function scriptedAgents(replies: Record<string, string[]>): ZotzFlowAgentDriver 
   }
 }
 
+// Fixed timestamps: step results never depend on the wall clock.
+let clock = 1_000
+
 function deps(overrides: Partial<ZotzFlowExecutorDeps> = {}): ZotzFlowExecutorDeps {
   return {
-    now: () => Date.now(),
+    now: () => (clock += 1),
     save: () => {},
     agents: scriptedAgents({}),
     runCommand: async () => ({

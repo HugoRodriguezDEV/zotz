@@ -6,7 +6,10 @@ import type { ZotzFlowRunTrigger } from '../../../shared/zotz/flows/zotz-flow-ru
 import type { ZotzFlowRunOrigin } from './zotz-flow-origin'
 import type { ZotzFlowScheduleState, ZotzFlowStore } from './zotz-flow-store'
 
-const TICK_MS = 30_000
+// Longest single wait: a sleep or a clock change is noticed within it.
+const MAX_WAIT_MS = 60 * 60 * 1000
+// Right after a wake, due runs wait for the machine to settle before starting.
+const UNSETTLED_RETRY_MS = 30_000
 // Same catch-up window automations default to: a run missed while asleep runs once within it.
 const MISSED_RUN_GRACE_MS = 720 * 60 * 1000
 
@@ -19,8 +22,24 @@ export function startZotzFlowScheduler(input: {
   now: () => number
 }): () => void {
   const { store } = input
+  let timer: ReturnType<typeof setTimeout> | null = null
+  // Sleeps until the next due occurrence; with no schedules nothing stays armed.
+  const arm = (delay?: number): void => {
+    if (timer !== null) {
+      clearTimeout(timer)
+      timer = null
+    }
+    const due = Object.values(store.getSchedules()).map((entry) => entry.nextRunAt)
+    if (delay === undefined && due.length === 0) {
+      return
+    }
+    const wait = delay ?? Math.min(...due) - input.now()
+    timer = setTimeout(tick, Math.min(Math.max(1000, wait), MAX_WAIT_MS))
+    timer.unref?.()
+  }
   const tick = (): void => {
     if (!input.settled()) {
+      arm(UNSETTLED_RETRY_MS)
       return
     }
     const now = input.now()
@@ -71,17 +90,18 @@ export function startZotzFlowScheduler(input: {
     if (JSON.stringify(next) !== JSON.stringify(previous)) {
       store.setSchedules(next)
     }
+    arm()
   }
   tick()
-  const timer = setInterval(tick, TICK_MS)
-  timer.unref?.()
   const unsubscribe = store.subscribe((event) => {
     if (event.type !== 'run') {
       tick()
     }
   })
   return () => {
-    clearInterval(timer)
+    if (timer !== null) {
+      clearTimeout(timer)
+    }
     unsubscribe()
   }
 }

@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { z } from 'zod'
 import { readJsonFile, SerialJsonWriter } from '../zotz-json-file'
 import {
   ZotzFlowSchema,
@@ -35,18 +36,26 @@ export type ZotzFlowScheduleState = Record<string, { nextRunAt: number; signatur
 
 type RunsFile = { version: 1; runs: ZotzFlowRun[]; schedules: ZotzFlowScheduleState }
 
+// Files are read leniently: an unreadable entry is dropped, never the whole file.
+const FlowsFileSchema = z.object({ flows: z.array(z.unknown()).catch([]) }).catch({ flows: [] })
+const RunsFileSchema = z
+  .object({
+    runs: z.array(z.unknown()).catch([]),
+    schedules: z
+      .record(z.string(), z.object({ nextRunAt: z.number(), signature: z.string() }))
+      .catch({})
+  })
+  .catch({ runs: [], schedules: {} })
+const RunRecordSchema = z.looseObject({
+  id: z.string(),
+  flowId: z.string(),
+  status: z.string(),
+  nodes: z.array(z.unknown()),
+  createdAt: z.number()
+})
+
 function isRunRecord(value: unknown): value is ZotzFlowRun {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-  const run = value as Partial<ZotzFlowRun>
-  return (
-    typeof run.id === 'string' &&
-    typeof run.flowId === 'string' &&
-    typeof run.status === 'string' &&
-    Array.isArray(run.nodes) &&
-    typeof run.createdAt === 'number'
-  )
+  return RunRecordSchema.safeParse(value).success
 }
 
 /** Flows and their runs on the machine that runs them (spec §7). */
@@ -65,10 +74,8 @@ export class ZotzFlowStore {
   ) {}
 
   async load(): Promise<void> {
-    const flowsFile = (await readJsonFile(join(this.userDataPath, FLOWS_FILE))) as
-      | { flows?: unknown[] }
-      | undefined
-    for (const entry of flowsFile?.flows ?? []) {
+    const flowsFile = FlowsFileSchema.parse(await readJsonFile(join(this.userDataPath, FLOWS_FILE)))
+    for (const entry of flowsFile.flows) {
       const parsed = ZotzFlowSchema.safeParse(entry)
       if (parsed.success) {
         this.flows.set(parsed.data.id, parsed.data)
@@ -76,14 +83,11 @@ export class ZotzFlowStore {
         console.warn('[zotz-flows] skipped an unreadable flow:', parsed.error.issues[0]?.message)
       }
     }
-    const runsFile = (await readJsonFile(join(this.userDataPath, RUNS_FILE))) as
-      | Partial<RunsFile>
-      | undefined
-    for (const run of (runsFile?.runs ?? []).filter(isRunRecord)) {
+    const runsFile = RunsFileSchema.parse(await readJsonFile(join(this.userDataPath, RUNS_FILE)))
+    for (const run of runsFile.runs.filter(isRunRecord)) {
       this.runs.set(run.id, run)
     }
-    this.schedules =
-      runsFile?.schedules && typeof runsFile.schedules === 'object' ? runsFile.schedules : {}
+    this.schedules = runsFile.schedules
   }
 
   subscribe(listener: (event: ZotzFlowsStreamEvent) => void): () => void {

@@ -120,7 +120,11 @@ export function buildZotzFlowRequestTrigger(
         trigger: { triggerId: trigger.id, kind: 'schedule', scheduledFor: now },
         origin: { source: 'manual' }
       }
-    default:
+    case 'flow_call':
+    case 'agent_finished':
+    case 'pull_request':
+    case 'task_moved':
+    case 'webhook':
       throw new InvalidArgumentError('This trigger fires on its own and cannot be run by hand.')
   }
 }

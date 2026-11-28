@@ -47,6 +47,7 @@ function formatSchema(format: JsonFormat): ZodType {
       )
     )
   }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a JSON object; fromJSONSchema throws on what it cannot read and the caller reports it.
   return z.fromJSONSchema(format.schema as Parameters<typeof z.fromJSONSchema>[0])
 }
 

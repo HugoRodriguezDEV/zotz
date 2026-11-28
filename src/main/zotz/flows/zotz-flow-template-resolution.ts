@@ -36,7 +36,7 @@ function readPath(value: unknown, path: readonly string[]): unknown {
       // Own keys only, so `{{x.json.__proto__}}` never reaches the prototype chain.
       Object.hasOwn(current, segment)
     ) {
-      current = (current as Record<string, unknown>)[segment]
+      current = Reflect.get(current, segment)
     } else {
       return undefined
     }
