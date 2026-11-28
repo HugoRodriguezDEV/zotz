@@ -5,7 +5,7 @@ import type {
   ZotzFlowNodeRunStatus,
   ZotzFlowRun
 } from '../../../shared/zotz/flows/zotz-flow-run-contract'
-import type { ZotzFlowExecutorDeps } from './zotz-flow-executor-types'
+import type { ZotzFlowExecutorDeps, ZotzFlowLevelResult } from './zotz-flow-executor-types'
 import type { ZotzFlowLoopItem, ZotzFlowTemplateScope } from './zotz-flow-template-resolution'
 
 /** What the level and step runners need from the run being executed. */
@@ -34,6 +34,13 @@ export type ZotzFlowEngine = {
     signal: AbortSignal
   ): Promise<'approved' | 'rejected' | 'timeout'>
   changed(): void
+  /** Runs a loop body; passed through here so steps and levels do not import each other. */
+  runLevel(
+    parentId: string,
+    path: number[],
+    item: ZotzFlowLoopItem,
+    signal: AbortSignal
+  ): Promise<ZotzFlowLevelResult>
 }
 
 export function zotzFlowNodeRunKey(nodeId: string, path: readonly number[]): string {
