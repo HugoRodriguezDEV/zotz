@@ -25299,6 +25299,53 @@
       "zoomIn": "Acercar",
       "zoomOut": "Alejar"
     },
+    "flowChat": {
+      "argumentHint": "[texto]",
+      "attachmentsPending": "Los adjuntos todavía se están subiendo. Envía el comando otra vez cuando terminen.",
+      "cancelFailed": "No se pudo detener el flow: {{error}}",
+      "cancelRun": "Detener flow",
+      "cardLabel": "Flow {{flow}}",
+      "commandDescription": "Correr un flow de Zotz",
+      "deletedFlow": "Flow borrado",
+      "flowArgumentHint": "[flow] [texto]",
+      "formCancel": "Cancelar",
+      "formDescription": "Este flow pide algunos valores antes de correr.",
+      "formMissing": "Llena este campo para correr el flow.",
+      "formRequired": "{{label}} (obligatorio)",
+      "formRun": "Correr flow",
+      "formText": "Texto",
+      "formTitle": "Correr {{flow}}",
+      "loopProgress": "{{done}}/{{total}}",
+      "loopProgressFailed": "{{done}}/{{total}} · {{failed}} fallaron",
+      "menuDescription": "Flows con disparador de comando del chat, con este chat como contexto.",
+      "menuLoading": "Leyendo flows…",
+      "menuNoMatch": "Ningún flow coincide.",
+      "menuNone": "Todavía ningún flow corre desde el chat. Agrega un disparador de comando del chat a un flow en Flows.",
+      "menuSearch": "Buscar flows",
+      "menuTitle": "Correr un flow",
+      "notFound": "Ningún flow \"{{name}}\" corre desde este chat.",
+      "openRun": "Ver corrida",
+      "runFailed": "No se pudo correr {{flow}}: {{error}}",
+      "runNumber": "Corrida #{{number}}",
+      "runOn": "Corrida #{{number}} en {{machine}}",
+      "shortcutDescription": "Flow: {{flow}}",
+      "status": {
+        "cancelled": "Cancelada",
+        "done": "Lista",
+        "failed": "Falló",
+        "queued": "Esperando para empezar",
+        "running": "Corriendo",
+        "skipped": "No corrió",
+        "waitingApproval": "Esperando aprobación"
+      },
+      "step": {
+        "notReached": "No se alcanzó",
+        "pending": "Pendiente",
+        "queued": "En la cola de agentes",
+        "skipped": "Saltado"
+      },
+      "thisMachine": "Esta máquina"
+    },
     "flashSessions": {
       "more": "+{{count}} más",
       "less": "Ver menos"
