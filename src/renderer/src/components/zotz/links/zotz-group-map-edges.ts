@@ -3,8 +3,20 @@ import type { ZotzLinkMessage } from '../../../../../shared/zotz/conversation-li
 /** One line of the group map: two members (lower index first) and how much they wrote. */
 export type ZotzGroupMapEdge = { a: number; b: number; count: number; lastAt: number }
 
+/** A message that just arrived, by member index; `firstOfPair` when the two never wrote before. */
+export type ZotzGroupMapMail = { id: string; from: number; to: number; firstOfPair: boolean }
+
 export function zotzEdgeKey(a: number, b: number): string {
   return a < b ? `${a}-${b}` : `${b}-${a}`
+}
+
+function endsOf(
+  message: ZotzLinkMessage,
+  memberIndexOf: (addressOrLabel: string) => number | null
+): { from: number; to: number } | null {
+  const from = memberIndexOf(message.fromLabel ?? message.from)
+  const to = memberIndexOf(message.to)
+  return from === null || to === null || from === to ? null : { from, to }
 }
 
 /**
@@ -17,15 +29,14 @@ export function buildZotzGroupMapEdges(
 ): ZotzGroupMapEdge[] {
   const edges = new Map<string, ZotzGroupMapEdge>()
   for (const message of messages) {
-    const from = memberIndexOf(message.fromLabel ?? message.from)
-    const to = memberIndexOf(message.to)
-    if (from === null || to === null || from === to) {
+    const ends = endsOf(message, memberIndexOf)
+    if (!ends) {
       continue
     }
-    const key = zotzEdgeKey(from, to)
+    const key = zotzEdgeKey(ends.from, ends.to)
     const edge = edges.get(key) ?? {
-      a: Math.min(from, to),
-      b: Math.max(from, to),
+      a: Math.min(ends.from, ends.to),
+      b: Math.max(ends.from, ends.to),
       count: 0,
       lastAt: 0
     }
@@ -38,13 +49,33 @@ export function buildZotzGroupMapEdges(
   return [...edges.values()]
 }
 
-/** Whether a message is between the two members of a selected pair. */
-export function isZotzMessageInPair(
+/** Fresh mail between members, oldest first, with who wrote to whom. */
+export function buildZotzGroupMapMail(
+  fresh: readonly ZotzLinkMessage[],
+  earlierPairs: ReadonlySet<string>,
+  memberIndexOf: (addressOrLabel: string) => number | null
+): ZotzGroupMapMail[] {
+  const pairs = new Set(earlierPairs)
+  return [...fresh]
+    .sort((x, y) => x.createdAt - y.createdAt)
+    .flatMap((message) => {
+      const ends = endsOf(message, memberIndexOf)
+      if (!ends) {
+        return []
+      }
+      const key = zotzEdgeKey(ends.from, ends.to)
+      const firstOfPair = !pairs.has(key)
+      pairs.add(key)
+      return [{ id: message.id, ...ends, firstOfPair }]
+    })
+}
+
+/** Whether a member wrote or received a message. */
+export function isZotzMessageOfMember(
   message: ZotzLinkMessage,
-  pair: { a: number; b: number },
+  member: number,
   memberIndexOf: (addressOrLabel: string) => number | null
 ): boolean {
-  const from = memberIndexOf(message.fromLabel ?? message.from)
-  const to = memberIndexOf(message.to)
-  return from !== null && to !== null && zotzEdgeKey(from, to) === zotzEdgeKey(pair.a, pair.b)
+  const ends = endsOf(message, memberIndexOf)
+  return ends !== null && (ends.from === member || ends.to === member)
 }

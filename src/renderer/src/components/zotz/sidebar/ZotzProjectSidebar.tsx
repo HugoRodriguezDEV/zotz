@@ -3,6 +3,7 @@ import { useContextualTour } from '../../contextual-tours/use-contextual-tour'
 import { useAppStore } from '@/store/index'
 import { useTranslate } from '@/i18n/use-translate'
 import type { AgentDotState } from '@/components/AgentStateDot'
+import type { AgentType } from '../../../../../shared/agent-status/contracts/agent-status-types'
 import { activityThreadStatusId } from '@/components/activity/activity-thread-presentation'
 import { useAllAgentPaneThreads } from '@/components/activity/use-agent-pane-threads'
 import {
@@ -53,10 +54,17 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
   const activeWorktreeId = useAppStore((s) => s.activeWorktreeId)
   const { allThreads } = useAllAgentPaneThreads()
   const statusByWorkspace = useMemo(() => {
-    const threadsByWorkspace = new Map<string, { state: AgentDotState; unread: boolean }[]>()
+    const threadsByWorkspace = new Map<
+      string,
+      { state: AgentDotState; unread: boolean; agentType: AgentType }[]
+    >()
     for (const thread of allThreads) {
       const list = threadsByWorkspace.get(thread.worktree.id) ?? []
-      list.push({ state: activityThreadStatusId(thread), unread: thread.unread })
+      list.push({
+        state: activityThreadStatusId(thread),
+        unread: thread.unread,
+        agentType: thread.agentType
+      })
       threadsByWorkspace.set(thread.worktree.id, list)
     }
     const result = new Map<string, ZotzConversationStatus>()
@@ -289,7 +297,9 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
 
   const sectionHeader = (label: string, action: React.ReactNode): React.JSX.Element => (
     <div className="flex items-center justify-between px-2 pt-2 pb-1">
-      <span className="text-xs font-medium text-worktree-sidebar-foreground/60">{label}</span>
+      <span className="font-zotz-display text-sm font-extrabold tracking-[0.02em] text-worktree-sidebar-foreground/75 subpixel-antialiased">
+        {label}
+      </span>
       {action}
     </div>
   )
@@ -334,7 +344,7 @@ export default function ZotzProjectSidebar(): React.JSX.Element {
         ))}
         {folders.length > 0 ? (
           <section className="mb-2">
-            <div className="px-2 py-1.5 text-sm font-semibold text-worktree-sidebar-foreground">
+            <div className="px-2 py-1.5 font-zotz-display text-sm font-extrabold tracking-[0.02em] text-worktree-sidebar-foreground/75 subpixel-antialiased">
               {t('zotz.sidebar.folders', 'Folders')}
             </div>
             {groupByMachine ? (

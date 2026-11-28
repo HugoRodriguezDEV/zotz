@@ -54,7 +54,7 @@ Archivos clave:
 - [x] `grep -rn "'Orca'\|\"Orca\"" src/main src/renderer src/cli` para encontrar strings visibles que se hayan escapado. Cambiar solo las visibles.
 - [x] Verificar que `zotz --help` y `zotz serve --help` muestran "zotz".
 
-**Fase 1b — Logo:** crear `resources/icon-source/zotz-bat.svg` (murciélago minimalista, legible a 16px, que funcione en monocromo para la bandeja del sistema) y regenerar los íconos con el script que ya usa `resources/icon-source/` (buscarlo antes de escribir uno nuevo).
+**Fase 1b — Logo:** murciélago pixelado frente a la luna. Las cuadrículas viven en `resources/icon-source/zotz-bat-pixel.mjs` y `pnpm build:icons` (`generate.sh` → `render-zotz-icons.mjs` + `iconutil`) regenera todos los íconos pixel exactos.
 
 **Listo cuando:** un build de Windows instala como "Zotz", con ícono de murciélago, convive con Orca instalado y guarda datos en su propia carpeta.
 
@@ -990,3 +990,15 @@ Sección B de la spec de monitor y remotos.
 
 - Con el composer vacío, el texto gris del dictado se dibujaba encima de "Ask anything, @ to mention files, / for commands". Mientras se ve la vista previa, el campo destino lleva `data-zotz-dictating` y su placeholder (el `::before` de Tiptap, `::placeholder` de textarea/input) se oculta sin mover el cursor; al terminar vuelve.
 - Verificado con la fixture `ZotzDictationLivePreview:emptyComposer` (mismas clases de placeholder que `NativeChatPromptEditor`): sin dictado se ve el placeholder, con dictado solo el texto.
+
+### 2026-11-27 — Logo luna pixelada (`zotz-logo-luna-pixel`)
+
+- Fuente nueva: `resources/icon-source/zotz-bat-pixel.mjs` (murciélago 16×16 con alas arriba/abajo y luna 32×32). `render-zotz-icons.mjs` pinta cada tamaño a escala entera por celda; solo las esquinas del cuadro llevan suavizado.
+- `generate.sh` ya no usa Icon Composer (`actool`) ni ImageMagick: solo Node (`pngjs`) + `iconutil`. Se borraron `icon.icon/` y `zotz-bat.svg`.
+- Regenerados con los mismos nombres: `build/icon.{icns,png,ico}`, `icon.png`, `icon-dev.png`, `app-icons/*.png`, `tray/orca-menu-barTemplate*.png`, `logo.svg`. Nuevos: `logo-moon*.svg` (landing con aleteo, respeta `prefers-reduced-motion`) y `tray/zotz-tray-windows*.png`.
+- Luna desde que cabe a 1 px por celda (≥ 40 px en `.ico`, ≥ 64 px en `.icns`); debajo, el murciélago solo sobre el cuadro noche.
+
+**Sorpresas / pendientes**
+
+- Bandeja de Windows: Electron no expone si la barra de tareas es clara u oscura (es distinto del tema de apps), así que en lugar de silueta clara/oscura usa el murciélago sobre el cuadro noche (16/32 px), que se lee en ambas. Linux no tiene bandeja en esta app.
+- La insignia DEV de la barra de menú de macOS (`tray-dev-badge.ts`) se pinta encima del ala izquierda; solo afecta builds de desarrollo.

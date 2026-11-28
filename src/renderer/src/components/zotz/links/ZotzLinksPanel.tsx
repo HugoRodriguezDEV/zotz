@@ -29,10 +29,12 @@ import {
 } from './zotz-link-groups'
 import { findZotzLinkWorktreeId, selectActiveZotzLinkMember } from './zotz-link-worktrees'
 import { ZotzLinkConversationRow } from './ZotzLinkConversationRow'
+import { ZotzLinkHostRoom } from './ZotzLinkHostRoom'
+import { ZotzLinkHostSection } from './ZotzLinkHostSection'
 import { ZotzLinkTimeline } from './ZotzLinkTimeline'
 import { ZotzGroupMap } from './ZotzGroupMap'
 import { useZotzGroupMap } from './use-zotz-group-map'
-import { isZotzMessageInPair } from './zotz-group-map-edges'
+import { isZotzMessageOfMember } from './zotz-group-map-edges'
 
 const NO_GROUPS: readonly ZotzLinkGroup[] = []
 
@@ -81,7 +83,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
     })
     .join('\n')
   const messages = useZotzLinkMessages(hosts, addressKey, group !== null)
-  const [pair, setPair] = useState<{ a: number; b: number } | null>(null)
+  const [focusedMember, setFocusedMember] = useState<string | null>(null)
   const map = useZotzGroupMap({
     group,
     active,
@@ -92,9 +94,13 @@ export default function ZotzLinksPanel(): React.JSX.Element {
         ? (hostFor(member.hostId)?.name ?? member.hostId)
         : null
   })
-  const shownMessages = pair
-    ? messages.filter((message) => isZotzMessageInPair(message, pair, map.memberIndexOf))
-    : messages
+  const focusedIndex = map.nodes.findIndex((node) => node.key === focusedMember)
+  const shownMessages =
+    focusedIndex === -1
+      ? messages
+      : messages.filter((message) =>
+          isZotzMessageOfMember(message, focusedIndex, map.memberIndexOf)
+        )
 
   const nameFor = (addressOrLabel: string): string => {
     for (const member of group?.members ?? []) {
@@ -218,15 +224,16 @@ export default function ZotzLinksPanel(): React.JSX.Element {
               <Section title={t('zotz.groups.mapTitle', 'Who talks to whom')}>
                 <div className="px-1">
                   <ZotzGroupMap
+                    groupId={group.id}
                     nodes={map.nodes}
                     edges={map.edges}
                     parentEdges={map.parentEdges}
-                    activeEdges={map.activeEdges}
-                    selected={pair}
-                    onSelect={setPair}
+                    mail={map.mail}
+                    selected={focusedIndex === -1 ? null : focusedMember}
+                    onSelect={setFocusedMember}
                   />
-                  {pair ? (
-                    <Button variant="ghost" size="xs" onClick={() => setPair(null)}>
+                  {focusedIndex !== -1 ? (
+                    <Button variant="ghost" size="xs" onClick={() => setFocusedMember(null)}>
                       {t('zotz.groups.mapShowAll', 'Show every message')}
                     </Button>
                   ) : null}
@@ -251,7 +258,13 @@ export default function ZotzLinksPanel(): React.JSX.Element {
         {hosts.map((host) => {
           const list = conversations.get(host.hostId)
           return (
-            <Section key={host.hostId} title={host.name}>
+            <ZotzLinkHostSection
+              key={host.hostId}
+              host={host}
+              list={list}
+              groupKey={group?.id ?? null}
+              compact={(group?.members.length ?? 0) > 1}
+            >
               {!host.supported ? (
                 <p className="px-2 text-[11px] text-muted-foreground">
                   {t(
@@ -268,18 +281,23 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                     {t('zotz.links.none', 'No conversations here.')}
                   </p>
                 ) : (
-                  list.conversations.map((entry) => {
-                    const member = { hostId: host.hostId, path: entry.path }
-                    return (
-                      <ZotzLinkConversationRow
-                        key={entry.path}
-                        entry={entry}
-                        highlighted={active ? sameZotzLinkMember(member, active) : false}
-                        onOpen={() => open(member)}
-                        action={linkAction(member)}
-                      />
-                    )
-                  })
+                  <ZotzLinkHostRoom
+                    host={host}
+                    entries={list.conversations}
+                    groupMap={map}
+                    isCurrent={(entry) =>
+                      active
+                        ? sameZotzLinkMember({ hostId: host.hostId, path: entry.path }, active)
+                        : false
+                    }
+                    isInGroup={(entry) =>
+                      (group?.members ?? []).some((m) =>
+                        sameZotzLinkMember(m, { hostId: host.hostId, path: entry.path })
+                      )
+                    }
+                    actionFor={(entry) => linkAction({ hostId: host.hostId, path: entry.path })}
+                    onOpen={(entry) => open({ hostId: host.hostId, path: entry.path })}
+                  />
                 )
               ) : (
                 <p className="px-2 text-[11px] text-muted-foreground">
@@ -288,7 +306,7 @@ export default function ZotzLinksPanel(): React.JSX.Element {
                     : t('zotz.links.loading', 'Loading…')}
                 </p>
               )}
-            </Section>
+            </ZotzLinkHostSection>
           )
         })}
       </div>

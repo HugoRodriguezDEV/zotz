@@ -3057,8 +3057,8 @@
       },
       "Landing": {
         "f9eaa9e12d": "Add project",
-        "6ca6ff404e": "ORCA",
-        "520304a067": "Orca logo",
+        "6ca6ff404e": "ZOTZ",
+        "520304a067": "Zotz logo",
         "c1cf168479": "Hide",
         "00cee697c1": "Run \"gh auth login\" in a terminal to connect your GitHub account.",
         "9f96d018b7": "GitHub CLI is not authenticated",
@@ -26362,6 +26362,19 @@
       "link": "Link",
       "unlink": "Unlink",
       "leave": "Leave the group",
+      "hostRoom": "Conversations on {{host}}",
+      "inGroup": "In the group",
+      "hostSummary": {
+        "conversations_one": "{{count}} conversation",
+        "conversations_other": "{{count}} conversations",
+        "needsYou_one": "{{count}} needs you",
+        "needsYou_other": "{{count}} need you",
+        "none": "No conversations",
+        "outdated": "Needs an update",
+        "unreachable": "Not answering",
+        "working_one": "{{count}} working",
+        "working_other": "{{count}} working"
+      },
       "linkedMark": "Linked",
       "loading": "Loading…",
       "messages": "Messages between them",
@@ -26374,6 +26387,14 @@
       "unreachable": "{{host}} isn't answering.",
       "updateServer": "Update Zotz on {{host}} to link its conversations.",
       "workingTogether": "Working together"
+    },
+    "agentRoom": {
+      "agent": "{{name}}: {{state}}",
+      "agentRemote": "{{name}} on {{machine}}: {{state}}",
+      "help": "Arrow keys move it; Enter selects it. Lines: {{lines}}.",
+      "line": "{{a}} ↔ {{b}}: {{count}} messages",
+      "helpOpen": "Arrow keys move it; Space selects it; Enter opens it. Lines: {{lines}}.",
+      "inGroup": "in a group"
     },
     "groups": {
       "twoServers": "Two servers can't write to each other, so a group holds this machine and at most one server.",
@@ -26397,7 +26418,6 @@
       "mapTitle": "Who talks to whom",
       "mapShowAll": "Show every message",
       "mapLabel": "Who in the group writes to whom",
-      "mapEdge": "{{a}} ↔ {{b}}: {{count}} messages",
       "startLegend": "Optional: start a conversation in each project with the same task",
       "taskPlaceholder": "What should they build together?",
       "createAndStart": "Create and start {{count}}",

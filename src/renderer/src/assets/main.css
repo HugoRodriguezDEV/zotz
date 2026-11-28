@@ -19,6 +19,23 @@
   font-display: swap;
 }
 
+/* Zotz pixel sidebar: Doto for project and group names, Share Tech Mono for row data. */
+@font-face {
+  font-family: 'Doto';
+  src: url('./fonts/Doto-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Share Tech Mono';
+  src: url('./fonts/ShareTechMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Orca Nerd Font Symbols';
   src: url('./fonts/SymbolsNerdFontMono-Regular.woff2') format('woff2');
@@ -55,6 +72,8 @@
   --text-settings-heading--line-height: 1.4;
   --text-chat-code: 0.75rem;
   --text-chat-code--line-height: calc(1 / 0.75);
+  --font-zotz-display: 'Doto', 'Geist', sans-serif;
+  --font-zotz-data: 'Share Tech Mono', var(--font-mono);
 }
 
 @theme inline {
@@ -1327,7 +1346,8 @@ html.native-shell .app-layout {
 
 /* Custom titlebars hide native app identity; invert the white SVG in light mode for contrast. */
 .titlebar-logo {
-  height: 16px;
+  /* 20px = 2px per cell of the 16×10 pixel bat. */
+  height: 20px;
   flex-shrink: 0;
   margin: 0 4px 0 10px;
   opacity: 0.75;
@@ -1336,6 +1356,27 @@ html.native-shell .app-layout {
 /* .dark lives on the root; descendant :not(.dark) would also match dark mode. */
 :root:not(.dark) .titlebar-logo {
   filter: invert(1);
+}
+
+/* Landing bat flap: the wings-down frame covers the moon for 220ms of every 560ms; reduced motion keeps wings up. */
+.zotz-bat-flap-down {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .zotz-bat-flap-down {
+    animation: zotz-bat-flap 560ms step-end infinite;
+  }
+}
+
+@keyframes zotz-bat-flap {
+  0% {
+    visibility: hidden;
+  }
+  60.7%,
+  100% {
+    visibility: visible;
+  }
 }
 
 /* Fixed window controls replace hidden native chrome in every layout mode. */

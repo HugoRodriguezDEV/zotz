@@ -1981,8 +1981,8 @@
       },
       "Landing": {
         "f9eaa9e12d": "Agregar proyecto",
-        "6ca6ff404e": "ORCA",
-        "520304a067": "logotipo de Orca",
+        "6ca6ff404e": "ZOTZ",
+        "520304a067": "logotipo de Zotz",
         "c1cf168479": "Ocultar",
         "00cee697c1": "Ejecuta \"gh auth login\" en una terminal para conectar tu cuenta de GitHub.",
         "9f96d018b7": "La CLI de GitHub no está autenticada",
@@ -24729,6 +24729,22 @@
       "link": "Enlazar",
       "unlink": "Desenlazar",
       "leave": "Salir del grupo",
+      "hostRoom": "Conversaciones en {{host}}",
+      "inGroup": "En el grupo",
+      "hostSummary": {
+        "conversations_one": "{{count}} conversación",
+        "conversations_other": "{{count}} conversaciones",
+        "conversations_many": "{{count}} conversaciones",
+        "needsYou_one": "{{count}} te necesita",
+        "needsYou_other": "{{count}} te necesitan",
+        "needsYou_many": "{{count}} te necesitan",
+        "none": "Sin conversaciones",
+        "outdated": "Necesita actualizarse",
+        "unreachable": "No responde",
+        "working_one": "{{count}} trabajando",
+        "working_other": "{{count}} trabajando",
+        "working_many": "{{count}} trabajando"
+      },
       "linkedMark": "Enlazada",
       "loading": "Cargando…",
       "messages": "Mensajes entre ellas",
@@ -24741,6 +24757,14 @@
       "unreachable": "{{host}} no responde.",
       "updateServer": "Actualiza Zotz en {{host}} para enlazar sus conversaciones.",
       "workingTogether": "Trabajando juntas"
+    },
+    "agentRoom": {
+      "agent": "{{name}}: {{state}}",
+      "agentRemote": "{{name}} en {{machine}}: {{state}}",
+      "help": "Las flechas lo mueven; Enter lo selecciona. Líneas: {{lines}}.",
+      "line": "{{a}} ↔ {{b}}: {{count}} mensajes",
+      "helpOpen": "Las flechas lo mueven; Espacio lo selecciona; Enter lo abre. Líneas: {{lines}}.",
+      "inGroup": "en un grupo"
     },
     "groups": {
       "twoServers": "Dos servidores no pueden escribirse entre sí; un grupo junta esta máquina y como máximo un servidor.",
@@ -24764,7 +24788,6 @@
       "mapTitle": "Quién habla con quién",
       "mapShowAll": "Ver todos los mensajes",
       "mapLabel": "Quién le escribe a quién en el grupo",
-      "mapEdge": "{{a}} ↔ {{b}}: {{count}} mensajes",
       "startLegend": "Opcional: arranca una conversación en cada proyecto con la misma tarea",
       "taskPlaceholder": "¿Qué deben construir juntos?",
       "createAndStart": "Crear y arrancar {{count}}",
