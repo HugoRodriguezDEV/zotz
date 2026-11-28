@@ -353,6 +353,21 @@ Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 
 ---
 
+## Fase 10 — Flows (automatizaciones con nodos, estilo n8n)
+
+Spec completo: [`SPEC-flows.md`](./SPEC-flows.md). Propuesta del 2026-11-27, por aprobar.
+
+- [x] 0. Contrato de flows, nodos, disparadores, corridas y RPC `zotz.flows.*`.
+- [ ] 1. Motor: ejecutor, nodos (con bucle Para cada), plantillas, salida Markdown/JSON, horario y CLI `zotz flows`.
+- [ ] 2. Lienzo visual (React Flow): editor, inspector y vista de corrida.
+- [ ] 3. Disparadores por evento: agente terminó, PR, tarea cambió de columna, webhook.
+- [ ] 4. Chat: `/flow` con el contexto de la conversación y Responder en chat.
+- [ ] 5. Migración de automatizaciones a flows de un nodo, página vieja oculta y móvil.
+
+**Listo cuando:** el caso de `/revisar-pr` del final del spec corre completo en la MSI.
+
+---
+
 ## Decisiones abiertas (las resuelve Hugo)
 
 1. **Notificaciones push al celular** (`push.onorca.dev`): las manda la infraestructura de StablyAI. Opciones: (a) dejarlas, que es cómodo pero los avisos pasan por sus servidores; (b) apagarlas y usar un bot propio de Telegram para los avisos (sería una Fase 8).
@@ -377,6 +392,7 @@ Spec completo: [`TASKS-SPEC.md`](./TASKS-SPEC.md).
 | 7 Seguridad             | 5          | S (en su mayoría docs y configuración) |
 | 8 Gobernador de memoria | 4, 5       | L                                      |
 | 9 Tablero de tareas     | 8          | L                                      |
+| 10 Flows                | 8, 9       | XL                                     |
 
 Las fases 1, 2 y 3 se pueden trabajar en paralelo en worktrees separados.
 
@@ -1012,3 +1028,18 @@ Sección B de la spec de monitor y remotos.
 - **Programas OSC 7501:** chip con núcleo, barra de progreso y candado / "?" / llave. Una fila es de programa si trae la faceta `programStatus` y su `agentType` no es un agente conocido (id del catálogo `TUI_AGENT_CONFIG`, su comando de arranque como `dsh-tui`, o `dsb`): el proyector ya traduce el `app` de los agentes conocidos a su id y los hooks siempre nombran el suyo. No cambia el protocolo ni lo que recibe la app móvil.
 - Enganches de una línea (`zotzProcess`) en `AgentStateDot`, `AgentChildRowContent`, `NativeChatBackgroundTaskRun`, `worktree-card-compact-agent-row` y `DashboardAgentRow`.
 - Verificado con fixtures en claro y oscuro (`zotz/agent-sprite/ZotzProcessSprite:*`, `zotz/background/ZotzBackgroundPanel:everyKind`, `zotz/sidebar/ZotzProjectSidebar:onlyProcessesLeft`; capturas en `capturas/procesos-pixel/`). **Sin probar en la app:** tareas reales de Codex/Grok y un programa real que emita OSC 7501.
+
+### 2026-11-28 — Flows, parte 0: contrato (`zotz/fase-10-flows-0-contrato`)
+
+- `src/shared/zotz/flows/`: esquemas zod `zotz-flow/v1` (flow, disparadores, nodos, puertos), tipos de corrida, parser de plantillas `{{ }}` y validación pura del grafo. Parámetros RPC `zotz.flows.*` en `src/shared/rpc-contract/zotz/zotz-flows-params.ts`; el catálogo generado no cambia hasta que la parte 1 registre los handlers.
+- El nodo Agente reusa los esquemas zod de `automation-params.ts` (`TuiAgent`, `WorkspaceRunContext`, `AutomationCanonicalLaunchSetup`, `SetupDecision`, `ExecutionHostId`, `AutomationSchedule`).
+
+**Decisiones no escritas en el spec**
+
+- Un nodo con varias entradas corre cuando todas sus entradas terminaron o se saltaron, y se salta si ninguna llegó; `join` solo hace falta para "esperar a la primera".
+- Un flow puede tener varios nodos raíz: todos arrancan con el disparador. Un nodo sin ninguna conexión, cuando hay otros nodos, es error.
+- El cuerpo de un `for_each` son los nodos con `parentId`; las aristas no cruzan el borde del bucle, el bucle entra a los nodos raíz del cuerpo y el cuerpo debe terminar en un solo nodo (la salida de cada vuelta).
+- Una plantilla solo puede leer nodos que corren antes con seguridad (ancestros por aristas, más los ancestros de los bucles que lo contienen); ramas paralelas no cuentan.
+- El nodo Comando no acepta plantillas en su texto: los valores van en `env` (`ZOTZ_FLOW_<NOMBRE>`).
+- Puertos de Aprobación: `approved`, `rejected` y `timeout` (solo si tiene `timeoutSeconds`). Cualquier nodo con `onError: 'error_port'` suma el puerto `error`.
+- `maxRunsPerHour` es un campo del flow (default 20). El token del webhook se guarda en el disparador y su ruta es `/zotz/flows/hooks/<id del disparador>`.
