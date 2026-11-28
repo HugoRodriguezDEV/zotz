@@ -50,6 +50,9 @@ beforeAll(async () => {
   const executablePath = process.env.ORCA_MOBILE_WEB_RENDER_BROWSER
   browsers.chromium = await chromium.launch({
     headless: true,
+    // Chrome 158 aborts (site_instance_impl.cc has_site_) isolating a sandboxed srcdoc under setContent's about:blank; mobile WebViews never isolate it.
+    // Not --disable-features=IsolateSandboxedIframes: a second --disable-features replaces Playwright's own.
+    args: ['--disable-site-isolation-trials'],
     ...(executablePath ? { executablePath } : {})
   })
   browsers.webkit = await webkit.launch({ headless: true }).catch(() => null)
