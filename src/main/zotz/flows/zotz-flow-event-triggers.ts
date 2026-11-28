@@ -1,4 +1,5 @@
 import type { Repo } from '../../../shared/repository/repo-types'
+import { getRepoExecutionHostId, LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
 import { getOwnerRepoForRemote } from '../../github/repositories/github-repository-identity'
 import type { RuntimeStore } from '../../runtime/construction/runtime-store-contract'
 import { refreshZotzTaskFeeds } from '../tasks/zotz-task-connector-registry'
@@ -29,7 +30,10 @@ type SourceKind = (typeof SOURCE_KINDS)[number] & ZotzFlowEventKind
 async function localGitHubRepos(store: Pick<RuntimeStore, 'getRepos'>): Promise<string[]> {
   const local = store
     .getRepos()
-    .filter((repo: Repo) => !repo.connectionId && repo.kind !== 'folder')
+    .filter(
+      (repo: Repo) =>
+        getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID && repo.kind !== 'folder'
+    )
   const resolved = await Promise.all(
     local.map((repo) => getOwnerRepoForRemote(repo.path, 'origin').catch(() => null))
   )
